@@ -33,8 +33,8 @@ namespace ActualGodMode
         private const float MinPointSpacing = 3f;
         private const float TrailFadeSeconds = 0.6f;
 
-        /// <summary>Pause after the last stroke before the gesture is recognized (allows multi-stroke symbols).</summary>
-        private const float RecognizeDelaySeconds = 0.45f;
+        /// <summary>Pause after the last stroke before the gesture is recognized (allows multi-stroke symbols). A setting.</summary>
+        private static float RecognizeDelaySeconds => ActualGodModeMod.Settings.strokePauseSeconds;
 
         public static bool Toggled;
 

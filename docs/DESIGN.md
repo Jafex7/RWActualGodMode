@@ -233,9 +233,10 @@ prayer slots, group bonus, Worship time assignment.
 Water / Food / Wood level I (and II behind requirements). Cast from the bottom-bar
 "Miracles" tab; witnesses gain a little faith.
 
-### M3 — Hand of God mode
+### M3 — Hand of God mode ✔
 Mode toggle + hold-key input, cursor FX, $P recognizer, default gestures, Book of
-Gestures, player gesture recorder.
+Gestures, player gesture recorder. Verified in-game. Settings: gesture tolerance,
+pause between strokes, label position.
 
 **Start with a Waylith spike** (small throwaway test, before building the system).
 1.7's docs say nothing about cursor/input/UI-drawing APIs; they go through

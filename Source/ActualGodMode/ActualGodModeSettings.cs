@@ -20,6 +20,9 @@ namespace ActualGodMode
         // Gestures
         public float gestureTolerance = 1f;
 
+        /// <summary>Pause after a stroke before the sign is read (time to start the next stroke).</summary>
+        public float strokePauseSeconds = 0.45f;
+
         /// <summary>Player-recorded gestures by MiracleDef defName (global across saves, like keybindings).</summary>
         public Dictionary<string, CustomGesture> customGestures = new Dictionary<string, CustomGesture>();
 
@@ -27,6 +30,7 @@ namespace ActualGodMode
         {
             base.ExposeData();
             Scribe_Values.Look(ref gestureTolerance, "gestureTolerance", 1f);
+            Scribe_Values.Look(ref strokePauseSeconds, "strokePauseSeconds", 0.45f);
             Scribe_Collections.Look(ref customGestures, "customGestures", LookMode.Value, LookMode.Deep);
             if (customGestures == null)
             {
@@ -57,6 +61,9 @@ namespace ActualGodMode
             gestureTolerance = listing.SliderLabeled(
                 "AGM_Setting_GestureTolerance".Translate(gestureTolerance.ToStringPercent()), gestureTolerance, 0.5f, 2f,
                 tooltip: "AGM_Setting_GestureTolerance_Tip".Translate());
+            strokePauseSeconds = listing.SliderLabeled(
+                "AGM_Setting_StrokePause".Translate(strokePauseSeconds.ToString("F2")), strokePauseSeconds, 0.2f, 2f,
+                tooltip: "AGM_Setting_StrokePause_Tip".Translate());
             if (listing.ButtonText("AGM_BookOfGestures".Translate()))
             {
                 Find.WindowStack.Add(new Window_BookOfGestures());

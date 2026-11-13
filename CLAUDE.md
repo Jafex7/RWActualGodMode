@@ -9,8 +9,8 @@ Read before changing things:
 
 ## Status
 - Done: **M0** setup, **M1** faith / divine power / shrine / worship, **M2** miracles (toolbar casting).
-- **M3** Hand of God mode: spike verified in-game (cursor, input, trail, label). Gesture casting, Book of
-  Gestures and recorder implemented and self-tested; awaiting the user's in-game test.
+- Done: **M3** Hand of God mode (gesture casting, Book of Gestures, recorder), verified in-game.
+- Next: **M4** faith dynamics (hardship / gratitude / witnessing, trait extension, Zealot/Sceptic, prayer requests).
 
 ## Commands
 - Build: `dotnet build Source/ActualGodMode/ActualGodMode.csproj -c Release` (outputs to `1.7/Assemblies/`).

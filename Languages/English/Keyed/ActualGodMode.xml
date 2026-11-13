@@ -45,6 +45,9 @@
   <AGM_Setting_GestureTolerance>Gesture tolerance: {0}</AGM_Setting_GestureTolerance>
   <AGM_Setting_GestureTolerance_Tip>How forgiving gesture recognition is. Higher accepts sloppier drawings but may confuse similar gestures.</AGM_Setting_GestureTolerance_Tip>
 
+  <AGM_Setting_StrokePause>Pause between strokes: {0} s</AGM_Setting_StrokePause>
+  <AGM_Setting_StrokePause_Tip>How long you can pause after a stroke before the sign is read. Raise it if multi-stroke signs get read before you finish them. (Releasing the hold key always reads the sign right away.)</AGM_Setting_StrokePause_Tip>
+
   <AGM_BookOfGestures>Book of Gestures</AGM_BookOfGestures>
   <AGM_Book_Intro>In Hand of God mode ({0}), draw a miracle's sign on the map, then click where it should happen. You can re-record any sign to suit your hand.</AGM_Book_Intro>
   <AGM_Book_Default>default sign</AGM_Book_Default>
