@@ -31,8 +31,10 @@ Read before changing things:
   Dropping into danger (fire / hostiles) is judged like a strike (`WrathJudgement`, shared with Lightning).
   Soft influence border: past the edge, miracles and the Hand cost more and the Hand weakens, sharply with distance
   (`InfluenceUtility.CostFactor` / `LiftFactor` / `InReach`, `AGM_InfluenceTuning.xml`).
-  Soft border verified in-game. Hold-to-cast (click = burst, hold = pour under the cursor for 2 s: water per tile,
-  food crops / logs per drop; `MiracleChannel`, `<channel>` in the MiracleDef). Self-tested; awaiting in-game test.
+  Soft border verified in-game. Hold-to-cast (`MiracleChannel`, `<channel>` in the MiracleDef): Water and Wood are
+  pour-only (the charge = the level's amount, paid per unit; release pauses, right-click cancels; water 9/16 tiles,
+  wood over 3 s of holding); Food keeps its click (meals) and streams crops while held. Self-tested; awaiting
+  in-game test of the pour-only rework.
 - Next: see the roadmap in DESIGN.md (v2: factions/awe, throwing, …).
 
 ## Commands

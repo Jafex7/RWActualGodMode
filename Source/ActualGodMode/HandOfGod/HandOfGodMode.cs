@@ -52,7 +52,8 @@ namespace ActualGodMode
         private static MiracleDef charged;
         private static int chargedLevel;
 
-        // Channelling: a press on a channel-able charged miracle; released quickly = normal cast, held = pour.
+        // Channelling: a press on a channel-able charged miracle. Pour-only: the channel lives as long as the
+        // charge (press = pour, release = pause). Stream: released quickly = normal cast, held = stream.
         private static bool chargePressed;
         private static float chargePressTime;
         private static IntVec3 chargePressCell;
@@ -111,6 +112,11 @@ namespace ActualGodMode
                         chargePressed = true;
                         chargePressTime = Time.realtimeSinceStartup;
                         chargePressCell = UI.MouseCell();
+                        if (charged.channel.pourOnly)
+                        {
+                            channel ??= new MiracleChannel(charged, chargedLevel, Find.CurrentMap);
+                            channel.Press(chargePressCell, chargePressTime);
+                        }
                     }
                     else if (charged != null)
                     {
@@ -167,7 +173,7 @@ namespace ActualGodMode
                     break;
 
                 case EventType.MouseDown when e.button == 1:
-                    if (channel != null)
+                    if (channel != null && !channel.PourOnly)
                     {
                         FinishChannel();
                     }
@@ -272,11 +278,15 @@ namespace ActualGodMode
             return 0;
         }
 
-        /// <summary>Released: a quick click casts as usual; a channel just stops.</summary>
+        /// <summary>Released: a pour pauses (the rest of the charge stays), a stream ends, a quick click casts as usual.</summary>
         private static void EndChargePress()
         {
             chargePressed = false;
-            if (channel != null)
+            if (channel != null && channel.PourOnly)
+            {
+                channel.Release();
+            }
+            else if (channel != null)
             {
                 FinishChannel();
             }
@@ -297,11 +307,17 @@ namespace ActualGodMode
             }
             if (chargePressed && channel == null && charged?.channel != null && now - chargePressTime >= charged.channel.clickSeconds)
             {
-                channel = new MiracleChannel(charged, chargedLevel, map, chargePressCell, now);
+                channel = new MiracleChannel(charged, chargedLevel, map);
+                channel.Press(chargePressCell, chargePressTime);
             }
             if (channel != null)
             {
                 channel.Update(UI.MouseCell(), now);
+                if (!channel.message.NullOrEmpty())
+                {
+                    Messages.Message(channel.message, MessageTypeDefOf.RejectInput, historical: false);
+                    channel.message = null;
+                }
                 if (channel.finished)
                 {
                     FinishChannel();
@@ -319,11 +335,11 @@ namespace ActualGodMode
             {
                 return;
             }
-            if (!ended.endReason.NullOrEmpty())
+            if (!ended.message.NullOrEmpty())
             {
-                Messages.Message(ended.endReason, MessageTypeDefOf.RejectInput, historical: false);
+                Messages.Message(ended.message, MessageTypeDefOf.RejectInput, historical: false);
             }
-            if (ended.units > 0)
+            if (ended.units > 0 || ended.PourOnly)
             {
                 CancelCharge();
             }
@@ -428,7 +444,7 @@ namespace ActualGodMode
                 IntVec3 mouse = UI.MouseCell();
                 if (mouse.InBounds(map))
                 {
-                    if (channel != null)
+                    if (channel != null || charged.channel?.pourOnly == true)
                     {
                         GenDraw.DrawFieldEdges(new List<IntVec3> { mouse }, InfluenceUtility.InfluenceColor);
                     }
@@ -537,10 +553,26 @@ namespace ActualGodMode
             {
                 return;
             }
-            Rect line = new Rect(icon.xMax + 6f, y, 260f, 22f);
+            Rect line = new Rect(icon.xMax + 6f, y, 300f, 22f);
+            float unitCost = MiracleChannel.UnitCostAt(charged, level, UI.MouseCell(), Find.CurrentMap);
+            if (charged.channel.pourOnly)
+            {
+                // The charge: a bar of what's left, and a hint until something is poured.
+                int budget = MiracleChannel.BudgetOf(charged, level);
+                int left = channel?.Remaining ?? budget;
+                Widgets.FillableBar(new Rect(line.x, line.y + 3f, 160f, 8f), (float)left / budget);
+                using (new TextBlock(GameFont.Small, TextAnchor.UpperLeft, Color.white))
+                {
+                    Widgets.Label(new Rect(line.x, line.y + 12f, 300f, 22f),
+                        channel == null || channel.units == 0
+                            ? (string)"AGM_Channel_HintPour".Translate(unitCost.ToString("F2"))
+                            : (string)"AGM_Channel_Left".Translate(left, budget, unitCost.ToString("F2")));
+                }
+                return;
+            }
             if (channel != null)
             {
-                Widgets.FillableBar(new Rect(line.x, line.y + 3f, 160f, 8f), 1f - channel.Progress(Time.realtimeSinceStartup));
+                Widgets.FillableBar(new Rect(line.x, line.y + 3f, 160f, 8f), 1f - channel.Progress);
                 using (new TextBlock(GameFont.Small, TextAnchor.UpperLeft, Color.white))
                 {
                     Widgets.Label(new Rect(line.x, line.y + 12f, 260f, 22f), "AGM_Channel_Pouring".Translate(channel.spent.ToString("F1")));
@@ -548,10 +580,9 @@ namespace ActualGodMode
             }
             else
             {
-                float unit = MiracleChannel.UnitCostAt(charged, level, UI.MouseCell(), Find.CurrentMap);
                 using (new TextBlock(GameFont.Tiny, TextAnchor.UpperLeft, new Color(0.85f, 0.85f, 0.85f)))
                 {
-                    Widgets.Label(line, (charged.channel.perTile ? "AGM_Channel_HintTile" : "AGM_Channel_HintUnit").Translate(unit.ToString("F2")));
+                    Widgets.Label(line, (charged.channel.perTile ? "AGM_Channel_HintTile" : "AGM_Channel_HintUnit").Translate(unitCost.ToString("F2")));
                 }
             }
         }

@@ -35,7 +35,7 @@ namespace ActualGodMode
         }
     }
 
-    /// <summary>Rain on an area: puts out fires and wets the ground.</summary>
+    /// <summary>Rain: puts out fires and wets the ground, on <c>amount</c> tiles (closest first; poured tile by tile in Hand of God mode).</summary>
     public class MiracleWorker_Water : MiracleWorker
     {
         public override AcceptanceReport CanCastAt(IntVec3 cell, Map map, MiracleLevel level)
@@ -45,13 +45,30 @@ namespace ActualGodMode
 
         public override void Cast(IntVec3 cell, Map map, MiracleLevel level)
         {
-            foreach (IntVec3 c in GenRadial.RadialCellsAround(cell, level.radius, useCenter: true))
+            foreach (IntVec3 c in Area(cell, map, level))
             {
-                if (c.InBounds(map))
+                Soak(c, map, 0.35f);
+            }
+        }
+
+        /// <summary>The <c>amount</c> closest open tiles (a one-shot cast, e.g. from the toolbar).</summary>
+        private static List<IntVec3> Area(IntVec3 cell, Map map, MiracleLevel level)
+        {
+            var cells = new List<IntVec3>();
+            for (int i = 0; i < GenRadial.NumCellsInRadius(GenRadial.MaxRadialPatternRadius - 1f) && cells.Count < level.amount; i++)
+            {
+                IntVec3 c = cell + GenRadial.RadialPattern[i];
+                if (c.InBounds(map) && !c.Filled(map))
                 {
-                    Soak(c, map, 0.35f);
+                    cells.Add(c);
                 }
             }
+            return cells;
+        }
+
+        public override void DrawPreview(IntVec3 cell, Map map, MiracleLevel level)
+        {
+            GenDraw.DrawFieldEdges(Area(cell, map, level), InfluenceUtility.InfluenceColor);
         }
 
         /// <summary>Channelled: a pinpoint of water on each tile the cursor crosses.</summary>
@@ -111,11 +128,11 @@ namespace ActualGodMode
         /// <summary>Channelled: a handful of one of the channel's things (raw crops, logs) at the cursor.</summary>
         public override bool ChannelUnit(IntVec3 cell, Map map, MiracleLevel level, MiracleChannelProps channel, bool first)
         {
-            if (channel.things.NullOrEmpty())
+            ThingDef def = channel.things.NullOrEmpty() ? level.thingDef : channel.things.RandomElement();
+            if (def == null)
             {
                 return false;
             }
-            ThingDef def = channel.things.RandomElement();
             if (first)
             {
                 RecordFeedDeed(def, cell, map);

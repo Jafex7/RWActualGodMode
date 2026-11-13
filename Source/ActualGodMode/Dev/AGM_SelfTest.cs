@@ -756,56 +756,103 @@ namespace ActualGodMode
             Check(!r.Accepted && Mathf.Approximately(dp.Power, 3f), "cast without enough power refused: " + r.Reason);
         }
 
-        /// <summary>Hold-to-cast: water poured tile by tile (paid once per tile), crops dropped on a rhythm, time limit, running dry.</summary>
+        /// <summary>
+        /// Hold-to-cast. Water and wood are pour-only: the charge is the level's amount, paid per unit,
+        /// poured over as many presses as needed. Food keeps its click and streams crops while held.
+        /// </summary>
         private void RunChannelTests(Map map, IntVec3 near, MiracleDef water, MiracleDef food)
         {
             DivinePower dp = DivinePower.Instance;
+            MiracleDef wood = DefDatabase<MiracleDef>.GetNamed("AGM_Miracle_Wood");
             dp.Add(100f);
 
-            // A straight line of five open cells inside the influence, each with a fire.
-            CellFinder.TryFindRandomCellNear(shrine.Position, map, 7, c =>
-                Enumerable.Range(0, 5).All(i => (c + new IntVec3(i, 0, 0)) is IntVec3 x && x.InBounds(map) && x.Standable(map)
-                    && x.GetFirstItem(map) == null && x.GetFirstPawn(map) == null && InfluenceUtility.InInfluence(x, map)), out IntVec3 a);
+            // Two rows of six open cells inside the influence, each cell on fire.
+            bool Open(IntVec3 x) => x.InBounds(map) && x.Standable(map) && x.GetFirstItem(map) == null && x.GetFirstPawn(map) == null && InfluenceUtility.InInfluence(x, map);
+            CellFinder.TryFindRandomCellNear(shrine.Position, map, 8, c =>
+                Enumerable.Range(0, 6).All(i => Open(c + new IntVec3(i, 0, 0)) && Open(c + new IntVec3(i, 0, 1))), out IntVec3 a);
             if (!a.IsValid)
             {
-                Check(false, "found a line of open cells for the channel test");
+                Check(false, "found two rows of open cells for the channel test");
                 return;
             }
-            IntVec3 b = a + new IntVec3(4, 0, 0);
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < 6; i++)
             {
-                Fire fire = (Fire)ThingMaker.MakeThing(ThingDefOf.Fire);
-                fire.fireSize = 0.5f;
-                GenSpawn.Spawn(fire, a + new IntVec3(i, 0, 0), map);
+                for (int z = 0; z < 2; z++)
+                {
+                    Fire fire = (Fire)ThingMaker.MakeThing(ThingDefOf.Fire);
+                    fire.fireSize = 0.5f;
+                    GenSpawn.Spawn(fire, a + new IntVec3(i, 0, z), map);
+                }
             }
+            MiracleLevel w1 = water.levels[0];
+            float tile = MiracleChannel.UnitCostAt(water, w1, a, map);
             float t = 1000f;
             float before = dp.Power;
-            var ch = new MiracleChannel(water, 0, map, a, t);
-            ch.Update(b, t + 0.1f);
-            float tile = MiracleChannel.UnitCostAt(water, water.levels[0], a, map);
-            bool allOut = Enumerable.Range(0, 5).All(i => !(a + new IntVec3(i, 0, 0)).ContainsStaticFire(map));
-            Check(allOut && ch.units == 5 && Mathf.Abs(before - dp.Power - 5 * tile) < 0.01f,
-                $"pouring water along a line puts out each fire, paid per tile ({ch.units} tiles, {before - dp.Power:F2} power, {tile:F2} each)");
-            float spentOnce = before - dp.Power;
+            var ch = new MiracleChannel(water, 0, map);
+            ch.Press(a, t);
+            ch.Update(a + new IntVec3(5, 0, 0), t + 0.1f);
+            bool rowOut = Enumerable.Range(0, 6).All(i => !(a + new IntVec3(i, 0, 0)).ContainsStaticFire(map));
+            Check(rowOut && ch.units == 6 && Mathf.Abs(before - dp.Power - 6 * tile) < 0.01f,
+                $"pouring water along a row puts out each fire, paid per tile ({ch.units} tiles, {before - dp.Power:F2} power, {tile:F2} each = cost/{w1.amount})");
+            float spentRow = before - dp.Power;
             ch.Update(a, t + 0.3f);
-            Check(Mathf.Abs(before - dp.Power - spentOnce) < 0.001f, "going back over watered tiles is free");
-            ch.Update(a, t + 2.1f);
-            Check(ch.finished, "the pour stops after its time limit");
+            Check(Mathf.Abs(before - dp.Power - spentRow) < 0.001f && ch.units == 6, "going back over watered tiles is free and doesn't count");
+            ch.Release();
+            ch.Update(a + new IntVec3(0, 0, 1), t + 10f);
+            Check(ch.units == 6 && !ch.finished, "releasing pauses the pour: no time limit, the rest of the charge stays");
+            ch.Press(a + new IntVec3(0, 0, 1), t + 20f);
+            ch.Update(a + new IntVec3(5, 0, 1), t + 20.1f);
+            int secondRowOut = Enumerable.Range(0, 6).Count(i => !(a + new IntVec3(i, 0, 1)).ContainsStaticFire(map));
+            Check(ch.finished && ch.units == w1.amount && secondRowOut == w1.amount - 6 && Mathf.Abs(before - dp.Power - w1.cost) < 0.01f,
+                $"pressing again goes on until the full charge ({w1.amount} tiles, {before - dp.Power:F1} power) is used, then stops");
 
-            // Food: raw crops on a rhythm (6 a second): at the start, then 3 more by half a second.
+            // Wood: one log at a time; the full amount takes pourSeconds of holding (time released doesn't count).
+            int logs = CountOf(map, ThingDefOf.WoodLog);
+            MiracleLevel wl = wood.levels[0];
+            before = dp.Power;
+            var wc = new MiracleChannel(wood, 0, map);
+            wc.Press(near, t);
+            float now = t;
+            for (; now < t + 1.5f; now += 0.05f)
+            {
+                wc.Update(near, now);
+            }
+            int half = wc.units;
+            wc.Release();
+            wc.Update(near, now + 5f);
+            Check(half > 5 && half < wl.amount && wc.units == half, $"holding wood drops logs one by one ({half} after 1.5 s), none while released");
+            wc.Press(near, now + 10f);
+            for (now += 10f; now < t + 14f && !wc.finished; now += 0.05f)
+            {
+                wc.Update(near, now);
+            }
+            int gotLogs = CountOf(map, ThingDefOf.WoodLog) - logs;
+            Check(wc.finished && gotLogs == wl.amount && Mathf.Abs(before - dp.Power - wl.cost) < 0.01f,
+                $"the full wood charge drops {wl.amount} logs for {wl.cost} power (got {gotLogs}, {before - dp.Power:F1})");
+
+            // Food (stream): raw crops on a rhythm (6 a second): at the start, then 3 more by half a second.
             int crops = food.channel.things.Sum(d => CountOf(map, d));
             before = dp.Power;
-            var fc = new MiracleChannel(food, 0, map, near, t);
+            var fc = new MiracleChannel(food, 0, map);
+            fc.Press(near, t);
             fc.Update(near, t);
             fc.Update(near, t + 0.55f);
             int got = food.channel.things.Sum(d => CountOf(map, d)) - crops;
             Check(fc.units == 4 && got == 4 * food.channel.countPerUnit && Mathf.Abs(before - dp.Power - 4 * food.channel.unitCost) < 0.01f,
                 $"holding food drops raw crops one handful at a time ({fc.units} drops, {got} crops, {before - dp.Power:F1} power)");
+            fc.Update(near, t + 2.1f);
+            Check(fc.finished, "the food stream stops after its time limit");
 
-            // Running dry ends the pour.
-            dp.DebugSet(0.5f);
-            fc.Update(near, t + 0.8f);
-            Check(fc.finished && !fc.endReason.NullOrEmpty() && Mathf.Approximately(dp.Power, 0.5f), "the pour stops when the god's power runs dry");
+            // Running dry: a pour-only charge pauses (keeps the rest), a stream ends.
+            dp.DebugSet(0.1f);
+            var dry = new MiracleChannel(wood, 0, map);
+            dry.Press(near, t);
+            dry.Update(near, t);
+            Check(!dry.holding && !dry.finished && !dry.message.NullOrEmpty() && Mathf.Approximately(dp.Power, 0.1f), "out of power, a pour pauses and keeps the rest of its charge");
+            var dryFood = new MiracleChannel(food, 0, map);
+            dryFood.Press(near, t);
+            dryFood.Update(near, t);
+            Check(dryFood.finished && Mathf.Approximately(dp.Power, 0.1f), "out of power, a stream stops");
             dp.Add(100f);
         }
 

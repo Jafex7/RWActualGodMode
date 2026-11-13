@@ -15,27 +15,27 @@
   <ActualGodMode.MiracleDef>
     <defName>AGM_Miracle_Water</defName>
     <label>water</label>
-    <description>Rain falls on the chosen spot, putting out fires and soaking the ground.</description>
+    <description>Rain falls where the god's hand passes, putting out fires and soaking the ground. Hold and drag to pour it tile by tile.</description>
     <workerClass>ActualGodMode.MiracleWorker_Water</workerClass>
     <gesture>AGM_Gesture_Wave</gesture>
     <iconThing>Filth_Water</iconThing>
     <order>10</order>
-    <!-- Hold the click: water each tile the cursor crosses (level cost spread over its area, x1.5). -->
+    <!-- Pour-only: hold and drag to water `amount` tiles, one at a time (a tile counts once).
+         Release pauses, press again to go on, right-click cancels. No time limit. -->
     <channel>
+      <pourOnly>true</pourOnly>
       <perTile>true</perTile>
-      <maxSeconds>2</maxSeconds>
-      <markup>1.5</markup>
     </channel>
     <levels>
       <li>
         <label>I</label>
         <cost>5</cost>
-        <radius>2.9</radius>
+        <amount>9</amount>
       </li>
       <li>
         <label>II</label>
         <cost>15</cost>
-        <radius>5.9</radius>
+        <amount>16</amount>
         <requirements>
           <li Class="ActualGodMode.Req_Believers">
             <count>3</count>
@@ -118,20 +118,16 @@
   <ActualGodMode.MiracleDef>
     <defName>AGM_Miracle_Wood</defName>
     <label>wood</label>
-    <description>Logs appear at the chosen spot. A small blessing is enough for a campfire.</description>
+    <description>Logs fall one by one while the god's hand is held over the spot. A small blessing is enough for a campfire.</description>
     <workerClass>ActualGodMode.MiracleWorker_SpawnThing</workerClass>
     <gesture>AGM_Gesture_Tree</gesture>
     <iconThing>WoodLog</iconThing>
     <order>30</order>
-    <!-- Hold the click: logs fall a few at a time. -->
+    <!-- Pour-only: hold to drop the level's logs one by one; the full amount takes pourSeconds of holding.
+         Release pauses, press again to go on, right-click cancels. -->
     <channel>
-      <maxSeconds>2</maxSeconds>
-      <unitsPerSecond>6</unitsPerSecond>
-      <unitCost>0.9</unitCost>
-      <countPerUnit>4</countPerUnit>
-      <things>
-        <li>WoodLog</li>
-      </things>
+      <pourOnly>true</pourOnly>
+      <pourSeconds>3</pourSeconds>
     </channel>
     <levels>
       <li>
