@@ -297,6 +297,10 @@ click a thing = grab, drag from empty ground = gesture, release = put down.
   being sent to fight: not judged (fire still is). The cursor warns "Danger: fire" /
   "Danger: hostiles (n)" before you drop. Plain drops don't hurt; no work order is given
   on a dangerous drop. Later ideas: deep water, toxic/vacuum, falling from height.
+  - **Pinned (user)**: harming a **visitor** (dangerous drop, and Lightning too) should
+    anger their faction like attacking them does in vanilla (goodwill loss / hostility,
+    via the vanilla goodwill & history-event system rather than our own). The cursor
+    warning says "This will anger their faction" before the drop. Raiders are fair game.
 - **Later (user ideas, M6b feedback)**:
   - Drop interactions with a **choice** (food: eat vs haul; corpse: butcher vs bury…):
     maybe a menu later; for now only work-giver jobs, which don't need one.
