@@ -77,6 +77,20 @@ Re-run after game updates:
   Passing `null` resets to the default. The texture's pixels must be readable, or
   it logs a warning and resets. Vanilla wrapper: `Verse.CustomCursor`.
 - `Input.mousePosition` and `Input.GetMouseButton` exist in UnityStubs.
+- **Code-built textures lose their CPU pixels.** `new Texture2D` + `SetPixels` + `Apply`
+  works for GPU drawing, but Waylith's texture residency later evicts the CPU copy, and
+  with no source file it can't reload, so CPU reads (`GetPixel`, hardware cursor) return
+  zeros. A cursor made this way showed as a **black square**. Fix used: keep our own
+  RGBA byte[] (rows top-down) and call `Waylith.PlatformSpecific.HardwareCursor.SetImage(key,
+  rgba, w, h, hotX, hotY)` directly. To restore, call `Cursor.SetCursor(null, …)` first
+  (clears the stub's last-texture cache), then `CustomCursor.Activate()`.
+- **Flecks run on game time**: they freeze while paused, and flecks spawned while paused
+  all appear at once on unpause. Don't spawn cursor particles while paused.
+- Hand of God mode owns map input by prefixing `MapInterface.HandleMapClicks` and
+  `HandleLowPriorityInput` (verified in-game: selection/designators paused, UI and camera fine).
+- `\` (Backslash) opens a dev menu in dev mode; `=` (Equals) is unused by vanilla.
+- Other mods (e.g. Multiplayer) log "probably needs a StaticConstructorOnStartup
+  attribute" warnings at startup; those aren't ours.
 
 ## Unknown / not documented yet
 - Cursor API (custom cursor textures), IMGUI/Widgets changes, input APIs, Graphics.DrawMesh,

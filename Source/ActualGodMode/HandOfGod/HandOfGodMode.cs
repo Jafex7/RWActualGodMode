@@ -120,15 +120,11 @@ namespace ActualGodMode
                 cursorApplied = active;
                 if (active)
                 {
-                    Cursor.SetCursor(HandOfGodCursor.Texture, HandOfGodCursor.Hotspot, CursorMode.Auto);
-                }
-                else if (Prefs.CustomCursorEnabled)
-                {
-                    CustomCursor.Activate();
+                    HandOfGodCursor.Apply();
                 }
                 else
                 {
-                    CustomCursor.Deactivate();
+                    HandOfGodCursor.Restore();
                 }
             }
             if (!active)
@@ -141,6 +137,11 @@ namespace ActualGodMode
                 return;
             }
 
+            // Flecks run on game time: spawning them while paused would pile up and burst on unpause.
+            if (Find.TickManager.Paused)
+            {
+                return;
+            }
             Map map = Find.CurrentMap;
             Vector3 mousePos = UI.MouseMapPosition();
             if (++glowFrame % (drawing ? 3 : 10) == 0 && mousePos.ToIntVec3().InBounds(map))
@@ -179,7 +180,7 @@ namespace ActualGodMode
 
             if (Active)
             {
-                Rect rect = new Rect(UI.screenWidth / 2f - 200f, 60f, 400f, 30f);
+                Rect rect = LabelRect();
                 using (new TextBlock(GameFont.Medium, TextAnchor.MiddleCenter, gold))
                 {
                     Widgets.Label(rect, "AGM_HoG_Active".Translate());
@@ -191,6 +192,35 @@ namespace ActualGodMode
                                 : "AGM_HoG_HintHeld".Translate());
                 }
             }
+        }
+
+        /// <summary>
+        /// Where the "Hand of God" label goes. Horizontal position is a setting; vertical is
+        /// either automatic (just below the colonist bar) or a setting, for UI mods that overlap.
+        /// </summary>
+        private static Rect LabelRect()
+        {
+            const float width = 400f;
+            ActualGodModeSettings s = ActualGodModeMod.Settings;
+            float y;
+            if (s.handLabelAutoY)
+            {
+                y = 8f;
+                ColonistBar bar = Find.ColonistBar;
+                if (bar != null && bar.DrawLocs != null)
+                {
+                    foreach (Vector2 loc in bar.DrawLocs)
+                    {
+                        y = Mathf.Max(y, loc.y + bar.Size.y + 18f * bar.Scale + 6f);
+                    }
+                }
+            }
+            else
+            {
+                y = s.handLabelY * UI.screenHeight;
+            }
+            float x = s.handLabelX * UI.screenWidth - width / 2f;
+            return new Rect(Mathf.Clamp(x, 0f, UI.screenWidth - width), y, width, 30f);
         }
 
         private static void DrawTrail(List<Vector2> points, Color color)

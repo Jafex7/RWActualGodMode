@@ -19,7 +19,8 @@
     <defName>AGM_ToggleHandOfGod</defName>
     <label>toggle Hand of God mode</label>
     <category>AGM_HandOfGod</category>
-    <defaultKeyCodeA>Backslash</defaultKeyCodeA>
+    <!-- "=" : unused by vanilla. (Backslash opens a dev menu in dev mode.) -->
+    <defaultKeyCodeA>Equals</defaultKeyCodeA>
   </KeyBindingDef>
 
   <KeyBindingDef>
