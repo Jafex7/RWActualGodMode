@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <AGM_SettingsCategory>Actual God Mode</AGM_SettingsCategory>
+
+  <AGM_Setting_FaithDecay>Faith decay: {0}</AGM_Setting_FaithDecay>
+  <AGM_Setting_FaithDecay_Tip>How fast colonists' faith fades on its own. 0% disables decay entirely.</AGM_Setting_FaithDecay_Tip>
+
+  <AGM_Setting_SkipAwakening>Skip the Awakening</AGM_Setting_SkipAwakening>
+  <AGM_Setting_SkipAwakening_Tip>The Shrine research is available from the start instead of being unlocked by the Awakening storyline.</AGM_Setting_SkipAwakening_Tip>
+</LanguageData>

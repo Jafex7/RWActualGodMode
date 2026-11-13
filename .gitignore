@@ -1,0 +1,15 @@
+# Decompiled game code: reference only, never commit or ship
+_reference/
+
+# Build output
+bin/
+obj/
+1.7/Assemblies/
+
+# IDE / OS
+.vs/
+.idea/
+*.user
+*.suo
+Thumbs.db
+.DS_Store
