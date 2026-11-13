@@ -170,12 +170,12 @@ namespace ActualGodMode
             switch (e.type)
             {
                 case EventType.MouseDown when e.button == 0 || e.button == 1:
-                    hand.Place(UI.MouseCell());
+                    hand.Place(UI.MouseCell(), order: true);
                     e.Use();
                     break;
 
                 case EventType.MouseUp when e.button == 0 && hand.dragging:
-                    hand.Place(UI.MouseCell());
+                    hand.Place(UI.MouseCell(), order: true);
                     e.Use();
                     break;
 

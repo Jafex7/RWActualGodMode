@@ -274,10 +274,27 @@ click a thing = grab, drag from empty ground = gesture, release = put down.
 - The held pawn keeps ticking (hunger, bleeding) and still counts as on the map; the
   game doesn't end while the last colonist is in the hand. A thing in the hand when
   saving is set down on load.
-- **Not yet / tabled**: reactions of the lifted (fear, awe, witnessing as a miracle for
-  conversion?), enemies struggling or resisting, dropping from height (damage), hostile
-  pawns dropped among colonists as a tactic (fine for now, cost balances it), lifting
-  several things at once, a hand sound.
+- **Reactions** (flavor, not a faith source): a lifted person shouts and gets a small
+  0.5-day memory that doesn't stack: good god "lifted by the god" +2 ("Praise be!"),
+  neutral "picked up by something unseen" 0 ("Whoa!"), evil or hostile pawn "seized by
+  the god" −2 ("No, please!"). Animals don't react.
+- **Set down on work** (B&W-style "drop a villager by a tree"): a player colonist set
+  down deliberately on something starts work there, like vanilla's right-click
+  "Prioritize …" but with no menu. Order: the main things on the cell (bench bills,
+  blueprints/frames, plants, items to haul), then filth, then the cell (sowing). Within a
+  target, the pawn's own work priority order decides. An **undesignated tree** is marked
+  for cutting (removed again if the pawn can't do it). If only unassigned/disabled work
+  fits: a warning in vanilla wording ("Cannot cut oak tree: Not assigned to plant
+  cutting"), no order. Not for drafted, downed or breaking pawns, and not for drops
+  that happen on their own (edge of influence, out of power).
+- **Later (user ideas, M6b feedback)**:
+  - Drop interactions with a **choice** (food: eat vs haul; corpse: butcher vs bury…):
+    maybe a menu later; for now only work-giver jobs, which don't need one.
+  - **Enemies struggle**: cost much more to lift, or locked until a milestone.
+  - **Dangerous drops**: dropping a pawn into fire, among hostile insects, etc. should be
+    detected and judged like Lightning: punishment/evil for your own people,
+    retribution for enemies. A plain drop doesn't hurt.
+  - Lifting several things at once.
 
 ## 7. Impressiveness & Factions
 - Other factions have an **Awe** value toward the god, raised when their pawns
@@ -400,7 +417,23 @@ See conversation log; resolved items get moved into the sections above.
   worth less).
 - Assets: see `docs/ASSETS.md` for the catalog of placeholders to replace.
 
+## God progression (idea, M6b feedback)
+A "research" for the god's own powers, bought with prayer points (power gathered): an
+ability tree where the player picks upgrades, e.g. cheaper miracles, more lift capacity,
+**the ability to lift living things**, then **to lift enemies**, etc. Each costs an amount
+of power to buy. To design later; it would also be the natural place to gate the
+Hand's stronger abilities instead of giving them all at once.
+
+## Sound (to do near the end)
+SFX wanted for: drawing a gesture (while drawing / recognized / failed), each miracle
+cast, lifting and setting down, offering, revelation. See `docs/ASSETS.md`.
+
 ## M6b notes (balance pass)
+- **Lift capacity grows too fast (user playtest)**: a Chosen People start had 3
+  believers at once, so 80 kg straight away, and hardly anything is heavier. Idea: scale
+  capacity with total prayer points gathered (lifetime power) as well as believers, or
+  make it a purchasable upgrade (see God progression). The user liked the trickle cost
+  while holding: keep it.
 - Hand costs are guesses: check that carrying a colonist across the base feels cheap
   enough to use for rescues but not free; items might be too cheap to matter (a whole
   steel stack costs ~1 power), which is intended ("helping haul").

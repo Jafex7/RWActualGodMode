@@ -410,7 +410,7 @@ namespace ActualGodMode
 
             // Healing is good
             Teleport(a, shrine.Position + new IntVec3(2, 0, 2), map);
-            a.TakeDamage(new DamageInfo(DamageDefOf.Cut, 5f));
+            a.TakeDamage(new DamageInfo(DamageDefOf.Cut, 5f, armorPenetration: 99f)); // armor must not absorb it
             dp.Add(dp.MaxPower);
             MiracleUtility.TryCast(heal, 0, a.Position, map);
             Check(alignment.Value > 0.5f, $"healing a follower is a good deed ({alignment.Value:F1})");
@@ -536,10 +536,21 @@ namespace ActualGodMode
             Teleport(colonist, shrine.Position + new IntVec3(2, 0, 3), map);
             Building_Bed bed = AGM_TestScenarios.SetUpHandTest(map); // downs the first standing colonist
             Check(colonist.Downed, "the hand test setup downs a colonist (anesthetic)");
-            Log.Message(Tag + $"  colonist mass {GodHand.MassOf(colonist):F0} kg");
+            Log.Message(Tag + $"  colonist mass {GodHand.MassOf(colonist):F0} kg, capacity {GodHand.Capacity:F0} kg");
+            if (GodHand.MassOf(colonist) > GodHand.Capacity)
+            {
+                // Lightning in the alignment phase can kill a believer, shrinking the hand.
+                Log.Message(Tag + "  (too few living believers to lift a colonist: skipping the colonist checks)");
+                colonist.health.RemoveHediff(colonist.health.hediffSet.GetFirstHediffOfDef(HediffDefOf.Anesthetic));
+                RunHandWorkOrderTests(map, hand, colonist);
+                return;
+            }
             dp.DebugSet(dp.MaxPower);
             alignment.DebugSet(0f);
-            Check(hand.TryGrab(colonist, drag: true) && !colonist.Spawned, "the hand lifts a colonist");
+            AcceptanceReport canLift = hand.CanGrab(colonist);
+            Check(hand.TryGrab(colonist, drag: true) && !colonist.Spawned, $"the hand lifts a colonist {canLift.Reason} (holding {hand.Held.ToStringSafe()}, power {DivinePower.Instance.Power:F0}, in influence {InfluenceUtility.InInfluence(colonist.PositionHeld, map)})");
+            Check(colonist.needs.mood.thoughts.memories.GetFirstMemoryOfDef(AGM_HandDefOf.AGM_LiftedStartled) != null,
+                "a person lifted by a neutral god is startled (flavor thought)");
             Check(map.mapPawns.FreeColonists.Contains(colonist), "a lifted colonist still counts as on the map");
             Find.GameEnder.CheckOrUpdateGameOver();
             Check(!Find.GameEnder.gameEnding, "the game doesn't end while a colonist is in the hand");
@@ -552,6 +563,63 @@ namespace ActualGodMode
             hand.Place(bed.Position);
             Check(Mathf.Approximately(alignment.Value, t.carryToBedDeed), "moving them again from the bed earns nothing more");
             colonist.health.RemoveHediff(colonist.health.hediffSet.GetFirstHediffOfDef(HediffDefOf.Anesthetic));
+
+            RunHandWorkOrderTests(map, hand, colonist);
+        }
+
+        /// <summary>Setting a colonist down on a tree puts them to cutting it (if assigned), or warns.</summary>
+        private void RunHandWorkOrderTests(Map map, GodHand hand, Pawn exclude)
+        {
+            Pawn worker = map.mapPawns.FreeColonistsSpawned.FirstOrDefault(p => p != exclude && !p.Dead && !p.Downed && !p.WorkTypeIsDisabled(WorkTypeDefOf.PlantCutting));
+            if (worker == null)
+            {
+                Log.Message(Tag + "  (no colonist able to cut plants: skipping hand work orders)");
+                return;
+            }
+            Plant SpawnTree(IntVec3 around)
+            {
+                IntVec3 c = GenRadial.RadialCellsAround(around, 6f, true).FirstOrDefault(x => x.InBounds(map) && x.Standable(map)
+                    && x.GetPlant(map) == null && x.GetEdifice(map) == null && map.fertilityGrid.FertilityAt(x) > 0.5f
+                    && InfluenceUtility.InInfluence(x, map) && x.GetFirstPawn(map) == null && x.GetFirstItem(map) == null);
+                if (!c.IsValid)
+                {
+                    return null;
+                }
+                var tree = (Plant)GenSpawn.Spawn(ThingDef.Named("Plant_TreeOak"), c, map);
+                tree.Growth = 1f;
+                return tree;
+            }
+            Plant oak = SpawnTree(shrine.Position + new IntVec3(4, 0, -3));
+            if (oak == null)
+            {
+                Log.Message(Tag + "  (no fertile cell for a test tree: skipping hand work orders)");
+                return;
+            }
+            GenSpawn.Spawn(ThingDefOf.Filth_Dirt, oak.Position, map); // the tree, not the dirt under it, is what they're set on
+            worker.workSettings.EnableAndInitialize();
+            worker.workSettings.SetPriority(WorkTypeDefOf.PlantCutting, 1);
+            DivinePower.Instance.DebugSet(DivinePower.Instance.MaxPower);
+            hand.TryGrab(worker, drag: false);
+            hand.MoveTo(oak.Position);
+            hand.Place(oak.Position, order: true);
+            bool designated = map.designationManager.DesignationOn(oak, DesignationDefOf.CutPlant) != null;
+            bool cutting = (worker.CurJobDef?.defName ?? "").StartsWith("CutPlant") || worker.jobs.jobQueue.Any(q => q.job.def.defName.StartsWith("CutPlant"));
+            Check(designated && cutting, $"a woodcutter set down on a tree marks it and starts cutting (designated {designated}, job {worker.CurJobDef?.defName})");
+
+            // Not assigned: a warning, and the tree is left unmarked.
+            Plant oak2 = SpawnTree(shrine.Position + new IntVec3(-4, 0, -3));
+            if (oak2 != null)
+            {
+                worker.jobs.StopAll();
+                worker.workSettings.SetPriority(WorkTypeDefOf.PlantCutting, 0);
+                HandWorkOrder.Result r = HandWorkOrder.OrderWork(worker, oak2.Position);
+                Check(!r.ordered && !r.text.NullOrEmpty() && map.designationManager.DesignationOn(oak2) == null,
+                    $"not assigned to cutting: a warning, no order, tree left alone ('{r.text}')");
+                worker.workSettings.SetPriority(WorkTypeDefOf.PlantCutting, 3);
+                oak2.Destroy();
+            }
+            worker.jobs.StopAll();
+            oak.Destroy();
         }
 
         private static void Teleport(Pawn p, IntVec3 c, Map map)

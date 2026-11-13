@@ -140,6 +140,10 @@ namespace ActualGodMode
 
             lastCell = t.Position;
             takenFromBed = t is Pawn p && p.InBed();
+            if (t is Pawn lifted)
+            {
+                React(lifted);
+            }
             Find.Selector.Deselect(t);
             Thing taken;
             if (t is Pawn)
@@ -181,8 +185,46 @@ namespace ActualGodMode
             }
         }
 
-        /// <summary>Set the held thing down at the cell (or the last cell inside the influence).</summary>
-        public bool Place(IntVec3 cell)
+        /// <summary>
+        /// A lifted person reacts by the god's nature: joy (good), surprise (neutral), fear (evil).
+        /// Enemies are always afraid. Flavor only: a small, non-stacking mood memory and a shout.
+        /// </summary>
+        private static void React(Pawn pawn)
+        {
+            if (!pawn.RaceProps.Humanlike || pawn.Map == null)
+            {
+                return;
+            }
+            AlignmentTracker alignment = AlignmentTracker.Instance;
+            string key;
+            ThoughtDef thought;
+            if (pawn.HostileTo(Faction.OfPlayer) || alignment?.IsEvil == true)
+            {
+                key = "AGM_Hand_ShoutFear";
+                thought = AGM_HandDefOf.AGM_LiftedFear;
+            }
+            else if (alignment?.IsGood == true)
+            {
+                key = "AGM_Hand_ShoutJoy";
+                thought = AGM_HandDefOf.AGM_LiftedJoy;
+            }
+            else
+            {
+                key = "AGM_Hand_ShoutSurprise";
+                thought = AGM_HandDefOf.AGM_LiftedStartled;
+            }
+            MoteMaker.ThrowText(pawn.DrawPos + new Vector3(0f, 0f, 0.6f), pawn.Map, key.Translate(), 2.5f);
+            if (pawn.needs?.mood != null)
+            {
+                FaithThoughts.Give(pawn, thought);
+            }
+        }
+
+        /// <summary>
+        /// Set the held thing down at the cell (or the last cell inside the influence).
+        /// <paramref name="order"/>: a deliberate drop, so a colonist set on work starts it.
+        /// </summary>
+        public bool Place(IntVec3 cell, bool order = false)
         {
             Thing t = Held;
             if (t == null)
@@ -207,33 +249,55 @@ namespace ActualGodMode
             if (result is Pawn pawn)
             {
                 pawn.Rotation = Rot4.South;
-                TryTuckIntoBed(pawn);
+                if (!TryTuckIntoBed(pawn) && order && target == cell)
+                {
+                    OrderWork(pawn, cell);
+                }
             }
             return true;
         }
 
         /// <summary>Set down on a bed: a downed person is laid in it (and that's a kindness).</summary>
-        private void TryTuckIntoBed(Pawn pawn)
+        private bool TryTuckIntoBed(Pawn pawn)
         {
             Building_Bed bed = pawn.Position.GetFirstThing<Building_Bed>(map);
             if (bed == null || !RestUtility.CanUseBedNow(bed, pawn, checkSocialProperness: false))
             {
-                return;
+                return false;
             }
             bool wasDowned = pawn.Downed;
             pawn.jobs.Notify_TuckedIntoBed(bed);
             pawn.mindState.Notify_TuckedIntoBed();
             if (!wasDowned || takenFromBed || !pawn.RaceProps.Humanlike || pawn.HostileTo(Faction.OfPlayer))
             {
-                return;
+                return true;
             }
             int now = Find.TickManager.TicksGame;
             if (lastBedDeedTick.TryGetValue(pawn, out int last) && now - last < T.carryToBedCooldownHours * GenDate.TicksPerHour)
             {
-                return;
+                return true;
             }
             lastBedDeedTick[pawn] = now;
             AlignmentTracker.Instance?.Deed(T.carryToBedDeed, "AGM_Deed_CarriedToBed".Translate(pawn.LabelShort));
+            return true;
+        }
+
+        /// <summary>Set down on work: start it, or say why they can't.</summary>
+        private void OrderWork(Pawn pawn, IntVec3 cell)
+        {
+            HandWorkOrder.Result r = HandWorkOrder.OrderWork(pawn, cell);
+            if (r.text.NullOrEmpty())
+            {
+                return;
+            }
+            if (r.ordered)
+            {
+                MoteMaker.ThrowText(pawn.DrawPos + new Vector3(0f, 0f, 0.6f), map, r.text, 3f);
+            }
+            else
+            {
+                Messages.Message(pawn.LabelShort + ": " + r.text, pawn, MessageTypeDefOf.RejectInput, historical: false);
+            }
         }
 
         /// <summary>Spend the holding cost for a number of ticks. False (and drops) when power runs out.</summary>
@@ -314,6 +378,19 @@ namespace ActualGodMode
             ThingOwnerUtility.AppendThingHoldersFromThings(outChildren, held);
 
         public IThingHolder ParentHolder => map;
+    }
+
+    [DefOf]
+    public static class AGM_HandDefOf
+    {
+        public static ThoughtDef AGM_LiftedJoy;
+        public static ThoughtDef AGM_LiftedStartled;
+        public static ThoughtDef AGM_LiftedFear;
+
+        static AGM_HandDefOf()
+        {
+            DefOfHelper.EnsureInitializedInCtor(typeof(AGM_HandDefOf));
+        }
     }
 
     /// <summary>A colonist in the god's hand is still in the colony: don't end the game while they're lifted.</summary>

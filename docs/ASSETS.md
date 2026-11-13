@@ -24,6 +24,7 @@ build material (stuff) tints them.
 | Hand of God cursor | `HandOfGod/HandOfGodCursor.cs` | placeholder | 32×32 RGBA triangle in 3 styles (good gold, neutral pale blue, evil dark red). Must stay a byte buffer (Waylith evicts CPU pixels of code-built textures). |
 | Cursor particles | `HandOfGodCursor.ThrowParticles` | vanilla | Good: micro sparks; neutral: air puffs; evil: sparks + smoke |
 | Gesture trail | `HandOfGodMode.DrawTrail` | placeholder | Plain gold lines (`Widgets.DrawLine`) |
+| Lift reaction shout / work order text | `GodHand.React`, `GodHand.OrderWork` | vanilla | `MoteMaker.ThrowText` floating text over the pawn |
 | Held thing | `GodHand.MapComponentUpdate` | vanilla | The thing's own graphic drawn under the cursor (`DrawNowAt`); target cell uses vanilla `GenDraw.DrawTargetHighlight`. Later: a shadow on the ground, a lift/drop sound |
 
 ## Borrowed from vanilla
@@ -44,5 +45,5 @@ build material (stuff) tints them.
 ## Missing entirely (would be nice)
 - Miracles tab button icon (currently text only)
 - Research tab icon (Divine)
-- Custom sounds: gesture recognized/failed, miracle cast, offering, revelation
+- Custom sounds: gesture drawing/recognized/failed, miracle cast, lift / set down, offering, revelation
 - Shrine visual stages (temple tier, alignment)

@@ -26,7 +26,9 @@ Read before changing things:
   Verified in-game.
 - **M6b** the Hand: grab (click or hold-still on a pawn/item) / carry / set down; capacity by believers,
   pickup + per-hour costs by mass, drop outside influence or out of power, tuck into bed (+ good deed for a downed
-  person). `GodHand` MapComponent holds the thing. Self-tested; awaiting in-game test.
+  person). `GodHand` MapComponent holds the thing. Verified in-game. Then: lifted pawns react (flavor thought + shout by
+  alignment), and a colonist set down on work starts it (`HandWorkOrder`, vanilla work-giver checks, trees get marked).
+  Self-tested; awaiting in-game test.
 - Next: see the roadmap in DESIGN.md (v2: factions/awe, throwing, …).
 
 ## Commands
@@ -50,7 +52,7 @@ Read before changing things:
 | `Source/…/Shrine/` | `CompShrine` (prayer spots, slots, group bonus, power rate), `ShrineUtility` + one-per-map PlaceWorker, `InfluenceUtility` |
 | `Source/…/Worship/` | `JobDriver_PrayAtShrine`, job/joy givers, `WorshipUtility.TryMakePrayJob` |
 | `Source/…/Miracles/` | `MiracleDef` + `MiracleLevel`, `MiracleRequirement` (+ `Req_*`), `MiracleWorker` (+ subclasses), `MiracleTracker` (unlocks), `MiracleUtility` (CanCast/TryCast/witnesses), `Designator_Miracle`, `MainTabWindow_Miracles` |
-| `Source/…/HandOfGod/` | `HandOfGodMode` (state: toggle/hold, strokes, recognition, charged miracle, casting, label, grab-vs-stroke input), `HandOfGodCursor` (RGBA cursor via Waylith `HardwareCursor`), `GodHand` (MapComponent + IThingHolder: held thing, capacity, costs, place/tuck, game-over guard patch), `HandTuningDef` (`AGM_HandTuning.xml`) |
+| `Source/…/HandOfGod/` | `HandOfGodMode` (state: toggle/hold, strokes, recognition, charged miracle, casting, label, grab-vs-stroke input), `HandOfGodCursor` (RGBA cursor via Waylith `HardwareCursor`), `GodHand` (MapComponent + IThingHolder: held thing, capacity, costs, place/tuck, game-over guard patch), `HandTuningDef` (`AGM_HandTuning.xml`), `HandWorkOrder` (set a colonist down on work → prioritized job, like vanilla's right-click) |
 | `Source/…/Gestures/` | `GestureDef` (+ template/stroke/custom), `PointCloudRecognizer` ($P), `GestureLibrary` (default vs player gestures, threshold, matching), `Window_BookOfGestures`, `Dialog_RecordGesture` |
 | `Source/…/Patches/` | Harmony patches: Worship schedule block, power readout, Hand of God input (`MapInterface.HandleMapClicks` / `HandleLowPriorityInput`) |
 | `Source/…/Dev/` | Debug actions (`AGM_DebugActions`, `AGM_AwakeningDebug`), `AGM_TestScenarios` (shared setups), `AGM_SelfTest` (runs only with `-agmselftest`; phases: worship → sync tests → awakening) |

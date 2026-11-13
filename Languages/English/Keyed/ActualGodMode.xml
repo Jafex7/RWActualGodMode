@@ -174,7 +174,7 @@
   <AGM_HoG_Active>Hand of God</AGM_HoG_Active>
   <AGM_HoG_HintToggled>Left-drag to draw · click or hold on something to lift it · right-click or {0} to leave</AGM_HoG_HintToggled>
   <AGM_HoG_HintHeld>Left-drag to draw · click or hold on something to lift it · release the key to leave</AGM_HoG_HintHeld>
-  <AGM_HoG_HintHolding>Click (or release, if dragging) to set it down · leaving the god's reach drops it</AGM_HoG_HintHolding>
+  <AGM_HoG_HintHolding>Click (or release, if dragging) to set it down · set a colonist on work to start it · leaving the god's reach drops it</AGM_HoG_HintHolding>
 
   <!-- The Hand -->
   <AGM_Hand_GrabLine>Lift {0}</AGM_Hand_GrabLine>
@@ -185,6 +185,9 @@
   <AGM_Hand_OutOfInfluence>That is beyond the god's reach.</AGM_Hand_OutOfInfluence>
   <AGM_Hand_Slipped>{0} slipped from the god's hand at the edge of its reach.</AGM_Hand_Slipped>
   <AGM_Hand_NoPower>The god's power ran out: {0} was set down.</AGM_Hand_NoPower>
+  <AGM_Hand_ShoutJoy>Praise be!</AGM_Hand_ShoutJoy>
+  <AGM_Hand_ShoutSurprise>Whoa!</AGM_Hand_ShoutSurprise>
+  <AGM_Hand_ShoutFear>No, please!</AGM_Hand_ShoutFear>
   <AGM_HoG_HintCharged>Left-click to cast · {0} / {1} change level · right-click to cancel</AGM_HoG_HintCharged>
   <AGM_HoG_Toggle>Hand of God mode</AGM_HoG_Toggle>
 
