@@ -742,6 +742,8 @@ namespace ActualGodMode
             r = MiracleUtility.TryCast(water, 0, fireCell, map);
             Check(r.Accepted && !fireCell.ContainsStaticFire(map), "water I extinguished the fire");
 
+            RunChannelTests(map, near, water, food);
+
             // Outside influence is refused and costs nothing
             IntVec3 far = map.AllCells.FirstOrDefault(c => c.Standable(map) && !c.Fogged(map) && !InfluenceUtility.InReach(c, map));
             before = dp.Power;
@@ -752,6 +754,59 @@ namespace ActualGodMode
             dp.DebugSet(3f);
             r = MiracleUtility.TryCast(food, 0, near, map);
             Check(!r.Accepted && Mathf.Approximately(dp.Power, 3f), "cast without enough power refused: " + r.Reason);
+        }
+
+        /// <summary>Hold-to-cast: water poured tile by tile (paid once per tile), crops dropped on a rhythm, time limit, running dry.</summary>
+        private void RunChannelTests(Map map, IntVec3 near, MiracleDef water, MiracleDef food)
+        {
+            DivinePower dp = DivinePower.Instance;
+            dp.Add(100f);
+
+            // A straight line of five open cells inside the influence, each with a fire.
+            CellFinder.TryFindRandomCellNear(shrine.Position, map, 7, c =>
+                Enumerable.Range(0, 5).All(i => (c + new IntVec3(i, 0, 0)) is IntVec3 x && x.InBounds(map) && x.Standable(map)
+                    && x.GetFirstItem(map) == null && x.GetFirstPawn(map) == null && InfluenceUtility.InInfluence(x, map)), out IntVec3 a);
+            if (!a.IsValid)
+            {
+                Check(false, "found a line of open cells for the channel test");
+                return;
+            }
+            IntVec3 b = a + new IntVec3(4, 0, 0);
+            for (int i = 0; i < 5; i++)
+            {
+                Fire fire = (Fire)ThingMaker.MakeThing(ThingDefOf.Fire);
+                fire.fireSize = 0.5f;
+                GenSpawn.Spawn(fire, a + new IntVec3(i, 0, 0), map);
+            }
+            float t = 1000f;
+            float before = dp.Power;
+            var ch = new MiracleChannel(water, 0, map, a, t);
+            ch.Update(b, t + 0.1f);
+            float tile = MiracleChannel.UnitCostAt(water, water.levels[0], a, map);
+            bool allOut = Enumerable.Range(0, 5).All(i => !(a + new IntVec3(i, 0, 0)).ContainsStaticFire(map));
+            Check(allOut && ch.units == 5 && Mathf.Abs(before - dp.Power - 5 * tile) < 0.01f,
+                $"pouring water along a line puts out each fire, paid per tile ({ch.units} tiles, {before - dp.Power:F2} power, {tile:F2} each)");
+            float spentOnce = before - dp.Power;
+            ch.Update(a, t + 0.3f);
+            Check(Mathf.Abs(before - dp.Power - spentOnce) < 0.001f, "going back over watered tiles is free");
+            ch.Update(a, t + 2.1f);
+            Check(ch.finished, "the pour stops after its time limit");
+
+            // Food: raw crops on a rhythm (6 a second): at the start, then 3 more by half a second.
+            int crops = food.channel.things.Sum(d => CountOf(map, d));
+            before = dp.Power;
+            var fc = new MiracleChannel(food, 0, map, near, t);
+            fc.Update(near, t);
+            fc.Update(near, t + 0.55f);
+            int got = food.channel.things.Sum(d => CountOf(map, d)) - crops;
+            Check(fc.units == 4 && got == 4 * food.channel.countPerUnit && Mathf.Abs(before - dp.Power - 4 * food.channel.unitCost) < 0.01f,
+                $"holding food drops raw crops one handful at a time ({fc.units} drops, {got} crops, {before - dp.Power:F1} power)");
+
+            // Running dry ends the pour.
+            dp.DebugSet(0.5f);
+            fc.Update(near, t + 0.8f);
+            Check(fc.finished && !fc.endReason.NullOrEmpty() && Mathf.Approximately(dp.Power, 0.5f), "the pour stops when the god's power runs dry");
+            dp.Add(100f);
         }
 
         /// <summary>

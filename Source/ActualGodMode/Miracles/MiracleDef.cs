@@ -26,6 +26,9 @@ namespace ActualGodMode
 
         public List<MiracleLevel> levels = new List<MiracleLevel>();
 
+        /// <summary>Optional: holding the click in Hand of God mode pours the miracle under the cursor (see <see cref="MiracleChannel"/>).</summary>
+        public MiracleChannelProps channel;
+
         public int order;
 
         [Unsaved(false)]
@@ -98,5 +101,30 @@ namespace ActualGodMode
         public int amount;
         public ThingDef thingDef;
         public List<MiracleRequirement> requirements = new List<MiracleRequirement>();
+    }
+
+    /// <summary>
+    /// How a miracle is channelled (click = the normal burst, hold = a stream under the cursor).
+    /// Per tile: one unit for each new cell the cursor crosses (water). Timed: units at a fixed
+    /// rhythm at the cursor (food crops, logs).
+    /// </summary>
+    public class MiracleChannelProps
+    {
+        /// <summary>Longest a channel lasts (real seconds).</summary>
+        public float maxSeconds = 2f;
+
+        /// <summary>A press released sooner than this is a click (the normal cast).</summary>
+        public float clickSeconds = 0.2f;
+
+        public bool perTile;
+        public float unitsPerSecond = 6f;
+
+        /// <summary>Power per unit; if 0, the level's cost spread over its area, times <see cref="markup"/>.</summary>
+        public float unitCost;
+        public float markup = 1.5f;
+
+        /// <summary>Timed spawns: one of these, <see cref="countPerUnit"/> at a time.</summary>
+        public List<ThingDef> things = new List<ThingDef>();
+        public int countPerUnit = 1;
     }
 }

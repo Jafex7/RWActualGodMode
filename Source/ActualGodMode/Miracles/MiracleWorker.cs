@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
+using UnityEngine;
 using Verse;
 
 namespace ActualGodMode
@@ -12,6 +13,9 @@ namespace ActualGodMode
         public virtual AcceptanceReport CanCastAt(IntVec3 cell, Map map, MiracleLevel level) => true;
 
         public abstract void Cast(IntVec3 cell, Map map, MiracleLevel level);
+
+        /// <summary>One unit of a channelled cast at this cell (see <see cref="MiracleChannel"/>). False if nothing happened (not charged).</summary>
+        public virtual bool ChannelUnit(IntVec3 cell, Map map, MiracleLevel level, MiracleChannelProps channel, bool first) => false;
 
         public virtual void DrawPreview(IntVec3 cell, Map map, MiracleLevel level)
         {
@@ -43,26 +47,37 @@ namespace ActualGodMode
         {
             foreach (IntVec3 c in GenRadial.RadialCellsAround(cell, level.radius, useCenter: true))
             {
-                if (!c.InBounds(map))
+                if (c.InBounds(map))
                 {
-                    continue;
+                    Soak(c, map, 0.35f);
                 }
-                List<Thing> things = c.GetThingList(map);
-                for (int i = things.Count - 1; i >= 0; i--)
+            }
+        }
+
+        /// <summary>Channelled: a pinpoint of water on each tile the cursor crosses.</summary>
+        public override bool ChannelUnit(IntVec3 cell, Map map, MiracleLevel level, MiracleChannelProps channel, bool first)
+        {
+            Soak(cell, map, 0.5f);
+            return true;
+        }
+
+        private static void Soak(IntVec3 c, Map map, float puddleChance)
+        {
+            List<Thing> things = c.GetThingList(map);
+            for (int i = things.Count - 1; i >= 0; i--)
+            {
+                if (things[i] is Fire)
                 {
-                    if (things[i] is Fire)
-                    {
-                        things[i].Destroy();
-                    }
+                    things[i].Destroy();
                 }
-                if (!c.Filled(map))
+            }
+            if (!c.Filled(map))
+            {
+                if (Rand.Chance(puddleChance))
                 {
-                    if (Rand.Chance(0.35f))
-                    {
-                        FilthMaker.TryMakeFilth(c, map, ThingDefOf.Filth_Water);
-                    }
-                    FleckMaker.Static(c, map, FleckDefOf.WaterSplash, Rand.Range(0.6f, 1.2f));
+                    FilthMaker.TryMakeFilth(c, map, ThingDefOf.Filth_Water);
                 }
+                FleckMaker.Static(c, map, FleckDefOf.WaterSplash, Rand.Range(0.6f, 1.2f));
             }
         }
     }
@@ -77,16 +92,7 @@ namespace ActualGodMode
 
         public override void Cast(IntVec3 cell, Map map, MiracleLevel level)
         {
-            if (level.thingDef.IsNutritionGivingIngestible)
-            {
-                // Feeding the hungry is a good deed (only when someone nearby actually needs it).
-                bool hungryNearby = map.mapPawns.FreeColonistsSpawned.Any(p =>
-                    p.Position.InHorDistOf(cell, 8f) && p.needs?.food != null && p.needs.food.CurCategory >= HungerCategory.Hungry);
-                if (hungryNearby)
-                {
-                    AlignmentTracker.Instance?.Deed(AlignmentTuningDef.Get.feedHungry, "AGM_Deed_FedHungry".Translate());
-                }
-            }
+            RecordFeedDeed(level.thingDef, cell, map);
             int remaining = level.amount;
             while (remaining > 0)
             {
@@ -100,6 +106,48 @@ namespace ActualGodMode
                 GenPlace.TryPlaceThing(thing, cell, map, ThingPlaceMode.Near);
             }
             DivineFlash(cell, map, 2f);
+        }
+
+        /// <summary>Channelled: a handful of one of the channel's things (raw crops, logs) at the cursor.</summary>
+        public override bool ChannelUnit(IntVec3 cell, Map map, MiracleLevel level, MiracleChannelProps channel, bool first)
+        {
+            if (channel.things.NullOrEmpty())
+            {
+                return false;
+            }
+            ThingDef def = channel.things.RandomElement();
+            if (first)
+            {
+                RecordFeedDeed(def, cell, map);
+            }
+            Thing thing = ThingMaker.MakeThing(def);
+            thing.stackCount = Mathf.Clamp(channel.countPerUnit, 1, def.stackLimit);
+            if (thing.def.IsIngestible)
+            {
+                MiracleTracker.Instance?.Bless(thing);
+            }
+            if (!GenPlace.TryPlaceThing(thing, cell, map, ThingPlaceMode.Near))
+            {
+                thing.Destroy();
+                return false;
+            }
+            FleckMaker.ThrowMicroSparks(cell.ToVector3Shifted(), map);
+            return true;
+        }
+
+        /// <summary>Feeding the hungry is a good deed (only when someone nearby actually needs it).</summary>
+        private static void RecordFeedDeed(ThingDef def, IntVec3 cell, Map map)
+        {
+            if (!def.IsNutritionGivingIngestible)
+            {
+                return;
+            }
+            bool hungryNearby = map.mapPawns.FreeColonistsSpawned.Any(p =>
+                p.Position.InHorDistOf(cell, 8f) && p.needs?.food != null && p.needs.food.CurCategory >= HungerCategory.Hungry);
+            if (hungryNearby)
+            {
+                AlignmentTracker.Instance?.Deed(AlignmentTuningDef.Get.feedHungry, "AGM_Deed_FedHungry".Translate());
+            }
         }
     }
 

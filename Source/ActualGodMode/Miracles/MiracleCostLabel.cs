@@ -8,7 +8,8 @@ namespace ActualGodMode
     {
         /// <param name="rect">Title line; the cost goes on the line below, then the outside-influence factor if any.</param>
         /// <param name="title">Optional title (e.g. the miracle and level).</param>
-        public static void Draw(Rect rect, string title, MiracleLevel level, IntVec3 cell, Map map)
+        /// <returns>The y of the next free line.</returns>
+        public static float Draw(Rect rect, string title, MiracleLevel level, IntVec3 cell, Map map)
         {
             float power = DivinePower.Instance?.Power ?? 0f;
             bool reach = map != null && cell.InBounds(map) && InfluenceUtility.InReach(cell, map);
@@ -34,6 +35,7 @@ namespace ActualGodMode
                     Widgets.Label(rect, "AGM_OutsideCostFactor".Translate(factor.ToString("F1")));
                 }
             }
+            return rect.y + 18f;
         }
     }
 }

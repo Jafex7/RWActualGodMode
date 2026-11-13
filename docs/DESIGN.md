@@ -467,19 +467,26 @@ work but get sharply dearer and weaker with distance (`AGM_InfluenceTuning.xml`)
 - Cursor readouts show the cost at the cursor and "outside influence: cost ×N".
 - Prayer answering, pylons and other "in influence" checks stay strict (inside only).
 
-## Hold-to-cast miracles (idea, user; not built)
-B&W style: some miracles can be **channelled**. A click does what it does now (one burst);
-**holding** keeps casting under the cursor for up to ~2 s while you move it, then stops.
-- Water: smaller radius per splash, but drag it over a fire line or a field.
-- Food / wood: a click spawns the set amount; holding spawns single items one by one
-  (food as raw crops: potatoes, corn, rice; wood logs) along the path.
-- Lightning and Heal stay one-and-done.
-- Feasible: a charged miracle starts a "channel" on mouse-down; every few frames while
-  held it applies a small effect at the cursor and drains power per unit; release, the
-  time limit, or running out of power ends it. A quick click (< ~0.2 s) keeps the
-  current single cast. Per-miracle XML: `channel` settings (rate, per-unit cost, max
-  seconds, per-unit radius/amount). Details to refine (cost per second vs per unit,
-  whether channelling works while paused).
+## Hold-to-cast miracles (built)
+B&W style: some miracles can be **channelled**. Rule for all of them: **a quick click casts the
+burst, holding pours a stream** under the cursor (Hand of God mode only; the toolbar keeps single casts).
+- A press released within `clickSeconds` (0.2 s) is the normal cast. Held longer, the channel
+  starts at the press cell and follows the cursor until release, right-click, `maxSeconds`
+  (2 s, real time, works while paused) or the power runs dry. The charge is used up only if
+  something was poured.
+- **Water** (per tile): pinpoint, one tile at a time; the path between frames is filled in.
+  Each new tile costs the level's cost spread over its area ×`markup` 1.5 (Water I: 5 / 25 cells
+  ×1.5 = 0.3 per tile). Going back over a watered tile is free.
+- **Food** (timed): 6 drops a second of 5 raw crops (potatoes / corn / rice), 1.2 each
+  (a full 2 s ≈ 60 crops ≈ 3 nutrition for ~14 power; raw food is worse than meals, so a bit cheaper).
+- **Wood** (timed): 6 drops a second of 4 logs, 0.9 each.
+- Lightning and Heal stay one-and-done (no `channel` in XML).
+- Each unit is checked and priced at its own cell (soft border factor applies). Witnesses gain
+  faith once per pour; prayer requests are checked per unit; feeding the hungry is checked on the first drop.
+- Cursor: the burst cost, then "Hold: pour tile by tile (x each)"; while pouring, a time bar and
+  the power spent; the outline shows the single tile under the cursor.
+- Code: `MiracleChannel`, `MiracleChannelProps` (`<channel>` on the MiracleDef), `MiracleWorker.ChannelUnit`.
+- Balance pass: unit costs vs the burst, whether level II should pour faster or wider.
 
 ## Sound (to do near the end)
 SFX wanted for: drawing a gesture (while drawing / recognized / failed), each miracle

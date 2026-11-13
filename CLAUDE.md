@@ -31,7 +31,8 @@ Read before changing things:
   Dropping into danger (fire / hostiles) is judged like a strike (`WrathJudgement`, shared with Lightning).
   Soft influence border: past the edge, miracles and the Hand cost more and the Hand weakens, sharply with distance
   (`InfluenceUtility.CostFactor` / `LiftFactor` / `InReach`, `AGM_InfluenceTuning.xml`).
-  Self-tested; awaiting in-game test.
+  Soft border verified in-game. Hold-to-cast (click = burst, hold = pour under the cursor for 2 s: water per tile,
+  food crops / logs per drop; `MiracleChannel`, `<channel>` in the MiracleDef). Self-tested; awaiting in-game test.
 - Next: see the roadmap in DESIGN.md (v2: factions/awe, throwing, …).
 
 ## Commands
@@ -54,7 +55,7 @@ Read before changing things:
 | `Source/…/Power/` | `DivinePower` GameComponent (global pool, cap, lifetime) |
 | `Source/…/Shrine/` | `CompShrine` (prayer spots, slots, group bonus, power rate), `ShrineUtility` + one-per-map PlaceWorker, `InfluenceUtility` |
 | `Source/…/Worship/` | `JobDriver_PrayAtShrine`, job/joy givers, `WorshipUtility.TryMakePrayJob` |
-| `Source/…/Miracles/` | `MiracleDef` + `MiracleLevel`, `MiracleRequirement` (+ `Req_*`), `MiracleWorker` (+ subclasses), `MiracleTracker` (unlocks), `MiracleUtility` (CanCast/TryCast/witnesses), `Designator_Miracle`, `MainTabWindow_Miracles` |
+| `Source/…/Miracles/` | `MiracleDef` + `MiracleLevel`, `MiracleRequirement` (+ `Req_*`), `MiracleWorker` (+ subclasses, `ChannelUnit`), `MiracleChannel` (hold-to-cast pour), `MiracleTracker` (unlocks), `MiracleUtility` (CanCast/TryCast/witnesses), `Designator_Miracle`, `MainTabWindow_Miracles` |
 | `Source/…/HandOfGod/` | `HandOfGodMode` (state: toggle/hold, strokes, recognition, charged miracle, casting, label, grab-vs-stroke input), `HandOfGodCursor` (RGBA cursor via Waylith `HardwareCursor`), `GodHand` (MapComponent + IThingHolder: held thing, capacity, costs, place/tuck, game-over guard patch), `HandTuningDef` (`AGM_HandTuning.xml`), `HandWorkOrder` (set a colonist down on work → prioritized job, like vanilla's right-click) |
 | `Source/…/Gestures/` | `GestureDef` (+ template/stroke/custom), `PointCloudRecognizer` ($P), `GestureLibrary` (default vs player gestures, threshold, matching), `Window_BookOfGestures`, `Dialog_RecordGesture` |
 | `Source/…/Patches/` | Harmony patches: Worship schedule block, power readout, Hand of God input (`MapInterface.HandleMapClicks` / `HandleLowPriorityInput`) |

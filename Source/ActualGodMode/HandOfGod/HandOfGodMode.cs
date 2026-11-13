@@ -52,6 +52,12 @@ namespace ActualGodMode
         private static MiracleDef charged;
         private static int chargedLevel;
 
+        // Channelling: a press on a channel-able charged miracle; released quickly = normal cast, held = pour.
+        private static bool chargePressed;
+        private static float chargePressTime;
+        private static IntVec3 chargePressCell;
+        private static MiracleChannel channel;
+
         // Hand: a press on a grabbable thing becomes a grab unless the mouse moves (then it's a stroke).
         private static Thing pressTarget;
         private static Vector2 pressPos;
@@ -100,7 +106,13 @@ namespace ActualGodMode
             switch (e.type)
             {
                 case EventType.MouseDown when e.button == 0:
-                    if (charged != null)
+                    if (charged != null && charged.channel != null)
+                    {
+                        chargePressed = true;
+                        chargePressTime = Time.realtimeSinceStartup;
+                        chargePressCell = UI.MouseCell();
+                    }
+                    else if (charged != null)
                     {
                         TryCastCharged(UI.MouseCell());
                     }
@@ -113,6 +125,15 @@ namespace ActualGodMode
                         drawingStroke = true;
                         strokes.Add(new List<Vector2> { e.mousePosition });
                     }
+                    e.Use();
+                    break;
+
+                case EventType.MouseDrag when e.button == 0 && chargePressed:
+                    e.Use();
+                    break;
+
+                case EventType.MouseUp when e.button == 0 && chargePressed:
+                    EndChargePress();
                     e.Use();
                     break;
 
@@ -146,7 +167,11 @@ namespace ActualGodMode
                     break;
 
                 case EventType.MouseDown when e.button == 1:
-                    if (charged != null)
+                    if (channel != null)
+                    {
+                        FinishChannel();
+                    }
+                    else if (charged != null)
                     {
                         CancelCharge();
                         SoundDefOf.CancelMode.PlayOneShotOnCamera();
@@ -247,8 +272,69 @@ namespace ActualGodMode
             return 0;
         }
 
+        /// <summary>Released: a quick click casts as usual; a channel just stops.</summary>
+        private static void EndChargePress()
+        {
+            chargePressed = false;
+            if (channel != null)
+            {
+                FinishChannel();
+            }
+            else if (charged != null)
+            {
+                TryCastCharged(chargePressCell);
+            }
+        }
+
+        /// <summary>Per frame while the click is held on a channel-able miracle: start, then pour under the cursor.</summary>
+        private static void UpdateChannel(Map map)
+        {
+            float now = Time.realtimeSinceStartup;
+            if (chargePressed && !Input.GetMouseButton(0))
+            {
+                EndChargePress(); // the release happened over UI or was eaten
+                return;
+            }
+            if (chargePressed && channel == null && charged?.channel != null && now - chargePressTime >= charged.channel.clickSeconds)
+            {
+                channel = new MiracleChannel(charged, chargedLevel, map, chargePressCell, now);
+            }
+            if (channel != null)
+            {
+                channel.Update(UI.MouseCell(), now);
+                if (channel.finished)
+                {
+                    FinishChannel();
+                }
+            }
+        }
+
+        /// <summary>The pour is over: the charge is used up if anything was poured.</summary>
+        private static void FinishChannel()
+        {
+            MiracleChannel ended = channel;
+            channel = null;
+            chargePressed = false;
+            if (ended == null)
+            {
+                return;
+            }
+            if (!ended.endReason.NullOrEmpty())
+            {
+                Messages.Message(ended.endReason, MessageTypeDefOf.RejectInput, historical: false);
+            }
+            if (ended.units > 0)
+            {
+                CancelCharge();
+            }
+        }
+
         private static void ChangeLevel(int delta)
         {
+            if (channel != null)
+            {
+                return;
+            }
             MiracleTracker tracker = MiracleTracker.Instance;
             int next = chargedLevel + delta;
             if (next >= 0 && next < charged.levels.Count && tracker.IsUnlocked(charged, next))
@@ -274,6 +360,8 @@ namespace ActualGodMode
         private static void CancelCharge()
         {
             charged = null;
+            channel = null;
+            chargePressed = false;
         }
 
         private static void ClearStrokes()
@@ -332,11 +420,22 @@ namespace ActualGodMode
             }
             if (charged != null)
             {
+                UpdateChannel(map);
+            }
+            if (charged != null)
+            {
                 InfluenceUtility.DrawInfluence(map);
                 IntVec3 mouse = UI.MouseCell();
                 if (mouse.InBounds(map))
                 {
-                    charged.Worker.DrawPreview(mouse, map, charged.levels[chargedLevel]);
+                    if (channel != null)
+                    {
+                        GenDraw.DrawFieldEdges(new List<IntVec3> { mouse }, InfluenceUtility.InfluenceColor);
+                    }
+                    else
+                    {
+                        charged.Worker.DrawPreview(mouse, map, charged.levels[chargedLevel]);
+                    }
                 }
             }
 
@@ -433,7 +532,28 @@ namespace ActualGodMode
             Vector2 mouse = Event.current.mousePosition;
             Rect icon = new Rect(mouse.x + 22f, mouse.y + 14f, 32f, 32f);
             GUI.DrawTexture(icon, charged.Icon);
-            MiracleCostLabel.Draw(new Rect(icon.xMax + 6f, icon.y - 2f, 260f, 22f), charged.LevelLabel(chargedLevel), level, UI.MouseCell(), Find.CurrentMap);
+            float y = MiracleCostLabel.Draw(new Rect(icon.xMax + 6f, icon.y - 2f, 260f, 22f), charged.LevelLabel(chargedLevel), level, UI.MouseCell(), Find.CurrentMap);
+            if (charged.channel == null)
+            {
+                return;
+            }
+            Rect line = new Rect(icon.xMax + 6f, y, 260f, 22f);
+            if (channel != null)
+            {
+                Widgets.FillableBar(new Rect(line.x, line.y + 3f, 160f, 8f), 1f - channel.Progress(Time.realtimeSinceStartup));
+                using (new TextBlock(GameFont.Small, TextAnchor.UpperLeft, Color.white))
+                {
+                    Widgets.Label(new Rect(line.x, line.y + 12f, 260f, 22f), "AGM_Channel_Pouring".Translate(channel.spent.ToString("F1")));
+                }
+            }
+            else
+            {
+                float unit = MiracleChannel.UnitCostAt(charged, level, UI.MouseCell(), Find.CurrentMap);
+                using (new TextBlock(GameFont.Tiny, TextAnchor.UpperLeft, new Color(0.85f, 0.85f, 0.85f)))
+                {
+                    Widgets.Label(line, (charged.channel.perTile ? "AGM_Channel_HintTile" : "AGM_Channel_HintUnit").Translate(unit.ToString("F2")));
+                }
+            }
         }
 
         /// <summary>Next to the cursor: what's held (mass, upkeep), or what's under it and whether it can be lifted.</summary>

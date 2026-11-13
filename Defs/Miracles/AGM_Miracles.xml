@@ -20,6 +20,12 @@
     <gesture>AGM_Gesture_Wave</gesture>
     <iconThing>Filth_Water</iconThing>
     <order>10</order>
+    <!-- Hold the click: water each tile the cursor crosses (level cost spread over its area, x1.5). -->
+    <channel>
+      <perTile>true</perTile>
+      <maxSeconds>2</maxSeconds>
+      <markup>1.5</markup>
+    </channel>
     <levels>
       <li>
         <label>I</label>
@@ -48,6 +54,18 @@
     <gesture>AGM_Gesture_Circle</gesture>
     <iconThing>MealSimple</iconThing>
     <order>20</order>
+    <!-- Hold the click: raw crops fall one handful at a time. -->
+    <channel>
+      <maxSeconds>2</maxSeconds>
+      <unitsPerSecond>6</unitsPerSecond>
+      <unitCost>1.2</unitCost>
+      <countPerUnit>5</countPerUnit>
+      <things>
+        <li>RawPotatoes</li>
+        <li>RawCorn</li>
+        <li>RawRice</li>
+      </things>
+    </channel>
     <levels>
       <li>
         <label>I</label>
@@ -105,6 +123,16 @@
     <gesture>AGM_Gesture_Tree</gesture>
     <iconThing>WoodLog</iconThing>
     <order>30</order>
+    <!-- Hold the click: logs fall a few at a time. -->
+    <channel>
+      <maxSeconds>2</maxSeconds>
+      <unitsPerSecond>6</unitsPerSecond>
+      <unitCost>0.9</unitCost>
+      <countPerUnit>4</countPerUnit>
+      <things>
+        <li>WoodLog</li>
+      </things>
+    </channel>
     <levels>
       <li>
         <label>I</label>

@@ -92,6 +92,10 @@
   <AGM_MiracleLocked>Your followers haven't thought to ask for this yet.</AGM_MiracleLocked>
   <AGM_OutsideInfluence>Beyond the god's reach.</AGM_OutsideInfluence>
   <AGM_OutsideCostFactor>outside influence: cost ×{0}</AGM_OutsideCostFactor>
+  <AGM_Channel_HintTile>Hold: pour tile by tile ({0} each)</AGM_Channel_HintTile>
+  <AGM_Channel_HintUnit>Hold: drop one by one ({0} each)</AGM_Channel_HintUnit>
+  <AGM_Channel_Pouring>Pouring: {0} power spent</AGM_Channel_Pouring>
+  <AGM_Channel_OutOfPower>The god's power ran dry.</AGM_Channel_OutOfPower>
   <AGM_NotEnoughPower>Not enough Divine Power (needs {0}).</AGM_NotEnoughPower>
   <AGM_MiracleCost>Cost: {0} (have {1})</AGM_MiracleCost>
   <AGM_MiracleUnlocked_Label>New miracle: {0}</AGM_MiracleUnlocked_Label>
