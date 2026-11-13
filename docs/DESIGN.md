@@ -492,6 +492,19 @@ burst, holding pours a stream** under the cursor (Hand of God mode only; the too
 SFX wanted for: drawing a gesture (while drawing / recognized / failed), each miracle
 cast, lifting and setting down, offering, revelation. See `docs/ASSETS.md`.
 
+## Localization (pre-release task)
+Already in place: all player-facing UI text is keyed (`Languages/English/Keyed/ActualGodMode.xml`,
+`"AGM_X".Translate()`), and def labels/descriptions are translatable via `DefInjected`. A
+translation is a `Languages/<Language>/` folder (or a separate mod); missing keys fall back
+to English. Dev-only debug messages stay hard-coded in English (as vanilla does).
+Before release:
+- **Split the keyed file by feature** (`Hand.xml`, `Miracles.xml`, `Alignment.xml`, `Faith.xml`, ...).
+  The game loads every file in `Keyed/`, so it's a pure move, no code changes.
+- **Review strings for translators**: no sentences glued from fragments in code (e.g. the
+  `" (3/10)"` partial-stack suffix on the Hand readout); whole sentences with placeholders;
+  a comment where a key's context isn't obvious.
+- Run the dev-mode translation report to catch missing or unused keys.
+
 ## M6b notes (balance pass)
 - **Lift capacity grows too fast (user playtest)**: a Chosen People start had 3
   believers at once, so 80 kg straight away, and hardly anything is heavier. Idea: scale
