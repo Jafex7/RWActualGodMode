@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using HarmonyLib;
 using RimWorld;
 using Verse;
@@ -55,8 +56,7 @@ namespace ActualGodMode
             Map map = pawn.Map;
             if (!CellFinder.TryFindRandomCellNear(pawn.Position, map, 10,
                     c => c.Standable(map) && c.GetFirstItem(map) == null && c.GetFirstBuilding(map) == null
-                         && FilthMaker.CanMakeFilth(c, map, AGM_AwakeningDefOf.AGM_Filth_DivineSign)
-                         && pawn.CanReach(c, PathEndMode.OnCell, Danger.Some),
+                         && !c.Roofed(map) && pawn.CanReach(c, PathEndMode.OnCell, Danger.Some),
                     out IntVec3 cell))
             {
                 cell = pawn.Position;
@@ -95,17 +95,26 @@ namespace ActualGodMode
             yield return draw;
         }
 
-        /// <summary>Draw on this cell, or the nearest one that accepts it (some floors/items refuse filth).</summary>
+        /// <summary>
+        /// Spawn the sign directly on this cell (or the nearest walkable one). Not via FilthMaker:
+        /// vanilla filth rules vary by ground (soil accepts only "Unnatural" filth, rough stone only
+        /// "Terrain") and roll random chances, and a scripted mark must always appear.
+        /// </summary>
         private static void PlaceSign(IntVec3 at, Map map)
         {
+            ThingDef def = AGM_AwakeningDefOf.AGM_Filth_DivineSign;
             foreach (IntVec3 c in GenRadial.RadialCellsAround(at, 3f, useCenter: true))
             {
-                if (c.InBounds(map) && FilthMaker.TryMakeFilth(c, map, AGM_AwakeningDefOf.AGM_Filth_DivineSign))
+                if (c.InBounds(map) && c.Walkable(map) && c.GetFirstThing(map, def) == null && c.GetEdifice(map) == null)
                 {
+                    GenSpawn.Spawn(ThingMaker.MakeThing(def), c, map);
                     return;
                 }
             }
-            Log.Warning("[Actual God Mode] Couldn't find a cell to draw the divine sign near " + at);
+            TerrainDef terrain = at.GetTerrain(map);
+            Log.Warning($"[Actual God Mode] Couldn't find a cell to draw the divine sign near {at} " +
+                        $"(terrain {terrain.defName}, accepts {terrain.filthAcceptanceMask}, roofed {at.Roofed(map)}, walkable {at.Walkable(map)}, " +
+                        $"things: {string.Join(",", at.GetThingList(map).Select(t => t.def.defName))})");
         }
     }
 
@@ -146,6 +155,9 @@ namespace ActualGodMode
             {
                 AGM_TestScenarios.EnsureShrine(map);
             }
+            // It just happened to all of them: everyone believes, a little.
+            BelieverTracker.Instance?.ConvertAllColonists();
+            GodGuideTracker.Instance?.Start();
         }
 
         public override string Summary(Scenario scen) => "AGM_ScenPart_StartWithShrine".Translate();

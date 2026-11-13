@@ -33,6 +33,17 @@
 
     <!-- Blessings -->
     <blessedFoodGain>0.04</blessedFoodGain>
+
+    <!-- Believers and conversion (chances are per opportunity, before trait factors) -->
+    <convertedInitialFaith>0.1~0.2</convertedInitialFaith>
+    <startingBelieverFaith>0.1~0.25</startingBelieverFaith>
+    <chosenInitialFaith>0.2</chosenInitialFaith>
+    <witnessConvertChance>0.35</witnessConvertChance>
+    <friendAnsweredConvertChance>0.3</friendAnsweredConvertChance>
+    <friendOpinion>20</friendOpinion>
+    <preachMinFaith>0.3</preachMinFaith>
+    <preachSelectionWeight>0.05</preachSelectionWeight>
+    <preachConvertChance>0.15</preachConvertChance>
   </ActualGodMode.FaithTuningDef>
 
 </Defs>

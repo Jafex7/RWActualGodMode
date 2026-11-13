@@ -37,6 +37,17 @@ namespace ActualGodMode
         // Blessings
         public float blessedFoodGain = 0.04f;
 
+        // Believers and conversion
+        public FloatRange convertedInitialFaith = new FloatRange(0.1f, 0.2f);
+        public FloatRange startingBelieverFaith = new FloatRange(0.1f, 0.25f);
+        public float chosenInitialFaith = 0.2f;
+        public float witnessConvertChance = 0.35f;
+        public float friendAnsweredConvertChance = 0.3f;
+        public int friendOpinion = 20;
+        public float preachMinFaith = 0.3f;
+        public float preachSelectionWeight = 0.05f;
+        public float preachConvertChance = 0.15f;
+
         private static FaithTuningDef cached;
 
         public static FaithTuningDef Get => cached ??= DefDatabase<FaithTuningDef>.GetNamed("AGM_FaithTuning");

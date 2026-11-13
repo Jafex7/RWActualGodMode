@@ -7,7 +7,7 @@
     <degreeDatas>
       <li>
         <label>zealot</label>
-        <description>{PAWN_nameDef} believes with all {PAWN_possessive} heart. {PAWN_pronoun} endures hardship patiently, gains faith quickly, prays with fervor, and asks the god for help often.</description>
+        <description>{PAWN_nameDef} has always searched for something to believe in. {PAWN_pronoun} is easily convinced of the divine, and once {PAWN_pronoun} believes, {PAWN_pronoun} endures hardship patiently, gains faith quickly, prays with fervor, and asks the god for help often.</description>
       </li>
     </degreeDatas>
     <conflictingTraits>
@@ -23,6 +23,8 @@
             <patienceFactor>2</patienceFactor>
             <prayerOutputFactor>1.25</prayerOutputFactor>
             <requestFrequencyFactor>1.5</requestFrequencyFactor>
+            <conversionFactor>3</conversionFactor>
+            <conversionByTalkFactor>3</conversionByTalkFactor>
           </li>
         </degrees>
       </li>
@@ -35,7 +37,7 @@
     <degreeDatas>
       <li>
         <label>sceptic</label>
-        <description>{PAWN_nameDef} needs proof before believing anything. {PAWN_pronoun} gains faith slowly, loses it quickly, has little patience for hardship, and rarely prays for help.</description>
+        <description>{PAWN_nameDef} needs proof before believing anything. Talk will never convince {PAWN_objective}; only seeing the god act might. Even then, {PAWN_pronoun} gains faith slowly, loses it quickly, has little patience for hardship, and rarely prays for help.</description>
       </li>
     </degreeDatas>
     <conflictingTraits>
@@ -51,6 +53,8 @@
             <patienceFactor>0.6</patienceFactor>
             <prayerOutputFactor>0.7</prayerOutputFactor>
             <requestFrequencyFactor>0.3</requestFrequencyFactor>
+            <conversionFactor>0.5</conversionFactor>
+            <conversionByTalkFactor>0</conversionByTalkFactor>
           </li>
         </degrees>
       </li>

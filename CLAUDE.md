@@ -12,8 +12,10 @@ Read before changing things:
 - Done: **M3** Hand of God mode (gesture casting, Book of Gestures, recorder), verified in-game.
 - Done: **M4** faith dynamics (patience buffer, hardship, gratitude, blessed food, faith history tooltip, thoughts,
   traits + vanilla patches, Zealot/Sceptic, Heal I, prayer requests, storyteller wishes).
-- **M5a** entry: Awakening (whispers → trance → revelation), hidden Shrine research, Chosen People scenario.
-  Self-tested; awaiting in-game test.
+- **M5a** entry: Awakening (whispers → trance → revelation at dawn), hidden Shrine research, Chosen People
+  scenario. Verified in-game.
+- **M5a+**: believers & conversion (witness / preach / friend's answered prayer), the god's path (guided letters +
+  alert), context-aware whispers. Self-tested; awaiting in-game test.
 - Next: **M5b** temple (tiers + holy furniture, Offering Bowl, Pylon with tending, "Build test temple" scenario).
 
 ## Commands
@@ -27,8 +29,9 @@ Read before changing things:
 |---|---|
 | `Source/ActualGodMode/ActualGodModeMod.cs`, `…Settings.cs` | Mod entry (Harmony `PatchAll`), mod settings |
 | `Source/…/AGM_DefOf.cs` | `[DefOf]` references to our defs |
-| `Source/…/Faith/` | `Need_Faith` (faith + hidden patience buffer, gratitude), `FaithHardship` (ongoing hardship + Harmony event hooks: breaks, deaths, downed, blessed food), `FaithTraitExtension` (trait factors), `FaithTuningDef` (all numbers, `Defs/Faith/AGM_FaithTuning.xml`), `FaithUtility` (`pawn.Faith()`) |
+| `Source/…/Faith/` | `BelieverTracker` (who believes; Faith need gate; conversion; `InteractionWorker_Preach`), `Need_Faith` (faith + hidden patience buffer, gratitude), `FaithHardship` (ongoing hardship + Harmony event hooks: breaks, deaths, downed, blessed food), `FaithTraitExtension` (trait factors), `FaithTuningDef` (all numbers, `Defs/Faith/AGM_FaithTuning.xml`), `FaithUtility` (`pawn.Faith()`) |
 | `Source/…/Requests/` | `PrayerRequestDef`, `PrayerRequestWorker` (+ Hungry/Cold/Fire/Wounded/RainForCrops/Sign), `PrayerRequestTracker` (create/answer/expire), `Alert_PrayerRequests`, `IncidentWorker_PrayerWish` |
+| `Source/…/Guide/` | `GodGuideTracker` (the god's path steps + letters), `Alert_GodGuide` |
 | `Source/…/Awakening/` | `AwakeningTracker` (stages, tuning def `AGM_AwakeningTuning`), `DivineTrance` (trance mental state, draw-sign job, research hide/lock patches, `ScenPart_StartWithShrine`) |
 | `Source/…/Power/` | `DivinePower` GameComponent (global pool, cap, lifetime) |
 | `Source/…/Shrine/` | `CompShrine` (prayer spots, slots, group bonus, power rate), `ShrineUtility` + one-per-map PlaceWorker, `InfluenceUtility` |
@@ -87,5 +90,11 @@ Read before changing things:
 - Never end a mental state (or a job) from inside a job's toil finish action: it tears the job down mid-cleanup
   (NullReferenceException in `Toil.Cleanup`). Set a flag and let the mental state recover on its own tick.
 - Code-built textures don't keep CPU pixels; real textures (PNG in `Textures/`) are needed for things on the map.
+- **Don't use FilthMaker for scripted marks**: vanilla filth placement rolls a random chance per terrain and soil
+  accepts only "Unnatural" filth while rough stone accepts only "Terrain". Spawn the filth thing directly.
+- Before the Awakening **nobody has the Faith need** (`BelieverTracker` + `ShouldHaveNeed` patch). Test setups must
+  convert colonists (`AGM_TestScenarios.SetUpGodColony` / `BelieverTracker.ConvertAllColonists`).
+- Harmony 3: patch the class that *declares* a method (e.g. `IncidentWorker_Raid`, not `IncidentWorker_RaidEnemy`)
+  and type-check the instance inside the patch.
 - The log is `%USERPROFILE%\AppData\LocalLow\Ludeon Studios\RimWorld by Ludeon Studios\Logs\Player.log`.
 - Vanilla already has a `Pray` job/joy giver (private room prayer); ours is `AGM_PrayAtShrine`.

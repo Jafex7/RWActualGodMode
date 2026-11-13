@@ -112,6 +112,11 @@ namespace ActualGodMode
             MiracleTracker.Instance.CheckUnlocks();
             Check(MiracleTracker.Instance.IsUnlocked(water, 0), "starting miracles unlock once revealed");
 
+            // Nobody believes before the Awakening; converting gives them the Faith need.
+            Check(colonists.All(p => p.Faith() == null), "non-believers have no Faith need");
+            BelieverTracker.Instance.ConvertAllColonists();
+            Check(colonists.All(p => p.Faith() != null), "converted colonists get the Faith need");
+
             foreach (Pawn p in colonists)
             {
                 for (int hour = 0; hour < GenDate.HoursPerDay; hour++)
@@ -220,6 +225,8 @@ namespace ActualGodMode
 
                 awakeningPawn = shrine.Map.mapPawns.FreeColonistsSpawned.FirstOrDefault(p => !p.Downed && p.Awake() && !p.InMentalState);
                 Check(awakeningPawn != null && t.Begin(awakeningPawn) && t.Stage == AwakeningStage.Whispers, "awakening begins with a chosen pawn");
+                string topic = t.PickWhisperTopic();
+                Check(topic != "Generic", $"whispers prefer something the colony lived through (topic: {topic})");
                 int logBefore = Find.PlayLog.AllEntries.Count;
                 for (int i = 0; i < AwakeningTuningDef.Get.whispersNeeded; i++)
                 {
@@ -269,6 +276,19 @@ namespace ActualGodMode
 
             new ScenPart_StartWithShrine().PostGameStart();
             Check(research.IsFinished, "Chosen People scenario part finishes the shrine research");
+
+            // The god's path: steps already done complete on their own; it waits on the first answered prayer
+            GodGuideTracker guide = GodGuideTracker.Instance;
+            guide.DebugReset();
+            guide.Start();
+            for (int i = 0; i < 6; i++)
+            {
+                guide.CheckProgress();
+            }
+            Check(guide.Step == GuideStep.AnswerPrayer, $"guide skips completed steps and waits for a first answered prayer (at {guide.Step})");
+            guide.Notify_PrayerAnswered();
+            guide.CheckProgress();
+            Check(guide.Step == GuideStep.Done, "guide completes after a prayer is answered");
             Complete();
         }
 
@@ -551,6 +571,26 @@ namespace ActualGodMode
             dp.Add(100f);
             MiracleUtility.TryCast(DefDatabase<MiracleDef>.GetNamed("AGM_Miracle_Wood"), 0, NearFreeCell(shrine, map), map);
             Check(!requests.Active.Contains(req) && other.Faith().CurLevel > 0.5f, "wish for a sign granted by any miracle; others share the joy");
+
+            // Conversion rules: Sceptics are never talked into it; Zealots convince easily; preaching skips Sceptics
+            BelieverTracker believers = BelieverTracker.Instance;
+            Pawn listener = map.mapPawns.FreeColonistsSpawned.First(p => p != pawn);
+            TraitDef scepticDef = DefDatabase<TraitDef>.GetNamed("AGM_Sceptic");
+            TraitDef zealotDef = DefDatabase<TraitDef>.GetNamed("AGM_Zealot");
+            if (listener.story.traits.HasTrait(zealotDef))
+            {
+                listener.story.traits.RemoveTrait(listener.story.traits.GetTrait(zealotDef));
+            }
+            listener.story.traits.GainTrait(new Trait(scepticDef));
+            believers.DebugDeconvert(listener);
+            Check(listener.Faith() == null, "deconverted pawn loses the Faith need");
+            Check(!believers.TryConvert(listener, 1f, byTalk: true), "a Sceptic is never converted by talk (even at 100% base chance)");
+            pawn.Faith().CurLevel = 0.8f;
+            Check(new InteractionWorker_Preach().RandomSelectionWeight(pawn, listener) == 0f, "believers don't preach to Sceptics");
+            listener.story.traits.RemoveTrait(listener.story.traits.GetTrait(scepticDef));
+            Check(new InteractionWorker_Preach().RandomSelectionWeight(pawn, listener) > 0f, "believers may preach to an ordinary non-believer");
+            listener.story.traits.GainTrait(new Trait(zealotDef));
+            Check(believers.TryConvert(listener, 0.34f, byTalk: true) && listener.Faith() != null, "someone inclined to believe (Zealot) is convinced easily (34% x3)");
 
             // Storyteller incident can fire with a shrine and a believer
             foreach (Pawn p in map.mapPawns.FreeColonistsSpawned)

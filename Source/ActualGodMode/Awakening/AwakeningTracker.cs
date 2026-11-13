@@ -73,6 +73,10 @@ namespace ActualGodMode
 
         public override void GameComponentTick()
         {
+            if (Now % GenDate.TicksPerHour == 0)
+            {
+                RecordColonyHistory();
+            }
             if (Now % CheckIntervalTicks != 0 || Revealed)
             {
                 return;
@@ -127,6 +131,8 @@ namespace ActualGodMode
             {
                 return false;
             }
+            // The chosen one is the first to believe.
+            BelieverTracker.Instance?.Convert(pawn, FaithTuningDef.Get.chosenInitialFaith, silent: true);
             chosen = pawn;
             stage = AwakeningStage.Whispers;
             whispersDone = 0;
@@ -136,7 +142,7 @@ namespace ActualGodMode
 
         private static Pawn PickChosen()
         {
-            List<Pawn> candidates = PawnsFinder.AllMaps_FreeColonistsSpawned.Where(p => p.Faith() != null && !p.Downed).ToList();
+            List<Pawn> candidates = PawnsFinder.AllMaps_FreeColonistsSpawned.Where(p => p.RaceProps.Humanlike && !p.Downed).ToList();
             if (candidates.Count == 0)
             {
                 return null;
@@ -149,20 +155,82 @@ namespace ActualGodMode
                 : 1f);
         }
 
+        /// <summary>
+        /// Whisper topics. Ones tied to something the colony has lived through are preferred,
+        /// so the strange talk is about things that actually happened. Generic topics can repeat.
+        /// </summary>
+        private static readonly (string topic, string requiredEvent)[] WhisperTopics =
+        {
+            ("Fire", MiracleTracker.Event_Fire),
+            ("Rain", MiracleTracker.Event_Rain),
+            ("Raid", MiracleTracker.Event_Raid),
+            ("Death", MiracleTracker.Event_ColonistDied),
+            ("Downed", MiracleTracker.Event_ColonistDowned),
+            ("Starvation", MiracleTracker.Event_Starvation),
+        };
+
+        private HashSet<string> usedTopics = new HashSet<string>();
+
+        public string PickWhisperTopic()
+        {
+            MiracleTracker history = MiracleTracker.Instance;
+            var contextual = WhisperTopics
+                .Where(t => !usedTopics.Contains(t.topic) && (history?.HasEvent(t.requiredEvent) ?? false))
+                .Select(t => t.topic)
+                .ToList();
+            return contextual.Count > 0 ? contextual.RandomElement() : "Generic";
+        }
+
+        /// <summary>Notes things the colony has lived through (for whispers and future unlocks).</summary>
+        private static void RecordColonyHistory()
+        {
+            MiracleTracker history = MiracleTracker.Instance;
+            if (history == null)
+            {
+                return;
+            }
+            foreach (Map map in Find.Maps)
+            {
+                if (!map.IsPlayerHome)
+                {
+                    continue;
+                }
+                if (map.listerThings.ThingsOfDef(ThingDefOf.Fire).Count > 0)
+                {
+                    history.RecordEvent(MiracleTracker.Event_Fire);
+                }
+                if (map.weatherManager.RainRate > 0.1f)
+                {
+                    history.RecordEvent(MiracleTracker.Event_Rain);
+                }
+                if (map.mapPawns.FreeColonistsSpawned.Any(p => p.health.hediffSet.HasHediff(HediffDefOf.Malnutrition)))
+                {
+                    history.RecordEvent(MiracleTracker.Event_Starvation);
+                }
+            }
+        }
+
         /// <summary>The chosen one says something strange: a social log entry (or a speech mote if alone).</summary>
         public void Whisper()
         {
+            string topic = PickWhisperTopic();
+            if (topic != "Generic")
+            {
+                usedTopics.Add(topic);
+            }
             Pawn recipient = chosen.Spawned
                 ? chosen.Map.mapPawns.FreeColonistsSpawned.Where(p => p != chosen).OrderBy(p => p.Position.DistanceToSquared(chosen.Position)).FirstOrDefault()
                 : null;
             if (recipient != null)
             {
-                Find.PlayLog.Add(new PlayLogEntry_Interaction(AGM_AwakeningDefOf.AGM_StrangeTalk, chosen, recipient, null));
+                InteractionDef talk = DefDatabase<InteractionDef>.GetNamedSilentFail("AGM_StrangeTalk_" + topic) ?? AGM_AwakeningDefOf.AGM_StrangeTalk;
+                Find.PlayLog.Add(new PlayLogEntry_Interaction(talk, chosen, recipient, null));
                 recipient.needs?.mood?.thoughts?.memories?.TryGainMemory(AGM_AwakeningDefOf.AGM_HeardStrangeTalk, chosen);
             }
             else if (chosen.Spawned)
             {
-                MoteMaker.ThrowText(chosen.DrawPos, chosen.Map, ("AGM_Whisper_Alone" + Rand.RangeInclusive(1, 4)).Translate(), 6f);
+                string key = topic == "Generic" ? "AGM_Whisper_Alone" + Rand.RangeInclusive(1, 4) : "AGM_WhisperSolo_" + topic;
+                MoteMaker.ThrowText(chosen.DrawPos, chosen.Map, key.Translate(), 6f);
             }
 
             if (whispersDone == 0)
@@ -247,6 +315,7 @@ namespace ActualGodMode
                 LetterDefOf.PositiveEvent,
                 p != null ? new LookTargets(p) : LookTargets.Invalid);
             MiracleTracker.Instance?.CheckUnlocks();
+            GodGuideTracker.Instance?.Start();
         }
 
         /// <summary>Scenario or debug: the god is already known; no Awakening needed.</summary>
@@ -256,6 +325,7 @@ namespace ActualGodMode
         {
             stage = AwakeningStage.Dormant;
             revealedByScenario = false;
+            usedTopics.Clear();
             chosen = null;
             whispersDone = 0;
             nextEventTick = -1;
@@ -270,6 +340,11 @@ namespace ActualGodMode
             Scribe_Values.Look(ref whispersDone, "whispersDone");
             Scribe_Values.Look(ref nextEventTick, "nextEventTick", -1);
             Scribe_Values.Look(ref revealedByScenario, "revealedByScenario");
+            Scribe_Collections.Look(ref usedTopics, "usedTopics", LookMode.Value);
+            if (Scribe.mode == LoadSaveMode.PostLoadInit)
+            {
+                usedTopics ??= new HashSet<string>();
+            }
         }
     }
 

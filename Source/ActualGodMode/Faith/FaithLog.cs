@@ -118,6 +118,8 @@ namespace ActualGodMode
         public static ThoughtDef AGM_WitnessedMiracle;
         public static ThoughtDef AGM_AteBlessedMeal;
         public static ThoughtDef AGM_FaithShaken;
+        public static ThoughtDef AGM_Converted;
+        public static RulePackDef AGM_Sentence_PreachConvinced;
 
         static AGM_ThoughtDefOf()
         {

@@ -9,7 +9,13 @@ namespace ActualGodMode
     {
         private const int CheckIntervalTicks = 250;
 
+        // Colony history events (unlock requirements, context-aware whispers)
         public const string Event_ColonistDowned = "ColonistDowned";
+        public const string Event_ColonistDied = "ColonistDied";
+        public const string Event_Raid = "Raid";
+        public const string Event_Fire = "Fire";
+        public const string Event_Rain = "Rain";
+        public const string Event_Starvation = "Starvation";
 
         private HashSet<string> unlocked = new HashSet<string>();
 

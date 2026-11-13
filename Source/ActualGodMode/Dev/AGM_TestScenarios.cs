@@ -39,6 +39,7 @@ namespace ActualGodMode
         public static Thing SetUpGodColony(Map map, float faith = 0.6f)
         {
             Thing shrine = EnsureShrine(map);
+            BelieverTracker.Instance?.ConvertAllColonists();
             AwakeningTracker.Instance?.MarkRevealedByScenario();
             if (!AGM_AwakeningDefOf.AGM_ShrineResearch.IsFinished)
             {

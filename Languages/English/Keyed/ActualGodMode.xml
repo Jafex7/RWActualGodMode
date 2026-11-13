@@ -53,6 +53,39 @@
   <AGM_Revelation_TextAwake>At first light, {PAWN_nameDef} stops what {PAWN_pronoun} is doing and looks straight up, past the clouds, as if meeting someone's eyes.\n\n"I knew you were there. I knew you were real!"\n\n"It wants a place. A place where we can speak to it, and it can hear us."\n\nNew research available in the Divine tab: Shrine of the god.</AGM_Revelation_TextAwake>
   <AGM_Revelation_TextNoPawn>Your colonists all wake from the same dream: a place to speak to their god.\n\nNew research available in the Divine tab: Shrine of the god.</AGM_Revelation_TextNoPawn>
   <AGM_Someone>someone</AGM_Someone>
+  <AGM_WhisperSolo_Fire>"That fire died down too fast. Someone blew on it."</AGM_WhisperSolo_Fire>
+  <AGM_WhisperSolo_Rain>"That rain came from somewhere above the clouds."</AGM_WhisperSolo_Rain>
+  <AGM_WhisperSolo_Raid>"That shot should have hit me. It didn't."</AGM_WhisperSolo_Raid>
+  <AGM_WhisperSolo_Death>"They're not gone. Someone is keeping them."</AGM_WhisperSolo_Death>
+  <AGM_WhisperSolo_Downed>"When I fell, something decided I would live."</AGM_WhisperSolo_Downed>
+  <AGM_WhisperSolo_Starvation>"Even starving, I knew someone would provide."</AGM_WhisperSolo_Starvation>
+
+  <!-- Believers -->
+  <AGM_Converted>{PAWN_nameDef} now believes in the god.</AGM_Converted>
+  <AGM_Cause_Converted>came to believe</AGM_Cause_Converted>
+
+  <!-- The god's path (guidance) -->
+  <AGM_Setting_ShowGuidance>Show guidance (the god's path)</AGM_Setting_ShowGuidance>
+  <AGM_Setting_ShowGuidance_Tip>After the Revelation, letters and an alert suggest what to do next: build the shrine, pray, work your first miracles, convince the others. Nothing is ever blocked.</AGM_Setting_ShowGuidance_Tip>
+  <AGM_Guide_AlertLabel>The god's path</AGM_Guide_AlertLabel>
+  <AGM_Guide_Step_ResearchShrine>Your followers need to learn how to build a place for you. Research "Shrine of the god" in the Divine research tab.</AGM_Guide_Step_ResearchShrine>
+  <AGM_Guide_Step_BuildShrine>Build the Shrine: Architect → Divine. Only one can stand per map, so choose its place well.</AGM_Guide_Step_BuildShrine>
+  <AGM_Guide_Step_FirstPrayers>Let your believers pray at the Shrine. Paint "Worship" hours in the Schedule tab, or wait for them to pray as recreation. Divine Power shows in the bottom right.</AGM_Guide_Step_FirstPrayers>
+  <AGM_Guide_Step_ConvinceOthers>Not everyone believes yet. Work a miracle where the doubters can see it. Believers may also convince them by talking about you.</AGM_Guide_Step_ConvinceOthers>
+  <AGM_Guide_Step_AnswerPrayer>When a believer prays for help, a letter and an alert tell you what they need. Cast that miracle near them before time runs out.</AGM_Guide_Step_AnswerPrayer>
+
+  <AGM_Guide_ResearchDone_Label>A place to speak</AGM_Guide_ResearchDone_Label>
+  <AGM_Guide_ResearchDone_Text>{PAWN} knows how to build it now: a simple shrine, where your followers can kneel and speak to you.\n\nBuild the Shrine from Architect → Divine. Only one can stand per map.</AGM_Guide_ResearchDone_Text>
+  <AGM_Guide_ShrineBuilt_Label>The shrine stands</AGM_Guide_ShrineBuilt_Label>
+  <AGM_Guide_ShrineBuilt_Text>{PAWN} lays a hand on the new shrine. "Now it can hear us."\n\nHow worship works:\n• Believers pray in the marked spots around the Shrine (select it to see them). Only a few spots exist; a finer temple will make room for more.\n• Praying together is stronger than praying alone.\n• Paint "Worship" hours in the Schedule tab to gather your believers, or let them pray as recreation.\n• Their prayers become Divine Power, shown in the bottom right of the screen. Faithful believers pray stronger.</AGM_Guide_ShrineBuilt_Text>
+  <AGM_Guide_FirstPower_Label>The god stirs</AGM_Guide_FirstPower_Label>
+  <AGM_Guide_FirstPower_Text>The prayers reach you. You can act.\n\n• Open the Miracles tab (bottom bar) to see what your followers have asked you for.\n• Better: press {KEY} for Hand of God mode and draw a miracle's sign on the map, then click where it should happen. The Book of Gestures shows every sign, and you can re-record them.\n• Miracles only work inside your influence, the circle around the Shrine.</AGM_Guide_FirstPower_Text>
+  <AGM_Guide_FirstPowerConvince_Label>The god stirs</AGM_Guide_FirstPowerConvince_Label>
+  <AGM_Guide_FirstPowerConvince_Text>The prayers reach you. You can act.\n\n• Open the Miracles tab (bottom bar) to see what your followers have asked you for.\n• Better: press {KEY} for Hand of God mode and draw a miracle's sign on the map, then click where it should happen. The Book of Gestures shows every sign.\n• Miracles only work inside your influence, the circle around the Shrine.\n\n{PAWN} looks troubled. "The others still think I'm mad. Show them you're real. Do something where they can see it."</AGM_Guide_FirstPowerConvince_Text>
+  <AGM_Guide_Converted_Label>A new believer</AGM_Guide_Converted_Label>
+  <AGM_Guide_Converted_Text>Someone else believes now.\n\nBelievers pray, ask you for help, and talk about you to the others. Sometimes that's enough to convince them. Sceptics, though, will only be moved by seeing you act.\n\nMore believers means more Divine Power, and greater miracles.</AGM_Guide_Converted_Text>
+  <AGM_Guide_Answered_Label>The god listens</AGM_Guide_Answered_Label>
+  <AGM_Guide_Answered_Text>Your followers know now: when they pray, you answer.\n\n• Unanswered prayers cost faith, but each believer has patience; hover the Faith bar to see it, and what has shaken or strengthened their faith.\n• Sometimes the storyteller brings wishes: rain for the crops, a sign. Granting them lifts everyone.\n• Hardship wears down patience. Keep your people fed, warm and safe, and their faith will hold.\n\nThe rest is up to you.</AGM_Guide_Answered_Text>
   <AGM_Cause_Revelation>the Revelation</AGM_Cause_Revelation>
   <AGM_ScenPart_StartWithShrine>Start beside a shrine to the god (the Awakening has already happened).</AGM_ScenPart_StartWithShrine>
 

@@ -1,3 +1,4 @@
+using System.Linq;
 using RimWorld;
 using Verse;
 
@@ -51,16 +52,22 @@ namespace ActualGodMode
                 return;
             }
             float radiusSq = def.witnessRadius * def.witnessRadius;
-            foreach (Pawn p in map.mapPawns.FreeColonistsSpawned)
+            BelieverTracker believers = BelieverTracker.Instance;
+            foreach (Pawn p in map.mapPawns.FreeColonistsSpawned.ToList())
             {
-                if (!p.Awake() || (p.Position - cell).LengthHorizontalSquared > radiusSq)
+                if (!p.Awake() || (p.Position - cell).LengthHorizontalSquared > radiusSq || !GenSight.LineOfSight(p.Position, cell, map))
                 {
                     continue;
                 }
-                if (GenSight.LineOfSight(p.Position, cell, map) && p.Faith() != null)
+                if (p.Faith() != null)
                 {
                     p.Faith().Gain(def.witnessFaithGain, "AGM_Cause_Witnessed".Translate(def.label));
                     FaithThoughts.Give(p, AGM_ThoughtDefOf.AGM_WitnessedMiracle);
+                }
+                else
+                {
+                    // Seeing is believing (even for Sceptics, sometimes).
+                    believers?.TryConvert(p, FaithTuningDef.Get.witnessConvertChance, byTalk: false);
                 }
             }
         }

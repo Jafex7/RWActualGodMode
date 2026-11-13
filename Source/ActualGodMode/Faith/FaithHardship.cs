@@ -88,6 +88,7 @@ namespace ActualGodMode
             {
                 return;
             }
+            MiracleTracker.Instance?.RecordEvent(MiracleTracker.Event_ColonistDied);
             FaithTuningDef t = FaithTuningDef.Get;
             foreach (Map map in Find.Maps)
             {
@@ -108,6 +109,19 @@ namespace ActualGodMode
         }
     }
 
+    /// <summary>Records that the colony survived a raid (for whispers and future unlocks).</summary>
+    [HarmonyPatch(typeof(IncidentWorker_Raid), "TryExecuteWorker")]
+    public static class Patch_RecordRaid
+    {
+        public static void Postfix(IncidentWorker_Raid __instance, IncidentParms parms, bool __result)
+        {
+            if (__result && __instance is IncidentWorker_RaidEnemy && parms?.target is Map map && map.IsPlayerHome)
+            {
+                MiracleTracker.Instance?.RecordEvent(MiracleTracker.Event_Raid);
+            }
+        }
+    }
+
     [HarmonyPatch(typeof(Pawn_HealthTracker), "MakeDowned")]
     public static class Patch_FaithOnDowned
     {
@@ -117,12 +131,15 @@ namespace ActualGodMode
         public static void Postfix(Pawn_HealthTracker __instance)
         {
             Pawn pawn = PawnRef(__instance);
-            if (!FaithHardship.IsBeliever(pawn))
+            if (pawn == null || !pawn.IsColonist)
             {
                 return;
             }
-            pawn.Faith().Hardship(FaithTuningDef.Get.downed, "AGM_Cause_Downed".Translate());
             MiracleTracker.Instance?.RecordEvent(MiracleTracker.Event_ColonistDowned);
+            if (FaithHardship.IsBeliever(pawn))
+            {
+                pawn.Faith().Hardship(FaithTuningDef.Get.downed, "AGM_Cause_Downed".Translate());
+            }
         }
     }
 

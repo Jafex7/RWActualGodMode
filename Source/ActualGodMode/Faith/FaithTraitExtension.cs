@@ -27,6 +27,12 @@ namespace ActualGodMode
         public float gratitudeFactor = 1f;
         public float requestFrequencyFactor = 1f;
         public float prayerOutputFactor = 1f;
+
+        /// <summary>Chance to be converted by seeing the god act (miracles, answered prayers).</summary>
+        public float conversionFactor = 1f;
+
+        /// <summary>Chance to be converted by a believer's preaching. 0 = talk never works.</summary>
+        public float conversionByTalkFactor = 1f;
     }
 
     public static class FaithTraitUtility

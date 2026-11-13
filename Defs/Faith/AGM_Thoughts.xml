@@ -55,6 +55,19 @@
   </ThoughtDef>
 
   <ThoughtDef>
+    <defName>AGM_Converted</defName>
+    <durationDays>3</durationDays>
+    <stackLimit>1</stackLimit>
+    <stages>
+      <li>
+        <label>I believe now</label>
+        <description>I didn't want to believe it. But it's true: someone is watching over us.</description>
+        <baseMoodEffect>4</baseMoodEffect>
+      </li>
+    </stages>
+  </ThoughtDef>
+
+  <ThoughtDef>
     <defName>AGM_FaithShaken</defName>
     <durationDays>2</durationDays>
     <stackLimit>1</stackLimit>

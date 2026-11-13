@@ -145,20 +145,29 @@ namespace ActualGodMode
             r.pawn.Faith()?.Gain(r.def.reward, "AGM_Cause_PrayerAnswered".Translate(r.def.label));
             FaithThoughts.Give(r.pawn, AGM_ThoughtDefOf.AGM_PrayerAnswered);
             float radiusSq = 12f * 12f;
-            foreach (Pawn p in map.mapPawns.FreeColonistsSpawned)
+            FaithTuningDef t = FaithTuningDef.Get;
+            foreach (Pawn p in map.mapPawns.FreeColonistsSpawned.ToList())
             {
                 if (p == r.pawn)
                 {
                     continue;
                 }
-                bool shares = r.def.rewardAllColonists
-                    || ((p.Position - cell).LengthHorizontalSquared <= radiusSq && GenSight.LineOfSight(p.Position, cell, map));
-                if (shares)
+                bool sawIt = (p.Position - cell).LengthHorizontalSquared <= radiusSq && GenSight.LineOfSight(p.Position, cell, map);
+                if (p.Faith() != null)
                 {
-                    p.Faith()?.Gain(r.def.witnessReward, "AGM_Cause_SharedAnswer".Translate(r.pawn.LabelShort));
+                    if (r.def.rewardAllColonists || sawIt)
+                    {
+                        p.Faith().Gain(r.def.witnessReward, "AGM_Cause_SharedAnswer".Translate(r.pawn.LabelShort));
+                    }
+                }
+                else if (sawIt && p.relations != null && p.relations.OpinionOf(r.pawn) >= t.friendOpinion)
+                {
+                    // A friend's prayer answered before their eyes.
+                    BelieverTracker.Instance?.TryConvert(p, t.friendAnsweredConvertChance, byTalk: false);
                 }
             }
             Messages.Message("AGM_Request_Answered".Translate(r.pawn.Named("PAWN")), new LookTargets(r.pawn), MessageTypeDefOf.PositiveEvent);
+            GodGuideTracker.Instance?.Notify_PrayerAnswered();
         }
 
         private void Expire(PrayerRequest r)

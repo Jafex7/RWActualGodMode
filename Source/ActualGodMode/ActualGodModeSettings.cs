@@ -11,6 +11,7 @@ namespace ActualGodMode
 
         // Entry
         public bool skipAwakening = false;
+        public bool showGuidance = true;
 
         // Hand of God label position (for UI mods that overlap it)
         public float handLabelX = 0.5f;
@@ -38,6 +39,7 @@ namespace ActualGodMode
             }
             Scribe_Values.Look(ref faithDecayMultiplier, "faithDecayMultiplier", 1f);
             Scribe_Values.Look(ref skipAwakening, "skipAwakening", false);
+            Scribe_Values.Look(ref showGuidance, "showGuidance", true);
             Scribe_Values.Look(ref handLabelX, "handLabelX", 0.5f);
             Scribe_Values.Look(ref handLabelAutoY, "handLabelAutoY", true);
             Scribe_Values.Look(ref handLabelY, "handLabelY", 0.12f);
@@ -56,6 +58,9 @@ namespace ActualGodMode
             listing.CheckboxLabeled(
                 "AGM_Setting_SkipAwakening".Translate(), ref skipAwakening,
                 "AGM_Setting_SkipAwakening_Tip".Translate());
+            listing.CheckboxLabeled(
+                "AGM_Setting_ShowGuidance".Translate(), ref showGuidance,
+                "AGM_Setting_ShowGuidance_Tip".Translate());
 
             listing.GapLine();
             gestureTolerance = listing.SliderLabeled(

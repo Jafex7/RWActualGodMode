@@ -120,6 +120,17 @@ The narrative entry point of the mod. Kept simple for v1.
   (witnessing a miracle, the chosen one preaching, a friend's answered prayer).
   Chosen People: everyone starts as a believer at low faith (it just happened).
 
+- **Awakening trigger (future, no change yet)**: make the Dormant stage flavorful
+  without stalling: (1) hidden readiness raises the daily chance with each notable
+  colony event; (2) hardship (downing, raid, starvation, death) sharply raises it
+  for a day or so: someone in need is heard; (3) the chosen pawn is linked to the
+  event (the downed one, the one nearest the fire), so whispers feel personal;
+  (4) safety net: guaranteed start by ~day 10-14. Numbers in the tuning file.
+- **Balance pass (future)**: revisit all miracle level requirements. Water II is the
+  only level II without a lifetime-power requirement.
+- **Zealot (future)**: consider making it earnable through long, deep faith
+  rather than (or as well as) a starting trait.
+
 ### Deferred
 - Night vigil climax (fits Ideology rituals).
 - The **Prophet** (first believer gets a special role; likely an Ideology role).

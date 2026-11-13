@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Defs>
 
   <!-- Pacing (days are in-game days) -->
@@ -17,18 +17,22 @@
     <scepticWeight>0.2</scepticWeight>
   </ActualGodMode.AwakeningTuningDef>
 
-  <!-- Whispers: odd talk in the social log -->
-  <InteractionDef>
-    <defName>AGM_StrangeTalk</defName>
+  <!-- Whispers: odd talk in the social log. One def per topic; topics tied to
+       things the colony actually lived through are preferred (see AwakeningTracker). -->
+  <InteractionDef Name="AGM_StrangeTalkBase" Abstract="True">
     <label>strange talk</label>
     <workerClass>InteractionWorker</workerClass>
     <symbol>Things/Mote/SpeechSymbols/DeepTalk</symbol>
+  </InteractionDef>
+
+  <InteractionDef ParentName="AGM_StrangeTalkBase">
+    <defName>AGM_StrangeTalk</defName>
     <logRulesInitiator>
       <rulesStrings>
-        <li>r_logentry->[INITIATOR_nameDef] told [RECIPIENT_nameDef] that [whisper].</li>
-        <li>r_logentry->[INITIATOR_nameDef] insisted to [RECIPIENT_nameDef] that [whisper].</li>
-        <li>r_logentry->[INITIATOR_nameDef] whispered to [RECIPIENT_nameDef] that [whisper].</li>
-        <li>whisper->it always rains when there's a fire</li>
+        <li>r_logentry->[INITIATOR_nameDef] [told] [RECIPIENT_nameDef] that [whisper].</li>
+        <li>told->told</li>
+        <li>told->insisted to</li>
+        <li>told->whispered to</li>
         <li>whisper->[INITIATOR_pronoun] saw something in the sky that wasn't a ship: a flat, featureless triangle</li>
         <li>whisper->the wind stops when [INITIATOR_pronoun] speaks, as if something is listening</li>
         <li>whisper->[INITIATOR_pronoun] dreamed of a hand bigger than the mountains</li>
@@ -38,6 +42,100 @@
     </logRulesInitiator>
   </InteractionDef>
 
+  <InteractionDef ParentName="AGM_StrangeTalkBase">
+    <defName>AGM_StrangeTalk_Fire</defName>
+    <logRulesInitiator>
+      <rulesStrings>
+        <li>r_logentry->[INITIATOR_nameDef] told [RECIPIENT_nameDef] that [whisper].</li>
+        <li>whisper->the fire the other day died down too quickly, as if someone had blown on it</li>
+        <li>whisper->when the flames rose, [INITIATOR_pronoun] felt a hand cupped around them, holding them back</li>
+      </rulesStrings>
+    </logRulesInitiator>
+  </InteractionDef>
+
+  <InteractionDef ParentName="AGM_StrangeTalkBase">
+    <defName>AGM_StrangeTalk_Rain</defName>
+    <logRulesInitiator>
+      <rulesStrings>
+        <li>r_logentry->[INITIATOR_nameDef] told [RECIPIENT_nameDef] that [whisper].</li>
+        <li>whisper->the last rain didn't come from the clouds, it came from somewhere above them</li>
+        <li>whisper->[INITIATOR_pronoun] heard something in the rain, like someone humming</li>
+      </rulesStrings>
+    </logRulesInitiator>
+  </InteractionDef>
+
+  <InteractionDef ParentName="AGM_StrangeTalkBase">
+    <defName>AGM_StrangeTalk_Raid</defName>
+    <logRulesInitiator>
+      <rulesStrings>
+        <li>r_logentry->[INITIATOR_nameDef] told [RECIPIENT_nameDef] that [whisper].</li>
+        <li>whisper->during the attack, a shot that should have hit [INITIATOR_objective] simply didn't</li>
+        <li>whisper->the raiders were being watched, and not by the colony</li>
+      </rulesStrings>
+    </logRulesInitiator>
+  </InteractionDef>
+
+  <InteractionDef ParentName="AGM_StrangeTalkBase">
+    <defName>AGM_StrangeTalk_Death</defName>
+    <logRulesInitiator>
+      <rulesStrings>
+        <li>r_logentry->[INITIATOR_nameDef] told [RECIPIENT_nameDef] that [whisper].</li>
+        <li>whisper->the dead aren't gone, someone is keeping them</li>
+        <li>whisper->someone was standing over the grave, someone too big to see</li>
+      </rulesStrings>
+    </logRulesInitiator>
+  </InteractionDef>
+
+  <InteractionDef ParentName="AGM_StrangeTalkBase">
+    <defName>AGM_StrangeTalk_Downed</defName>
+    <logRulesInitiator>
+      <rulesStrings>
+        <li>r_logentry->[INITIATOR_nameDef] told [RECIPIENT_nameDef] that [whisper].</li>
+        <li>whisper->when someone fell bleeding, [INITIATOR_pronoun] felt something decide they would live</li>
+        <li>whisper->lying in the dirt, you can feel the ground listening</li>
+      </rulesStrings>
+    </logRulesInitiator>
+  </InteractionDef>
+
+  <InteractionDef ParentName="AGM_StrangeTalkBase">
+    <defName>AGM_StrangeTalk_Starvation</defName>
+    <logRulesInitiator>
+      <rulesStrings>
+        <li>r_logentry->[INITIATOR_nameDef] told [RECIPIENT_nameDef] that [whisper].</li>
+        <li>whisper->even when they were starving, [INITIATOR_pronoun] knew someone would provide</li>
+        <li>whisper->hunger makes you hear things, but what [INITIATOR_pronoun] heard was real</li>
+      </rulesStrings>
+    </logRulesInitiator>
+  </InteractionDef>
+
+  <!-- Preaching: a believer talks about the god. Rare; may convert the listener. -->
+  <InteractionDef>
+    <defName>AGM_Preach</defName>
+    <label>preach</label>
+    <workerClass>ActualGodMode.InteractionWorker_Preach</workerClass>
+    <symbol>Things/Mote/SpeechSymbols/DeepTalk</symbol>
+    <initiatorXpGainSkill>Social</initiatorXpGainSkill>
+    <initiatorXpGainAmount>6</initiatorXpGainAmount>
+    <logRulesInitiator>
+      <rulesStrings>
+        <li>r_logentry->[INITIATOR_nameDef] [spoke] the god to [RECIPIENT_nameDef].</li>
+        <li>spoke->spoke about</li>
+        <li>spoke->told stories of</li>
+        <li>spoke->tried to explain</li>
+        <li>spoke->bore witness to</li>
+      </rulesStrings>
+    </logRulesInitiator>
+  </InteractionDef>
+
+  <RulePackDef>
+    <defName>AGM_Sentence_PreachConvinced</defName>
+    <rulePack>
+      <rulesStrings>
+        <li>sent->[RECIPIENT_nameDef] was moved, and now believes.</li>
+        <li>sent->Something in it rang true to [RECIPIENT_nameDef].</li>
+      </rulesStrings>
+    </rulePack>
+  </RulePackDef>
   <ThoughtDef>
     <defName>AGM_HeardStrangeTalk</defName>
     <thoughtClass>Thought_MemorySocial</thoughtClass>
@@ -93,9 +191,11 @@
       <Cleanliness>0</Cleanliness>
     </statBases>
     <filth>
+      <!-- Not subject to the terrain's random filth chance: the god's mark always appears -->
+      <ignoreFilthMultiplierStat>true</ignoreFilthMultiplierStat>
+      <!-- Terrain only (like dirt): a cell must accept every flag listed, and natural ground rejects "Unnatural" -->
       <placementMask>
         <li>Terrain</li>
-        <li>Unnatural</li>
       </placementMask>
       <disappearsInDays>4~6</disappearsInDays>
       <rainWashes>true</rainWashes>
