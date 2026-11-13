@@ -39,6 +39,7 @@ namespace ActualGodMode
             DivinePower.Instance.TrySpend(level.cost);
             def.Worker.Cast(cell, map, level);
             NotifyWitnesses(def, cell, map);
+            PrayerRequestTracker.Instance?.Notify_MiracleCast(def, cell, map);
             return true;
         }
 

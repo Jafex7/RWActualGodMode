@@ -36,7 +36,37 @@ Black & White–inspired deity gameplay for RimWorld 1.7. C# + Harmony.
 
 **Abuse** (the god directly harming its own people) is handled under Alignment.
 
+### Patience (hardship buffer) — decided for M4
+- Each pawn has a hidden **patience** buffer. Hardship drains it first; faith only
+  drops once it's empty. It refills slowly in good times.
+- Size = base × trait factors × small personal variation → different loyalty levels.
+- Ongoing drains: malnutrition, hypothermia/heatstroke, sickness, misery (mood below
+  minor break threshold). Event drains: own mental break, colonist death (more if
+  close), being downed.
+- **Gratitude**: once a day, a mostly-content day with no hardship gives a little faith.
+- **Blessed food**: eating food made by a miracle gives the eater extra faith.
+- All numbers live in `Defs/Faith/AGM_FaithTuning.xml`.
+
+### Heal — decided for M4
+- Facts (checked in code): summary health % comes only from fresh injuries
+  (≈ severity/75 each, multiplicative); scars, disease and missing parts don't count.
+  Injuries can be partially healed. Bleeding scales with severity; tended wounds don't
+  bleed. A tended wound **can't be re-tended** until the tend expires.
+- **No tending miracle**: a low-quality miracle tend would block a doctor's proper tend.
+- **Heal I "Mend"**: single pawn, ~10 severity total, most bleeding/painful wounds
+  first. Doesn't tend, scars/missing parts/disease untouched. Enough to get a downed
+  pawn up; doctors still needed. Unlocks after a colonist is first downed.
+- *Later* **Heal II "Blessing of recovery"**: more healing + a day-long buff (faster
+  natural healing, better tend quality when a doctor treats them). Empowers doctors.
+- *Later, powerful*: cure disease, restore scars/limbs, resurrect. **Open**: these may be
+  separate miracles or very high Heal levels; decide when we get there.
+
 ### Prayer requests (v1)
+- Decided: answered by casting the requested miracle **within ~8 cells** of the
+  requester before the deadline. Deadline depends on urgency (≈1 day normally;
+  hours when in danger; a bleeding pawn's deadline follows their bleed-out time).
+- Requests only ask for miracles the god has unlocked.
+- *Later*: "smite the animal hunting me" once Lightning/Smite exists.
 - **Needs-driven**: a pawn in hardship (starving, sick, injured, grieving, freezing)
   may pray for the matching miracle.
 - **Storyteller-driven**: occasional non-urgent wishes (rain for the crops, a

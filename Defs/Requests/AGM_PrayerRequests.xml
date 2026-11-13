@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+  <!-- ===== Needs-driven requests ===== -->
+
+  <ActualGodMode.PrayerRequestDef>
+    <defName>AGM_Request_Food</defName>
+    <label>prayer for food</label>
+    <workerClass>ActualGodMode.PrayerRequestWorker_Hungry</workerClass>
+    <miracle>AGM_Miracle_Food</miracle>
+    <mtbDays>1.5</mtbDays>
+    <deadlineHours>24</deadlineHours>
+    <letterLabel>{PAWN_nameDef} prays for food</letterLabel>
+    <letterText>{PAWN_nameDef} is hungry and has knelt to pray. "Please, I need something to eat."\n\nCast Food within a few steps of {PAWN_objective} in the next {HOURS} hours to answer. If the prayer goes unanswered, {PAWN_possessive} faith will suffer.</letterText>
+    <alertLine>{PAWN_nameDef}: food</alertLine>
+  </ActualGodMode.PrayerRequestDef>
+
+  <ActualGodMode.PrayerRequestDef>
+    <defName>AGM_Request_Wood</defName>
+    <label>prayer for warmth</label>
+    <workerClass>ActualGodMode.PrayerRequestWorker_Cold</workerClass>
+    <miracle>AGM_Miracle_Wood</miracle>
+    <mtbDays>1</mtbDays>
+    <deadlineHours>12</deadlineHours>
+    <letterLabel>{PAWN_nameDef} prays for warmth</letterLabel>
+    <letterText>{PAWN_nameDef} is freezing. "Please, give me something to burn."\n\nCast Wood within a few steps of {PAWN_objective} in the next {HOURS} hours to answer.</letterText>
+    <alertLine>{PAWN_nameDef}: wood for a fire</alertLine>
+  </ActualGodMode.PrayerRequestDef>
+
+  <ActualGodMode.PrayerRequestDef>
+    <defName>AGM_Request_Water</defName>
+    <label>prayer against fire</label>
+    <workerClass>ActualGodMode.PrayerRequestWorker_Fire</workerClass>
+    <miracle>AGM_Miracle_Water</miracle>
+    <urgent>true</urgent>
+    <mtbDays>0.1</mtbDays>
+    <deadlineHours>3</deadlineHours>
+    <reward>0.08</reward>
+    <letterLabel>{PAWN_nameDef} prays for rain</letterLabel>
+    <letterText>Fire is spreading near {PAWN_nameDef}! "Put it out, I beg you!"\n\nCast Water near {PAWN_objective} or the fire in the next {HOURS} hours to answer.</letterText>
+    <alertLine>{PAWN_nameDef}: water against the fire</alertLine>
+  </ActualGodMode.PrayerRequestDef>
+
+  <ActualGodMode.PrayerRequestDef>
+    <defName>AGM_Request_Heal</defName>
+    <label>prayer to be saved</label>
+    <workerClass>ActualGodMode.PrayerRequestWorker_Wounded</workerClass>
+    <miracle>AGM_Miracle_Heal</miracle>
+    <urgent>true</urgent>
+    <mtbDays>0.15</mtbDays>
+    <deadlineHours>12</deadlineHours>
+    <answerRadius>2</answerRadius>
+    <reward>0.12</reward>
+    <letterLabel>{PAWN_nameDef} prays to be saved</letterLabel>
+    <letterText>{PAWN_nameDef} is badly hurt. "Don't let me die here."\n\nCast Heal on {PAWN_objective} in the next {HOURS} hours to answer.</letterText>
+    <alertLine>{PAWN_nameDef}: healing</alertLine>
+  </ActualGodMode.PrayerRequestDef>
+
+  <!-- ===== Storyteller wishes ===== -->
+
+  <ActualGodMode.PrayerRequestDef>
+    <defName>AGM_Wish_RainForCrops</defName>
+    <label>wish for rain</label>
+    <workerClass>ActualGodMode.PrayerRequestWorker_RainForCrops</workerClass>
+    <miracle>AGM_Miracle_Water</miracle>
+    <isWish>true</isWish>
+    <minFaith>0.25</minFaith>
+    <deadlineHours>48</deadlineHours>
+    <reward>0.06</reward>
+    <witnessReward>0.02</witnessReward>
+    <rewardAllColonists>true</rewardAllColonists>
+    <ignoredPenalty>0.02</ignoredPenalty>
+    <letterLabel>{PAWN_nameDef} wishes for rain</letterLabel>
+    <letterText>{PAWN_nameDef} looks over the fields. "If the god would bless our crops with rain, we'd all eat well this season."\n\nCast Water on a growing zone in the next {HOURS} hours to grant the wish. The whole colony will be grateful.</letterText>
+    <alertLine>{PAWN_nameDef}: rain on the crops</alertLine>
+  </ActualGodMode.PrayerRequestDef>
+
+  <ActualGodMode.PrayerRequestDef>
+    <defName>AGM_Wish_Sign</defName>
+    <label>wish for a sign</label>
+    <workerClass>ActualGodMode.PrayerRequestWorker_Sign</workerClass>
+    <isWish>true</isWish>
+    <minFaith>0.25</minFaith>
+    <deadlineHours>24</deadlineHours>
+    <reward>0.05</reward>
+    <witnessReward>0.02</witnessReward>
+    <rewardAllColonists>true</rewardAllColonists>
+    <ignoredPenalty>0.02</ignoredPenalty>
+    <letterLabel>{PAWN_nameDef} asks for a sign</letterLabel>
+    <letterText>{PAWN_nameDef} has been quiet today. "Sometimes I wonder if anyone is listening. Just a sign. Anything."\n\nWork any miracle in the next {HOURS} hours to grant the wish.</letterText>
+    <alertLine>{PAWN_nameDef}: a sign</alertLine>
+  </ActualGodMode.PrayerRequestDef>
+
+  <IncidentDef>
+    <defName>AGM_PrayerWish</defName>
+    <label>prayer wish</label>
+    <category>Misc</category>
+    <targetTags>
+      <li>Map_PlayerHome</li>
+    </targetTags>
+    <workerClass>ActualGodMode.IncidentWorker_PrayerWish</workerClass>
+    <baseChance>1.0</baseChance>
+    <minRefireDays>3</minRefireDays>
+  </IncidentDef>
+
+</Defs>

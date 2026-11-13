@@ -9,7 +9,35 @@ namespace ActualGodMode
     {
         private const int CheckIntervalTicks = 250;
 
+        public const string Event_ColonistDowned = "ColonistDowned";
+
         private HashSet<string> unlocked = new HashSet<string>();
+
+        /// <summary>Things that have happened in this game (for "survived/witnessed X" unlocks).</summary>
+        private HashSet<string> events = new HashSet<string>();
+
+        /// <summary>Thing IDs of food made by miracles (blessed).</summary>
+        private HashSet<int> blessedThings = new HashSet<int>();
+
+        public bool HasEvent(string key) => events.Contains(key);
+
+        public void RecordEvent(string key)
+        {
+            if (events.Add(key))
+            {
+                CheckUnlocks();
+            }
+        }
+
+        public bool IsBlessed(Thing t) => t != null && blessedThings.Contains(t.thingIDNumber);
+
+        public void Bless(Thing t)
+        {
+            if (t != null)
+            {
+                blessedThings.Add(t.thingIDNumber);
+            }
+        }
 
         public static MiracleTracker Instance => Current.Game?.GetComponent<MiracleTracker>();
 
@@ -80,9 +108,13 @@ namespace ActualGodMode
         public override void ExposeData()
         {
             Scribe_Collections.Look(ref unlocked, "unlocked", LookMode.Value);
-            if (Scribe.mode == LoadSaveMode.PostLoadInit && unlocked == null)
+            Scribe_Collections.Look(ref events, "events", LookMode.Value);
+            Scribe_Collections.Look(ref blessedThings, "blessedThings", LookMode.Value);
+            if (Scribe.mode == LoadSaveMode.PostLoadInit)
             {
-                unlocked = new HashSet<string>();
+                unlocked ??= new HashSet<string>();
+                events ??= new HashSet<string>();
+                blessedThings ??= new HashSet<int>();
             }
         }
     }

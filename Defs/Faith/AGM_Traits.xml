@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+  <TraitDef>
+    <defName>AGM_Zealot</defName>
+    <commonality>0.5</commonality>
+    <degreeDatas>
+      <li>
+        <label>zealot</label>
+        <description>{PAWN_nameDef} believes with all {PAWN_possessive} heart. {PAWN_pronoun} endures hardship patiently, gains faith quickly, prays with fervor, and asks the god for help often.</description>
+      </li>
+    </degreeDatas>
+    <conflictingTraits>
+      <li>AGM_Sceptic</li>
+    </conflictingTraits>
+    <modExtensions>
+      <li Class="ActualGodMode.FaithTraitExtension">
+        <degrees>
+          <li>
+            <degree>0</degree>
+            <decayFactor>0.3</decayFactor>
+            <gainFactor>1.5</gainFactor>
+            <patienceFactor>2</patienceFactor>
+            <prayerOutputFactor>1.25</prayerOutputFactor>
+            <requestFrequencyFactor>1.5</requestFrequencyFactor>
+          </li>
+        </degrees>
+      </li>
+    </modExtensions>
+  </TraitDef>
+
+  <TraitDef>
+    <defName>AGM_Sceptic</defName>
+    <commonality>0.6</commonality>
+    <degreeDatas>
+      <li>
+        <label>sceptic</label>
+        <description>{PAWN_nameDef} needs proof before believing anything. {PAWN_pronoun} gains faith slowly, loses it quickly, has little patience for hardship, and rarely prays for help.</description>
+      </li>
+    </degreeDatas>
+    <conflictingTraits>
+      <li>AGM_Zealot</li>
+    </conflictingTraits>
+    <modExtensions>
+      <li Class="ActualGodMode.FaithTraitExtension">
+        <degrees>
+          <li>
+            <degree>0</degree>
+            <decayFactor>2</decayFactor>
+            <gainFactor>0.5</gainFactor>
+            <patienceFactor>0.6</patienceFactor>
+            <prayerOutputFactor>0.7</prayerOutputFactor>
+            <requestFrequencyFactor>0.3</requestFrequencyFactor>
+          </li>
+        </degrees>
+      </li>
+    </modExtensions>
+  </TraitDef>
+
+</Defs>

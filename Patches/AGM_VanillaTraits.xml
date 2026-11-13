@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- How vanilla traits change a pawn's relationship with the god. Factors multiply across traits. -->
+<Patch>
+
+  <!-- Lazy / slothful ask the god for more; hard workers ask less -->
+  <Operation Class="PatchOperationAddModExtension">
+    <xpath>Defs/TraitDef[defName="Industriousness"]</xpath>
+    <value>
+      <li Class="ActualGodMode.FaithTraitExtension">
+        <degrees>
+          <li><degree>2</degree><requestFrequencyFactor>0.6</requestFrequencyFactor></li>
+          <li><degree>1</degree><requestFrequencyFactor>0.8</requestFrequencyFactor></li>
+          <li><degree>-1</degree><requestFrequencyFactor>1.5</requestFrequencyFactor></li>
+          <li><degree>-2</degree><requestFrequencyFactor>2</requestFrequencyFactor></li>
+        </degrees>
+      </li>
+    </value>
+  </Operation>
+
+  <!-- Optimists feel more gratitude; pessimists feel hardship more -->
+  <Operation Class="PatchOperationAddModExtension">
+    <xpath>Defs/TraitDef[defName="NaturalMood"]</xpath>
+    <value>
+      <li Class="ActualGodMode.FaithTraitExtension">
+        <degrees>
+          <li><degree>2</degree><gratitudeFactor>1.6</gratitudeFactor><hardshipFactor>0.8</hardshipFactor></li>
+          <li><degree>1</degree><gratitudeFactor>1.3</gratitudeFactor><hardshipFactor>0.9</hardshipFactor></li>
+          <li><degree>-1</degree><gratitudeFactor>0.8</gratitudeFactor><hardshipFactor>1.3</hardshipFactor></li>
+          <li><degree>-2</degree><gratitudeFactor>0.6</gratitudeFactor><hardshipFactor>1.6</hardshipFactor></li>
+        </degrees>
+      </li>
+    </value>
+  </Operation>
+
+  <!-- Steady nerves = more patience; nervous / volatile = less -->
+  <Operation Class="PatchOperationAddModExtension">
+    <xpath>Defs/TraitDef[defName="Nerves"]</xpath>
+    <value>
+      <li Class="ActualGodMode.FaithTraitExtension">
+        <degrees>
+          <li><degree>2</degree><patienceFactor>1.4</patienceFactor></li>
+          <li><degree>1</degree><patienceFactor>1.2</patienceFactor></li>
+          <li><degree>-1</degree><patienceFactor>0.8</patienceFactor></li>
+          <li><degree>-2</degree><patienceFactor>0.6</patienceFactor></li>
+        </degrees>
+      </li>
+    </value>
+  </Operation>
+
+  <!-- Ascetics shrug off hardship -->
+  <Operation Class="PatchOperationAddModExtension">
+    <xpath>Defs/TraitDef[defName="Ascetic"]</xpath>
+    <value>
+      <li Class="ActualGodMode.FaithTraitExtension">
+        <degrees>
+          <li><degree>0</degree><hardshipFactor>0.7</hardshipFactor><patienceFactor>1.3</patienceFactor></li>
+        </degrees>
+      </li>
+    </value>
+  </Operation>
+
+  <!-- Greedy pawns ask for more -->
+  <Operation Class="PatchOperationAddModExtension">
+    <xpath>Defs/TraitDef[defName="Greedy"]</xpath>
+    <value>
+      <li Class="ActualGodMode.FaithTraitExtension">
+        <degrees>
+          <li><degree>0</degree><requestFrequencyFactor>1.3</requestFrequencyFactor></li>
+        </degrees>
+      </li>
+    </value>
+  </Operation>
+
+  <!-- Kind pawns are grateful -->
+  <Operation Class="PatchOperationAddModExtension">
+    <xpath>Defs/TraitDef[defName="Kind"]</xpath>
+    <value>
+      <li Class="ActualGodMode.FaithTraitExtension">
+        <degrees>
+          <li><degree>0</degree><gratitudeFactor>1.3</gratitudeFactor></li>
+        </degrees>
+      </li>
+    </value>
+  </Operation>
+
+  <!-- Psychopaths are hard to move -->
+  <Operation Class="PatchOperationAddModExtension">
+    <xpath>Defs/TraitDef[defName="Psychopath"]</xpath>
+    <value>
+      <li Class="ActualGodMode.FaithTraitExtension">
+        <degrees>
+          <li><degree>0</degree><gainFactor>0.7</gainFactor><gratitudeFactor>0.5</gratitudeFactor></li>
+        </degrees>
+      </li>
+    </value>
+  </Operation>
+
+</Patch>

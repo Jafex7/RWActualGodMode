@@ -72,6 +72,30 @@
     </levels>
   </ActualGodMode.MiracleDef>
 
+  <!-- ===== Heal ===== -->
+  <ActualGodMode.MiracleDef>
+    <defName>AGM_Miracle_Heal</defName>
+    <label>heal</label>
+    <description>Mend one person's worst wounds. It eases pain and slows bleeding, often enough to get the fallen back on their feet, but the wounds still need a doctor's care.</description>
+    <workerClass>ActualGodMode.MiracleWorker_Heal</workerClass>
+    <gesture>AGM_Gesture_Cross</gesture>
+    <iconThing>MedicineHerbal</iconThing>
+    <order>15</order>
+    <levels>
+      <li>
+        <label>I</label>
+        <cost>15</cost>
+        <amount>10</amount>
+        <requirements>
+          <li Class="ActualGodMode.Req_EventOccurred">
+            <eventKey>ColonistDowned</eventKey>
+            <descriptionKey>AGM_Req_Event_ColonistDowned</descriptionKey>
+          </li>
+        </requirements>
+      </li>
+    </levels>
+  </ActualGodMode.MiracleDef>
+
   <!-- ===== Wood ===== -->
   <ActualGodMode.MiracleDef>
     <defName>AGM_Miracle_Wood</defName>

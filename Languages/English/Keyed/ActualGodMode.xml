@@ -32,6 +32,22 @@
   <AGM_MiracleUnlocked_Label>New miracle: {0}</AGM_MiracleUnlocked_Label>
   <AGM_MiracleUnlocked_Text>Your followers' faith has grown, and with it their idea of what you can do for them. They now pray for {0}.\n\n{1}</AGM_MiracleUnlocked_Text>
   <AGM_Req_Believers>{0} colonists with at least {1} faith (now {2})</AGM_Req_Believers>
+  <AGM_Heal_NoPawn>There's no one there to heal.</AGM_Heal_NoPawn>
+  <AGM_Heal_NothingToHeal>{0} has no wounds that can be mended.</AGM_Heal_NothingToHeal>
+  <AGM_Req_Event_ColonistDowned>A colonist has fallen, wounded</AGM_Req_Event_ColonistDowned>
+
+  <!-- Faith dynamics -->
+  <AGM_Patience_Tip>Patience with the god: {0}. Hardship wears patience down before it shakes faith.</AGM_Patience_Tip>
+  <AGM_Patience_High>high</AGM_Patience_High>
+  <AGM_Patience_Medium>wearing thin</AGM_Patience_Medium>
+  <AGM_Patience_Low>exhausted</AGM_Patience_Low>
+
+  <!-- Prayer requests -->
+  <AGM_Request_Answered>{PAWN_nameDef}'s prayer was answered. {PAWN_possessive} faith grows.</AGM_Request_Answered>
+  <AGM_Request_Ignored>{PAWN_nameDef}'s prayer went unanswered. {PAWN_possessive} faith suffers.</AGM_Request_Ignored>
+  <AGM_Alert_Prayers>Prayers: {0}</AGM_Alert_Prayers>
+  <AGM_Alert_Prayers_Desc>Your followers are praying for help:\n\n{0}\n\nAnswer by casting the miracle they ask for, near them, before time runs out. Unanswered prayers cost faith.</AGM_Alert_Prayers_Desc>
+
   <!-- Hand of God mode -->
   <AGM_HoG_Active>Hand of God</AGM_HoG_Active>
   <AGM_HoG_HintToggled>Left-drag to draw · right-click or {0} to leave</AGM_HoG_HintToggled>

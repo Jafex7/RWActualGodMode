@@ -47,6 +47,20 @@
     </templates>
   </ActualGodMode.GestureDef>
 
+  <!-- Heal: a cross (two strokes) -->
+  <ActualGodMode.GestureDef>
+    <defName>AGM_Gesture_Cross</defName>
+    <label>cross</label>
+    <templates>
+      <li>
+        <strokes>
+          <li><points><li>(0.5,0)</li><li>(0.5,1)</li></points></li>
+          <li><points><li>(0,0.5)</li><li>(1,0.5)</li></points></li>
+        </strokes>
+      </li>
+    </templates>
+  </ActualGodMode.GestureDef>
+
   <!-- Wood: a tree (trunk and two branches), in any stroke order -->
   <ActualGodMode.GestureDef>
     <defName>AGM_Gesture_Tree</defName>

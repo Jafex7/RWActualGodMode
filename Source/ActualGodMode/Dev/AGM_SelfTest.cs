@@ -167,6 +167,15 @@ namespace ActualGodMode
                 Check(false, "miracle tests threw: " + e);
             }
 
+            try
+            {
+                RunFaithTests();
+            }
+            catch (System.Exception e)
+            {
+                Check(false, "faith tests threw: " + e);
+            }
+
             Log.Message(Tag + $"RESULT: {(failures == 0 ? "PASS" : "FAIL")} ({failures} failure(s))");
             Root.Shutdown();
         }
@@ -319,6 +328,140 @@ namespace ActualGodMode
                 pts.Add(pts[pts.Count - 1] + new Vector2((float)rng.NextDouble() * 60f - 30f, (float)rng.NextDouble() * 60f - 30f));
             }
             return pts;
+        }
+
+        /// <summary>M4: traits, patience buffer, blessed food, Heal, prayer requests and wishes.</summary>
+        private void RunFaithTests()
+        {
+            Map map = shrine.Map;
+            DivinePower dp = DivinePower.Instance;
+            MiracleTracker miracles = MiracleTracker.Instance;
+            PrayerRequestTracker requests = PrayerRequestTracker.Instance;
+            Pawn pawn = map.mapPawns.FreeColonistsSpawned.First();
+            Need_Faith faith = pawn.Faith();
+            Log.Message(Tag + "Faith phase (test pawn: " + pawn.LabelShort + ")");
+
+            // Traits multiply: Lazy (x1.5 requests) + Zealot (x1.5 requests) = x2.25
+            float before = FaithTraitUtility.Factor(pawn, f => f.requestFrequencyFactor);
+            TraitDef industriousness = DefDatabase<TraitDef>.GetNamed("Industriousness");
+            if (pawn.story.traits.HasTrait(industriousness))
+            {
+                pawn.story.traits.RemoveTrait(pawn.story.traits.GetTrait(industriousness));
+            }
+            foreach (string name in new[] { "AGM_Sceptic", "AGM_Zealot" })
+            {
+                TraitDef t = DefDatabase<TraitDef>.GetNamed(name);
+                if (pawn.story.traits.HasTrait(t))
+                {
+                    pawn.story.traits.RemoveTrait(pawn.story.traits.GetTrait(t));
+                }
+            }
+            float baseline = FaithTraitUtility.Factor(pawn, f => f.requestFrequencyFactor);
+            pawn.story.traits.GainTrait(new Trait(industriousness, -1));
+            pawn.story.traits.GainTrait(new Trait(DefDatabase<TraitDef>.GetNamed("AGM_Zealot")));
+            float combined = FaithTraitUtility.Factor(pawn, f => f.requestFrequencyFactor);
+            Check(Mathf.Abs(combined - baseline * 2.25f) < 0.001f, $"Lazy + Zealot request frequency multiplies (x{combined / baseline:F2}, before traits x{before:F2})");
+
+            // Patience absorbs hardship before faith drops
+            float hardshipFactor = FaithTraitUtility.Factor(pawn, f => f.hardshipFactor);
+            faith.CurLevel = 0.5f;
+            faith.DebugSetPatience(0.1f);
+            faith.Hardship(0.05f / hardshipFactor);
+            Check(Mathf.Abs(faith.CurLevel - 0.5f) < 0.001f, $"small hardship absorbed by patience (faith {faith.CurLevel:F3})");
+            faith.Hardship(0.15f / hardshipFactor);
+            Check(Mathf.Abs(faith.CurLevel - 0.4f) < 0.001f, $"hardship beyond patience lowers faith by the excess (faith {faith.CurLevel:F3}, expected 0.400)");
+
+            // Blessed food: miracle meals are blessed, stay blessed when split, and give faith when eaten
+            dp.Add(100f);
+            CellFinder.TryFindRandomCellNear(shrine.Position, map, 6, c => c.Standable(map) && c.GetFirstItem(map) == null && c.GetFirstPawn(map) == null, out IntVec3 spot);
+            MiracleUtility.TryCast(DefDatabase<MiracleDef>.GetNamed("AGM_Miracle_Food"), 0, spot, map);
+            Thing meal = map.listerThings.ThingsOfDef(ThingDefOf.MealSimple).FirstOrDefault(t => miracles.IsBlessed(t));
+            Check(meal != null, "food miracle meals are blessed");
+            if (meal != null)
+            {
+                Thing piece = meal.stackCount > 1 ? meal.SplitOff(1) : meal;
+                Check(miracles.IsBlessed(piece), "blessing survives a stack split");
+                faith.CurLevel = 0.5f;
+                piece.Ingested(pawn, 1f);
+                float expected = FaithTuningDef.Get.blessedFoodGain * FaithTraitUtility.Factor(pawn, f => f.gainFactor);
+                Check(Mathf.Abs(faith.CurLevel - 0.5f - expected) < 0.002f, $"eating blessed food gives faith (+{faith.CurLevel - 0.5f:F3}, expected +{expected:F3})");
+            }
+
+            // Heal: locked until a colonist is downed; heals up to 10 severity, worst first
+            MiracleDef heal = DefDatabase<MiracleDef>.GetNamed("AGM_Miracle_Heal");
+            Check(!miracles.IsUnlocked(heal, 0), "heal locked before anyone is downed");
+            miracles.RecordEvent(MiracleTracker.Event_ColonistDowned);
+            Check(miracles.IsUnlocked(heal, 0), "heal unlocked after a colonist is downed");
+            for (int i = 0; i < 3; i++)
+            {
+                pawn.TakeDamage(new DamageInfo(DamageDefOf.Cut, 6f));
+            }
+            float severityBefore = MiracleWorker_Heal.HealableInjuries(pawn).Sum(h => h.Severity);
+            dp.Add(100f);
+            AcceptanceReport r = MiracleUtility.TryCast(heal, 0, pawn.Position, map);
+            float severityAfter = MiracleWorker_Heal.HealableInjuries(pawn).Sum(h => h.Severity);
+            float healed = severityBefore - severityAfter;
+            Check(r.Accepted && Mathf.Abs(healed - Mathf.Min(10f, severityBefore)) < 0.01f,
+                $"heal I mended {healed:F1} of {severityBefore:F1} severity (expected {Mathf.Min(10f, severityBefore):F1}) {r.Reason}");
+            Check(!MiracleUtility.CanCast(heal, 0, spot, map).Accepted, "heal refuses a cell with no one in it");
+
+            // Request answered: cast the asked-for miracle near the requester
+            PrayerRequestDef foodRequest = DefDatabase<PrayerRequestDef>.GetNamed("AGM_Request_Food");
+            dp.Add(100f);
+            PrayerRequest req = requests.Create(pawn, foodRequest);
+            faith.CurLevel = 0.5f;
+            MiracleUtility.TryCast(DefDatabase<MiracleDef>.GetNamed("AGM_Miracle_Food"), 0, NearFreeCell(pawn, map), map);
+            Check(!requests.Active.Contains(req), "food request answered by Food cast nearby");
+            Check(faith.CurLevel - 0.5f >= foodRequest.reward * FaithTraitUtility.Factor(pawn, f => f.gainFactor) - 0.001f,
+                $"answered prayer raised faith (+{faith.CurLevel - 0.5f:F3})");
+
+            // Request ignored: penalty when it expires
+            req = requests.Create(pawn, foodRequest);
+            faith.CurLevel = 0.5f;
+            requests.DebugExpire(req);
+            requests.UpdateActive();
+            bool stillNeeded = foodRequest.Worker.StillNeeded(req);
+            Check(!requests.Active.Contains(req), "expired request removed");
+            Log.Message(Tag + $"  (pawn still hungry: {stillNeeded}; penalty only applies if the need hadn't passed)");
+            if (stillNeeded)
+            {
+                Check(faith.CurLevel < 0.5f, $"ignored prayer lowered faith (faith {faith.CurLevel:F3})");
+            }
+
+            // Ignored past the deadline: penalty (a wish never withdraws itself, so the expiry path runs)
+            PrayerRequestDef sign = DefDatabase<PrayerRequestDef>.GetNamed("AGM_Wish_Sign");
+            req = requests.Create(pawn, sign);
+            faith.CurLevel = 0.5f;
+            requests.DebugExpire(req);
+            requests.UpdateActive();
+            float penalty = sign.ignoredPenalty * FaithTraitUtility.Factor(pawn, f => f.hardshipFactor);
+            Check(!requests.Active.Contains(req) && Mathf.Abs(0.5f - faith.CurLevel - penalty) < 0.001f,
+                $"ignored prayer lowered faith by its penalty (-{0.5f - faith.CurLevel:F3}, expected -{penalty:F3})");
+
+            // Wish: a sign, answered by any miracle on the map, rewards everyone
+            Pawn other = map.mapPawns.FreeColonistsSpawned.First(p => p != pawn);
+            other.Faith().CurLevel = 0.5f;
+            req = requests.Create(pawn, sign);
+            dp.Add(100f);
+            MiracleUtility.TryCast(DefDatabase<MiracleDef>.GetNamed("AGM_Miracle_Wood"), 0, NearFreeCell(shrine, map), map);
+            Check(!requests.Active.Contains(req) && other.Faith().CurLevel > 0.5f, "wish for a sign granted by any miracle; others share the joy");
+
+            // Storyteller incident can fire with a shrine and a believer
+            foreach (Pawn p in map.mapPawns.FreeColonistsSpawned)
+            {
+                p.Faith().CurLevel = 0.6f;
+            }
+            IncidentDef wishIncident = DefDatabase<IncidentDef>.GetNamed("AGM_PrayerWish");
+            var parms = StorytellerUtility.DefaultParmsNow(wishIncident.category, map);
+            Check(wishIncident.Worker.CanFireNow(parms), "wish incident can fire");
+            int count = requests.Active.Count;
+            Check(wishIncident.Worker.TryExecute(parms) && requests.Active.Count == count + 1, "wish incident creates a wish");
+        }
+
+        private static IntVec3 NearFreeCell(Thing near, Map map)
+        {
+            CellFinder.TryFindRandomCellNear(near.Position, map, 4, c => c.Standable(map) && c.GetFirstItem(map) == null && c.GetFirstPawn(map) == null, out IntVec3 cell);
+            return cell;
         }
 
         private static int CountOf(Map map, ThingDef def) => map.listerThings.ThingsOfDef(def).Sum(t => t.stackCount);

@@ -44,6 +44,19 @@ namespace ActualGodMode
         }
     }
 
+    /// <summary>Something has happened in this game (e.g. a colonist was downed). See MiracleTracker events.</summary>
+    public class Req_EventOccurred : MiracleRequirement
+    {
+        public string eventKey;
+
+        /// <summary>Keyed string describing the event, e.g. "AGM_Req_Event_ColonistDowned".</summary>
+        public string descriptionKey;
+
+        public override bool IsMet() => MiracleTracker.Instance?.HasEvent(eventKey) ?? false;
+
+        public override string Description => descriptionKey.Translate();
+    }
+
     /// <summary>The god has received at least this much power in total.</summary>
     public class Req_LifetimePower : MiracleRequirement
     {

@@ -88,7 +88,8 @@ namespace ActualGodMode
                 return 0f;
             }
             float faithFactor = Mathf.Max(faith.CurLevelPercentage, Props.minFaithFactor);
-            return Props.powerPerDayAtFullFaith / GenDate.TicksPerDay * faithFactor * GroupFactor;
+            float traitFactor = FaithTraitUtility.Factor(pawn, f => f.prayerOutputFactor);
+            return Props.powerPerDayAtFullFaith / GenDate.TicksPerDay * faithFactor * GroupFactor * traitFactor;
         }
 
         /// <summary>Called by the prayer job driver while a pawn prays here.</summary>

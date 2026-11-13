@@ -10,7 +10,9 @@ Read before changing things:
 ## Status
 - Done: **M0** setup, **M1** faith / divine power / shrine / worship, **M2** miracles (toolbar casting).
 - Done: **M3** Hand of God mode (gesture casting, Book of Gestures, recorder), verified in-game.
-- Next: **M4** faith dynamics (hardship / gratitude / witnessing, trait extension, Zealot/Sceptic, prayer requests).
+- **M4** faith dynamics: implemented and self-tested (patience buffer, hardship, gratitude, blessed food,
+  traits + vanilla patches, Zealot/Sceptic, Heal I, prayer requests, storyteller wishes); awaiting in-game test.
+- Next after M4: **M5** entry & temple (Awakening, Shrine research, Chosen People, temple tiers, Offering Bowl, Pylon).
 
 ## Commands
 - Build: `dotnet build Source/ActualGodMode/ActualGodMode.csproj -c Release` (outputs to `1.7/Assemblies/`).
@@ -23,7 +25,8 @@ Read before changing things:
 |---|---|
 | `Source/ActualGodMode/ActualGodModeMod.cs`, `…Settings.cs` | Mod entry (Harmony `PatchAll`), mod settings |
 | `Source/…/AGM_DefOf.cs` | `[DefOf]` references to our defs |
-| `Source/…/Faith/` | `Need_Faith` (per-colonist faith), `FaithUtility` (`pawn.Faith()`) |
+| `Source/…/Faith/` | `Need_Faith` (faith + hidden patience buffer, gratitude), `FaithHardship` (ongoing hardship + Harmony event hooks: breaks, deaths, downed, blessed food), `FaithTraitExtension` (trait factors), `FaithTuningDef` (all numbers, `Defs/Faith/AGM_FaithTuning.xml`), `FaithUtility` (`pawn.Faith()`) |
+| `Source/…/Requests/` | `PrayerRequestDef`, `PrayerRequestWorker` (+ Hungry/Cold/Fire/Wounded/RainForCrops/Sign), `PrayerRequestTracker` (create/answer/expire), `Alert_PrayerRequests`, `IncidentWorker_PrayerWish` |
 | `Source/…/Power/` | `DivinePower` GameComponent (global pool, cap, lifetime) |
 | `Source/…/Shrine/` | `CompShrine` (prayer spots, slots, group bonus, power rate), `ShrineUtility` + one-per-map PlaceWorker, `InfluenceUtility` |
 | `Source/…/Worship/` | `JobDriver_PrayAtShrine`, job/joy givers, `WorshipUtility.TryMakePrayJob` |
@@ -56,6 +59,11 @@ Read before changing things:
 - **Add a gesture**: `ActualGodMode.GestureDef` in `Defs/Gestures/` (points in a 0–1 box, **y down**), reference it from
   the miracle's `<gesture>`. Rerun the self-test: it simulates drawings of every gesture and logs the closest wrong
   match. If two signs get close, change a shape rather than the threshold (`GestureLibrary.BaseThreshold`, calibrated).
+- **Add a prayer request / wish**: `ActualGodMode.PrayerRequestDef` in `Defs/Requests/` (miracle, mtbDays, deadline,
+  rewards, letter text); subclass `PrayerRequestWorker` for the trigger (`CanRequest`), `StillNeeded`, `DeadlineTicks`
+  and `IsAnsweredBy`. Requests only ask for unlocked miracles. Set `isWish` for storyteller-only ones.
+- **Make a trait affect faith**: add a `FaithTraitExtension` (per degree factors) via `PatchOperationAddModExtension`
+  (see `Patches/AGM_VanillaTraits.xml`).
 - **Add an unlock requirement**: subclass `MiracleRequirement` (`IsMet`, `Description`), then reference it in XML as
   `<li Class="ActualGodMode.Req_X">`.
 - **Anything reading the schedule**: vanilla `JobGiver_GetRest` / `JobGiver_Work` throw on unknown time assignments.

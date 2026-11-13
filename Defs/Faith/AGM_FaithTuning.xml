@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Faith dynamics balance. Amounts are fractions of the faith bar (0.05 = 5%). -->
+<Defs>
+
+  <ActualGodMode.FaithTuningDef>
+    <defName>AGM_FaithTuning</defName>
+
+    <!-- Patience: hardship drains this hidden buffer before faith -->
+    <basePatience>0.25</basePatience>
+    <personalPatienceRange>0.8~1.2</personalPatienceRange>
+    <patienceRegenPerDay>0.1</patienceRegenPerDay>
+    <patienceRegenMinMood>0.5</patienceRegenMinMood>
+
+    <!-- Gratitude: a mostly content day without hardship -->
+    <gratitudeMinAverageMood>0.55</gratitudeMinAverageMood>
+    <gratitudePerDay>0.02</gratitudePerDay>
+
+    <!-- Ongoing hardship, per day while it lasts -->
+    <malnutritionPerDay>0.05</malnutritionPerDay>
+    <malnutritionPerDayPerSeverity>0.15</malnutritionPerDayPerSeverity>
+    <temperatureMinSeverity>0.2</temperatureMinSeverity>
+    <temperaturePerDay>0.08</temperaturePerDay>
+    <sicknessPerDay>0.05</sicknessPerDay>
+    <sicknessMaxPerDay>0.1</sicknessMaxPerDay>
+    <miseryPerDay>0.04</miseryPerDay>
+
+    <!-- Hardship events -->
+    <mentalBreak>0.08</mentalBreak>
+    <colonistDied>0.05</colonistDied>
+    <colonistDiedCloseExtra>0.1</colonistDiedCloseExtra>
+    <closeOpinion>20</closeOpinion>
+    <downed>0.04</downed>
+
+    <!-- Blessings -->
+    <blessedFoodGain>0.04</blessedFoodGain>
+  </ActualGodMode.FaithTuningDef>
+
+</Defs>
