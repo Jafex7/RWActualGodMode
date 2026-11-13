@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+  <!-- ===== Temple tiers (tier 0 = no temple / outdoors) ===== -->
+  <ActualGodMode.TempleTuningDef>
+    <defName>AGM_TempleTuning</defName>
+    <tiers>
+      <li>
+        <label>open-air shrine</label>
+        <prayerSlots>2</prayerSlots>
+        <powerCapBonus>0</powerCapBonus>
+      </li>
+      <li>
+        <label>chapel</label>
+        <minImpressiveness>30</minImpressiveness>
+        <minHolyFurniture>1</minHolyFurniture>
+        <prayerSlots>4</prayerSlots>
+        <powerCapBonus>50</powerCapBonus>
+      </li>
+      <li>
+        <label>temple</label>
+        <minImpressiveness>60</minImpressiveness>
+        <minHolyFurniture>3</minHolyFurniture>
+        <prayerSlots>6</prayerSlots>
+        <powerCapBonus>150</powerCapBonus>
+      </li>
+      <li>
+        <label>grand temple</label>
+        <minImpressiveness>100</minImpressiveness>
+        <minHolyFurniture>6</minHolyFurniture>
+        <prayerSlots>10</prayerSlots>
+        <powerCapBonus>300</powerCapBonus>
+      </li>
+    </tiers>
+  </ActualGodMode.TempleTuningDef>
+
+  <RoomRoleDef>
+    <defName>AGM_Temple</defName>
+    <label>temple</label>
+    <workerClass>ActualGodMode.RoomRoleWorker_Temple</workerClass>
+    <relatedStats>
+      <li>Impressiveness</li>
+      <li>Wealth</li>
+      <li>Space</li>
+      <li>Beauty</li>
+      <li>Cleanliness</li>
+    </relatedStats>
+  </RoomRoleDef>
+
+  <!-- ===== Research ===== -->
+  <ResearchProjectDef>
+    <defName>AGM_OfferingResearch</defName>
+    <label>offerings</label>
+    <description>Your people learn to give to their god: an offering bowl where anything placed is given up as Divine Power.</description>
+    <baseCost>400</baseCost>
+    <techLevel>Neolithic</techLevel>
+    <tab>AGM_Divine</tab>
+    <prerequisites>
+      <li>AGM_ShrineResearch</li>
+    </prerequisites>
+    <researchViewX>1</researchViewX>
+    <researchViewY>0</researchViewY>
+  </ResearchProjectDef>
+
+  <ResearchProjectDef>
+    <defName>AGM_PylonResearch</defName>
+    <label>pylons</label>
+    <description>Stones that carry the god's reach beyond the shrine, as long as a believer tends them.</description>
+    <baseCost>500</baseCost>
+    <techLevel>Neolithic</techLevel>
+    <tab>AGM_Divine</tab>
+    <prerequisites>
+      <li>AGM_ShrineResearch</li>
+    </prerequisites>
+    <researchViewX>1</researchViewX>
+    <researchViewY>1</researchViewY>
+  </ResearchProjectDef>
+
+  <!-- ===== Holy furniture ===== -->
+  <ThingDef ParentName="BuildingBase">
+    <defName>AGM_Idol</defName>
+    <label>idol</label>
+    <description>A flat, featureless triangle on a plinth: the shape your followers see in the sky. Holy furniture for a temple.</description>
+    <graphicData>
+      <texPath>Things/AGM/Idol</texPath>
+      <graphicClass>Graphic_Single</graphicClass>
+      <drawSize>(1.1,1.1)</drawSize>
+    </graphicData>
+    <altitudeLayer>Building</altitudeLayer>
+    <passability>PassThroughOnly</passability>
+    <pathCost>50</pathCost>
+    <fillPercent>0.4</fillPercent>
+    <rotatable>false</rotatable>
+    <stuffCategories>
+      <li>Stony</li>
+      <li>Metallic</li>
+      <li>Woody</li>
+    </stuffCategories>
+    <costStuffCount>60</costStuffCount>
+    <statBases>
+      <MaxHitPoints>150</MaxHitPoints>
+      <WorkToBuild>3000</WorkToBuild>
+      <Beauty>12</Beauty>
+      <Mass>20</Mass>
+    </statBases>
+    <designationCategory>AGM_Divine</designationCategory>
+    <researchPrerequisites>
+      <li>AGM_ShrineResearch</li>
+    </researchPrerequisites>
+    <modExtensions>
+      <li Class="ActualGodMode.HolyFurnitureExtension">
+        <holiness>1</holiness>
+      </li>
+    </modExtensions>
+  </ThingDef>
+
+  <ThingDef ParentName="BuildingBase">
+    <defName>AGM_IncenseBurner</defName>
+    <label>incense burner</label>
+    <description>A small bowl on three legs where incense smoulders for the god. It gives a warm light. Holy furniture for a temple.</description>
+    <graphicData>
+      <texPath>Things/AGM/IncenseBurner</texPath>
+      <graphicClass>Graphic_Single</graphicClass>
+    </graphicData>
+    <altitudeLayer>Building</altitudeLayer>
+    <passability>PassThroughOnly</passability>
+    <pathCost>30</pathCost>
+    <fillPercent>0.3</fillPercent>
+    <rotatable>false</rotatable>
+    <stuffCategories>
+      <li>Metallic</li>
+      <li>Stony</li>
+    </stuffCategories>
+    <costStuffCount>30</costStuffCount>
+    <statBases>
+      <MaxHitPoints>80</MaxHitPoints>
+      <WorkToBuild>1500</WorkToBuild>
+      <Beauty>6</Beauty>
+      <Mass>8</Mass>
+    </statBases>
+    <designationCategory>AGM_Divine</designationCategory>
+    <researchPrerequisites>
+      <li>AGM_ShrineResearch</li>
+    </researchPrerequisites>
+    <comps>
+      <li Class="CompProperties_Glower">
+        <glowRadius>3</glowRadius>
+        <glowColor>(252,187,113,0)</glowColor>
+      </li>
+    </comps>
+    <modExtensions>
+      <li Class="ActualGodMode.HolyFurnitureExtension">
+        <holiness>1</holiness>
+      </li>
+    </modExtensions>
+  </ThingDef>
+
+  <!-- ===== Offering bowl ===== -->
+  <ThingDef ParentName="BuildingBase">
+    <defName>AGM_OfferingBowl</defName>
+    <label>offering bowl</label>
+    <description>Your followers place gifts for the god here. Offer the contents (select the bowl) and they are given up as Divine Power: about 1 power for every 10 silver of value. Choose what may be placed in it like any storage.</description>
+    <thingClass>ActualGodMode.Building_OfferingBowl</thingClass>
+    <graphicData>
+      <texPath>Things/AGM/OfferingBowl</texPath>
+      <graphicClass>Graphic_Single</graphicClass>
+    </graphicData>
+    <altitudeLayer>Building</altitudeLayer>
+    <passability>PassThroughOnly</passability>
+    <pathCost>30</pathCost>
+    <fillPercent>0.3</fillPercent>
+    <rotatable>false</rotatable>
+    <stuffCategories>
+      <li>Stony</li>
+      <li>Metallic</li>
+      <li>Woody</li>
+    </stuffCategories>
+    <costStuffCount>40</costStuffCount>
+    <statBases>
+      <MaxHitPoints>100</MaxHitPoints>
+      <WorkToBuild>1200</WorkToBuild>
+      <Beauty>4</Beauty>
+      <Mass>10</Mass>
+    </statBases>
+    <surfaceType>Item</surfaceType>
+    <inspectorTabs>
+      <li>ITab_Storage</li>
+    </inspectorTabs>
+    <building>
+      <preventDeteriorationOnTop>true</preventDeteriorationOnTop>
+      <ignoreStoredThingsBeauty>true</ignoreStoredThingsBeauty>
+      <maxItemsInCell>3</maxItemsInCell>
+      <blueprintClass>Blueprint_Storage</blueprintClass>
+      <fixedStorageSettings>
+        <filter>
+          <disallowNotEverStorable>true</disallowNotEverStorable>
+          <categories>
+            <li>Root</li>
+          </categories>
+          <disallowedCategories>
+            <li>Chunks</li>
+            <li>Plants</li>
+            <li>Buildings</li>
+            <li>Corpses</li>
+          </disallowedCategories>
+        </filter>
+      </fixedStorageSettings>
+      <defaultStorageSettings>
+        <priority>Low</priority>
+        <filter>
+          <thingDefs>
+            <li>Silver</li>
+            <li>Gold</li>
+          </thingDefs>
+        </filter>
+      </defaultStorageSettings>
+    </building>
+    <designationCategory>AGM_Divine</designationCategory>
+    <researchPrerequisites>
+      <li>AGM_OfferingResearch</li>
+    </researchPrerequisites>
+    <modExtensions>
+      <li Class="ActualGodMode.OfferingBowlExtension">
+        <powerPerValue>0.1</powerPerValue>
+      </li>
+    </modExtensions>
+  </ThingDef>
+
+  <!-- ===== Pylon ===== -->
+  <ThingDef ParentName="BuildingBase">
+    <defName>AGM_Pylon</defName>
+    <label>pylon</label>
+    <description>A carved stone that carries the god's reach beyond the shrine. It needs a believer to tend it every few days, or it goes dark. If enemies destroy it, your believers will feel it.</description>
+    <graphicData>
+      <texPath>Things/AGM/Pylon</texPath>
+      <graphicClass>Graphic_Single</graphicClass>
+      <drawSize>(1.2,2.4)</drawSize>
+      <drawOffset>(0,0,0.6)</drawOffset>
+    </graphicData>
+    <altitudeLayer>Building</altitudeLayer>
+    <passability>Impassable</passability>
+    <fillPercent>0.5</fillPercent>
+    <disableImpassableShotOverConfigError>true</disableImpassableShotOverConfigError>
+    <rotatable>false</rotatable>
+    <tickerType>Rare</tickerType>
+    <stuffCategories>
+      <li>Stony</li>
+    </stuffCategories>
+    <costStuffCount>60</costStuffCount>
+    <statBases>
+      <MaxHitPoints>150</MaxHitPoints>
+      <WorkToBuild>2500</WorkToBuild>
+      <Beauty>4</Beauty>
+      <Flammability>0</Flammability>
+    </statBases>
+    <terrainAffordanceNeeded>Medium</terrainAffordanceNeeded>
+    <designationCategory>AGM_Divine</designationCategory>
+    <researchPrerequisites>
+      <li>AGM_PylonResearch</li>
+    </researchPrerequisites>
+    <comps>
+      <li Class="ActualGodMode.CompProperties_Pylon">
+        <influenceRadius>7.9</influenceRadius>
+        <tendingLastsDays>4</tendingLastsDays>
+        <tendBelow>0.5</tendBelow>
+      </li>
+    </comps>
+  </ThingDef>
+
+  <JobDef>
+    <defName>AGM_TendPylon</defName>
+    <driverClass>ActualGodMode.JobDriver_TendPylon</driverClass>
+    <reportString>tending TargetA.</reportString>
+  </JobDef>
+
+  <WorkGiverDef>
+    <defName>AGM_TendPylon</defName>
+    <label>tend pylons</label>
+    <giverClass>ActualGodMode.WorkGiver_TendPylon</giverClass>
+    <workType>BasicWorker</workType>
+    <verb>tend</verb>
+    <gerund>tending</gerund>
+    <priorityInType>50</priorityInType>
+    <requiredCapacities>
+      <li>Manipulation</li>
+    </requiredCapacities>
+  </WorkGiverDef>
+
+</Defs>

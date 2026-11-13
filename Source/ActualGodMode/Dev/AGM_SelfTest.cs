@@ -196,7 +196,81 @@ namespace ActualGodMode
                 Check(false, "faith tests threw: " + e);
             }
 
+            try
+            {
+                RunTempleTests();
+            }
+            catch (System.Exception e)
+            {
+                Check(false, "temple tests threw: " + e);
+            }
+
             StartAwakeningPhase();
+        }
+
+        /// <summary>M5b: temple tiers, conflicting use, offering bowl, pylon influence/tending/desecration.</summary>
+        private void RunTempleTests()
+        {
+            Map map = shrine.Map;
+            DivinePower dp = DivinePower.Instance;
+            CompShrine comp = shrine.TryGetComp<CompShrine>();
+            Log.Message(Tag + "Temple phase");
+
+            Check(comp.Temple.tierIndex == 0 && comp.Slots == 2, "open-air shrine: tier 0, 2 prayer slots");
+            float capBefore = dp.MaxPower;
+
+            for (int tier = 1; tier <= 3; tier++)
+            {
+                TempleInfo t = AGM_TestScenarios.BuildTestTemple(map, tier);
+                Log.Message(Tag + $"  built for tier {tier}: got '{t.Tier.label}' (tier {t.tierIndex}), enclosed {t.enclosed}, impressiveness {t.impressiveness:F1}, holy {t.holyFurniture:0.#}");
+                if (tier == 1)
+                {
+                    Check(t.enclosed && t.tierIndex >= 1, "enclosed room with holy furniture becomes at least a chapel");
+                    Check(comp.Slots == t.Tier.prayerSlots && comp.Slots > 2, $"temple tier raises prayer slots ({comp.Slots})");
+                    Check(dp.MaxPower > capBefore, $"temple tier raises the power cap ({capBefore:F0} -> {dp.MaxPower:F0})");
+                }
+            }
+
+            // A bed in the room: not a temple
+            TempleInfo current = comp.Temple;
+            IntVec3 bedCell = current.room.Cells.FirstOrDefault(c => c.Standable(map) && c.GetFirstBuilding(map) == null && (c - shrine.Position).LengthHorizontal > 3f);
+            Thing bed = GenSpawn.Spawn(ThingMaker.MakeThing(ThingDefOf.Bed, ThingDefOf.WoodLog), bedCell, map);
+            comp.InvalidateTemple();
+            Check(comp.Temple.conflictingUse && comp.Temple.tierIndex == 0, "a bed in the room stops it counting as a temple");
+            bed.Destroy();
+            comp.InvalidateTemple();
+
+            // Offering bowl: 100 silver -> 10 power
+            IntVec3 bowlCell = NearFreeCell(map.mapPawns.FreeColonistsSpawned.First(), map);
+            var bowl = (Building_OfferingBowl)GenSpawn.Spawn(ThingMaker.MakeThing(AGM_TempleDefOf.AGM_OfferingBowl, ThingDefOf.WoodLog), bowlCell, map);
+            bowl.SetFaction(Faction.OfPlayer);
+            Thing silver = ThingMaker.MakeThing(ThingDefOf.Silver);
+            silver.stackCount = 100;
+            GenSpawn.Spawn(silver, bowlCell, map);
+            dp.DebugSet(0f);
+            float gained = bowl.Offer();
+            Check(Mathf.Abs(gained - 10f) < 0.5f && bowl.Contents.Count == 0, $"offering 100 silver gives ~10 power and empties the bowl (+{gained:F1})");
+
+            // Pylon: extends influence while tended; goes dark untended; believers come to tend it
+            float radius = comp.Props.influenceRadius;
+            IntVec3 pylonCell = map.AllCells.FirstOrDefault(c => c.Standable(map) && !c.Fogged(map) && c.GetFirstBuilding(map) == null
+                && (c - shrine.Position).LengthHorizontal > radius + 10f && (c - shrine.Position).LengthHorizontal < radius + 20f);
+            Thing pylon = GenSpawn.Spawn(ThingMaker.MakeThing(AGM_TempleDefOf.AGM_Pylon, ThingDefOf.BlocksGranite), pylonCell, map);
+            pylon.SetFaction(Faction.OfPlayer);
+            CompPylon pc = pylon.TryGetComp<CompPylon>();
+            IntVec3 nearPylon = pylonCell + new IntVec3(3, 0, 0);
+            Check(InfluenceUtility.InInfluence(nearPylon, map), "a tended pylon extends the god's influence");
+            pc.DebugSetTended(0f);
+            Check(!InfluenceUtility.InInfluence(nearPylon, map), "an untended (dark) pylon extends nothing");
+            pc.DebugSetTended(0.3f);
+            Pawn tender = map.mapPawns.FreeColonistsSpawned.First(p => p.HasFaith());
+            Check(new WorkGiver_TendPylon().HasJobOnThing(tender, pylon), "believers have work tending a pylon that is wearing off");
+            pc.Tend();
+            Check(pc.Active && pc.Tended >= 1f, "tending restores the pylon");
+
+            // Destroyed by enemies: believers feel it
+            pylon.Kill();
+            Check(tender.Faith().History.Entries.Any(e => e.label == "AGM_Cause_PylonDestroyed".Translate().ToString()), "a destroyed pylon is felt by believers (faith history)");
         }
 
         private void Complete()

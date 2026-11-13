@@ -24,6 +24,26 @@
   <AGM_Shrine_SpotsBlocked>{0} prayer spot(s) blocked: keep the area around the shrine clear.</AGM_Shrine_SpotsBlocked>
   <AGM_Shrine_GroupBonus>Group prayer bonus: +{0}</AGM_Shrine_GroupBonus>
 
+  <!-- Temple -->
+  <AGM_Temple_Tier>Temple: {0}</AGM_Temple_Tier>
+  <AGM_Temple_Conflict>(beds or workbenches in the room: it isn't treated as a temple)</AGM_Temple_Conflict>
+  <AGM_Temple_NotEnclosed>(enclose it in a roofed room to make a temple)</AGM_Temple_NotEnclosed>
+  <AGM_Temple_Next>(next: {0} needs impressiveness {1}/{2}, holy furniture {3}/{4})</AGM_Temple_Next>
+
+  <!-- Offering bowl -->
+  <AGM_Offering_Command>Offer to the god</AGM_Offering_Command>
+  <AGM_Offering_CommandDesc>Give up everything in the bowl to the god as Divine Power ({0}).</AGM_Offering_CommandDesc>
+  <AGM_Offering_Empty>The bowl is empty.</AGM_Offering_Empty>
+  <AGM_Offering_Inspect>Offering: {0} silver of value (≈ {1} Divine Power)</AGM_Offering_Inspect>
+  <AGM_Offering_Done>The offering is accepted: +{0} Divine Power.</AGM_Offering_Done>
+  <AGM_Offering_DoneCapped>The offering is accepted: +{0} Divine Power ({1} lost: the god can hold no more).</AGM_Offering_DoneCapped>
+
+  <!-- Pylon -->
+  <AGM_Pylon_Tended>Tended: {0}. Extends the god's influence.</AGM_Pylon_Tended>
+  <AGM_Pylon_Dark>Dark: no one has tended it. It extends nothing until a believer tends it.</AGM_Pylon_Dark>
+  <AGM_Pylon_Destroyed>A pylon has been destroyed. The believers feel it like a wound.</AGM_Pylon_Destroyed>
+  <AGM_Cause_PylonDestroyed>a pylon was destroyed</AGM_Cause_PylonDestroyed>
+
   <!-- Miracles -->
   <AGM_MiracleLocked>Your followers haven't thought to ask for this yet.</AGM_MiracleLocked>
   <AGM_OutsideInfluence>Outside your influence.</AGM_OutsideInfluence>

@@ -73,6 +73,125 @@ namespace ActualGodMode
             Messages.Message("God test colony ready: shrine, full power, all miracles, colonists at 60% faith.", MessageTypeDefOf.TaskCompletion, false);
         }
 
+        /// <summary>
+        /// Builds a roofed stone room around the shrine with floor and holy furniture aiming at the
+        /// given tier (1 chapel, 2 temple, 3 grand temple). Returns the resulting temple info.
+        /// </summary>
+        public static TempleInfo BuildTestTemple(Map map, int tier)
+        {
+            Thing shrine = SetUpGodColony(map);
+            if (shrine == null)
+            {
+                return default;
+            }
+            int half = tier >= 3 ? 5 : tier == 2 ? 4 : 3;
+            CellRect inner = CellRect.CenteredOn(shrine.Position, half);
+            CellRect outer = inner.ExpandedBy(1);
+            IntVec3 doorCell = new IntVec3(shrine.Position.x, 0, outer.minZ);
+
+            // Clear the area (keep the shrine), move pawns out of the way.
+            foreach (IntVec3 c in outer.ClipInsideMap(map))
+            {
+                foreach (Thing t in c.GetThingList(map).ToList())
+                {
+                    if (t == shrine)
+                    {
+                        continue;
+                    }
+                    if (t is Pawn p)
+                    {
+                        IntVec3 dest = CellFinder.RandomClosewalkCellNear(outer.CenterCell + new IntVec3(0, 0, -half - 4), map, 4);
+                        p.Position = dest;
+                        p.Notify_Teleported();
+                    }
+                    else if (t.def.destroyable)
+                    {
+                        t.Destroy();
+                    }
+                }
+            }
+
+            TerrainDef floor = DefDatabase<TerrainDef>.GetNamed(tier >= 3 ? "TileMarble" : tier == 2 ? "FlagstoneGranite" : "WoodPlankFloor");
+            foreach (IntVec3 c in inner.ClipInsideMap(map))
+            {
+                map.terrainGrid.SetTerrain(c, floor);
+                map.roofGrid.SetRoof(c, RoofDefOf.RoofConstructed);
+            }
+            foreach (IntVec3 c in outer.EdgeCells)
+            {
+                if (!c.InBounds(map))
+                {
+                    continue;
+                }
+                Thing wall = c == doorCell
+                    ? ThingMaker.MakeThing(ThingDefOf.Door, ThingDefOf.BlocksGranite)
+                    : ThingMaker.MakeThing(ThingDefOf.Wall, ThingDefOf.BlocksGranite);
+                wall.SetFaction(Faction.OfPlayer);
+                GenSpawn.Spawn(wall, c, map);
+                map.roofGrid.SetRoof(c, RoofDefOf.RoofConstructed);
+            }
+
+            // Furniture along the walls, away from the prayer spots.
+            var spots = inner.EdgeCells.Where(c => c.InBounds(map) && (c - shrine.Position).LengthHorizontal > 3f && c.x != doorCell.x).ToList();
+            var pieces = new List<(ThingDef def, ThingDef stuff, QualityCategory? quality)>();
+            ThingDef marble = ThingDefOf.BlocksGranite;
+            ThingDef sculptureLarge = DefDatabase<ThingDef>.GetNamed("SculptureLarge");
+            ThingDef sculptureGrand = DefDatabase<ThingDef>.GetNamed("SculptureGrand");
+            pieces.Add((AGM_TempleDefOf.AGM_Idol, marble, null));
+            if (tier >= 2)
+            {
+                pieces.Add((AGM_TempleDefOf.AGM_IncenseBurner, ThingDefOf.Steel, null));
+                pieces.Add((AGM_TempleDefOf.AGM_IncenseBurner, ThingDefOf.Steel, null));
+                pieces.Add((sculptureLarge, marble, QualityCategory.Excellent));
+            }
+            if (tier >= 3)
+            {
+                pieces.Add((AGM_TempleDefOf.AGM_Idol, marble, null));
+                pieces.Add((sculptureGrand, marble, QualityCategory.Masterwork));
+                pieces.Add((sculptureLarge, marble, QualityCategory.Masterwork));
+            }
+            for (int i = 0; i < pieces.Count && i < spots.Count; i++)
+            {
+                (ThingDef def, ThingDef stuff, QualityCategory? quality) = pieces[i];
+                IntVec3 at = spots[(i * spots.Count) / pieces.Count];
+                if (def.size.x > 1 || def.size.z > 1)
+                {
+                    at = spots.FirstOrDefault(c => GenAdj.OccupiedRect(c, Rot4.North, def.size).Cells.All(o => inner.Contains(o) && o.GetFirstBuilding(map) == null && (o - shrine.Position).LengthHorizontal > 3f));
+                    if (!at.IsValid)
+                    {
+                        continue;
+                    }
+                }
+                Thing thing = ThingMaker.MakeThing(def, stuff);
+                if (quality.HasValue)
+                {
+                    thing.TryGetComp<CompQuality>()?.SetQuality(quality.Value, ArtGenerationContext.Colony);
+                }
+                thing.SetFaction(Faction.OfPlayer);
+                GenSpawn.Spawn(thing, at, map);
+            }
+
+            map.regionAndRoomUpdater.TryRebuildDirtyRegionsAndRooms();
+            CompShrine comp = shrine.TryGetComp<CompShrine>();
+            comp.InvalidateTemple();
+            return comp.Temple;
+        }
+
+        [DebugAction(Category, "Build test temple: chapel", allowedGameStates = AllowedGameStates.PlayingOnMap, displayPriority = 95)]
+        private static void BuildChapel() => ReportTemple(BuildTestTemple(Find.CurrentMap, 1));
+
+        [DebugAction(Category, "Build test temple: temple", allowedGameStates = AllowedGameStates.PlayingOnMap, displayPriority = 94)]
+        private static void BuildTemple() => ReportTemple(BuildTestTemple(Find.CurrentMap, 2));
+
+        [DebugAction(Category, "Build test temple: grand temple", allowedGameStates = AllowedGameStates.PlayingOnMap, displayPriority = 93)]
+        private static void BuildGrandTemple() => ReportTemple(BuildTestTemple(Find.CurrentMap, 3));
+
+        private static void ReportTemple(TempleInfo t)
+        {
+            Messages.Message($"Test temple built: {t.Tier.label} (impressiveness {t.impressiveness:F0}, holy furniture {t.holyFurniture:0.#}, prayer slots {t.Tier.prayerSlots}).",
+                MessageTypeDefOf.TaskCompletion, false);
+        }
+
         [DebugAction(Category, "Wound pawn (for Heal / prayer)", actionType = DebugActionType.ToolMapForPawns, allowedGameStates = AllowedGameStates.PlayingOnMap)]
         private static void WoundPawn(Pawn p)
         {

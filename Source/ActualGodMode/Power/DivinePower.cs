@@ -17,7 +17,23 @@ namespace ActualGodMode
 
         public float Power => power;
         public float LifetimePower => lifetimePower;
-        public float MaxPower => BaseMaxPower;
+        /// <summary>Base cap plus the bonus of the best temple the god has.</summary>
+        public float MaxPower
+        {
+            get
+            {
+                float bonus = 0f;
+                foreach (Map map in Find.Maps)
+                {
+                    CompShrine comp = ShrineUtility.ShrineOn(map)?.TryGetComp<CompShrine>();
+                    if (comp != null)
+                    {
+                        bonus = Mathf.Max(bonus, comp.Temple.Tier.powerCapBonus);
+                    }
+                }
+                return BaseMaxPower + bonus;
+            }
+        }
 
         /// <summary>True once the god has ever been worshipped or a shrine exists; controls the readout.</summary>
         public bool Revealed => lifetimePower > 0f || ShrineUtility.AnyShrineExists();

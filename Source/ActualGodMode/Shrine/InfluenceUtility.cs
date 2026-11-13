@@ -15,13 +15,24 @@ namespace ActualGodMode
         {
             Thing shrine = ShrineUtility.ShrineOn(map);
             CompShrine comp = shrine?.TryGetComp<CompShrine>();
-            if (comp == null)
+            if (comp != null && Within(cell, shrine.Position, comp.Props.influenceRadius))
             {
-                return false;
+                return true;
             }
-            float r = comp.Props.influenceRadius;
-            return (cell - shrine.Position).LengthHorizontalSquared <= r * r;
+            // Tended pylons extend the god's reach.
+            foreach (Thing pylon in map.listerThings.ThingsOfDef(AGM_TempleDefOf.AGM_Pylon))
+            {
+                CompPylon p = pylon.TryGetComp<CompPylon>();
+                if (p != null && p.Active && Within(cell, pylon.Position, p.Props.influenceRadius))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
+
+        private static bool Within(IntVec3 cell, IntVec3 center, float radius) =>
+            (cell - center).LengthHorizontalSquared <= radius * radius;
 
         public static void DrawInfluence(Map map)
         {
@@ -30,6 +41,14 @@ namespace ActualGodMode
             if (comp != null)
             {
                 GenDraw.DrawRadiusRing(shrine.Position, comp.Props.influenceRadius, InfluenceColor);
+            }
+            foreach (Thing pylon in map.listerThings.ThingsOfDef(AGM_TempleDefOf.AGM_Pylon))
+            {
+                CompPylon p = pylon.TryGetComp<CompPylon>();
+                if (p != null && p.Active)
+                {
+                    GenDraw.DrawRadiusRing(pylon.Position, p.Props.influenceRadius, InfluenceColor);
+                }
             }
         }
     }

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Vanilla and DLC furniture that counts as holy in a temple. DLC defs only patch if present. -->
+<Patch>
+
+  <Operation Class="PatchOperationAddModExtension">
+    <xpath>Defs/ThingDef[defName="SculptureSmall" or defName="SculptureLarge"]</xpath>
+    <value>
+      <li Class="ActualGodMode.HolyFurnitureExtension"><holiness>1</holiness></li>
+    </value>
+  </Operation>
+
+  <Operation Class="PatchOperationAddModExtension">
+    <xpath>Defs/ThingDef[defName="SculptureGrand"]</xpath>
+    <value>
+      <li Class="ActualGodMode.HolyFurnitureExtension"><holiness>2</holiness></li>
+    </value>
+  </Operation>
+
+  <!-- Ideology ritual furniture -->
+  <Operation Class="PatchOperationConditional">
+    <xpath>Defs/ThingDef[defName="KneelSheet"]</xpath>
+    <match Class="PatchOperationAddModExtension">
+      <xpath>Defs/ThingDef[defName="KneelSheet" or defName="KneelPillow" or defName="Lectern" or defName="Altar_Small" or defName="Altar_Medium"]</xpath>
+      <value>
+        <li Class="ActualGodMode.HolyFurnitureExtension"><holiness>1</holiness></li>
+      </value>
+    </match>
+  </Operation>
+
+  <Operation Class="PatchOperationConditional">
+    <xpath>Defs/ThingDef[defName="Altar_Large"]</xpath>
+    <match Class="PatchOperationAddModExtension">
+      <xpath>Defs/ThingDef[defName="Altar_Large" or defName="Altar_Grand"]</xpath>
+      <value>
+        <li Class="ActualGodMode.HolyFurnitureExtension"><holiness>2</holiness></li>
+      </value>
+    </match>
+  </Operation>
+
+  <!-- Royalty -->
+  <Operation Class="PatchOperationConditional">
+    <xpath>Defs/ThingDef[defName="Brazier"]</xpath>
+    <match Class="PatchOperationAddModExtension">
+      <xpath>Defs/ThingDef[defName="Brazier"]</xpath>
+      <value>
+        <li Class="ActualGodMode.HolyFurnitureExtension"><holiness>1</holiness></li>
+      </value>
+    </match>
+  </Operation>
+
+</Patch>

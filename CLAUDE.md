@@ -16,7 +16,10 @@ Read before changing things:
   scenario. Verified in-game.
 - **M5a+**: believers & conversion (witness / preach / friend's answered prayer), the god's path (guided letters +
   alert), context-aware whispers. Self-tested; awaiting in-game test.
-- Next: **M5b** temple (tiers + holy furniture, Offering Bowl, Pylon with tending, "Build test temple" scenario).
+- **M5b** temple: tiers (room impressiveness + holy furniture → prayer slots, power cap), idol, incense burner,
+  vanilla/DLC holy furniture patches, Offering Bowl, Pylon (tending, influence, desecration), "Build test temple".
+  Self-tested; awaiting in-game test.
+- Next: **M6** alignment & Hand (alignment value + deeds + drift, tinted cursor, grab/carry/place).
 
 ## Commands
 - Build: `dotnet build Source/ActualGodMode/ActualGodMode.csproj -c Release` (outputs to `1.7/Assemblies/`).
@@ -31,6 +34,7 @@ Read before changing things:
 | `Source/…/AGM_DefOf.cs` | `[DefOf]` references to our defs |
 | `Source/…/Faith/` | `BelieverTracker` (who believes; Faith need gate; conversion; `InteractionWorker_Preach`), `Need_Faith` (faith + hidden patience buffer, gratitude), `FaithHardship` (ongoing hardship + Harmony event hooks: breaks, deaths, downed, blessed food), `FaithTraitExtension` (trait factors), `FaithTuningDef` (all numbers, `Defs/Faith/AGM_FaithTuning.xml`), `FaithUtility` (`pawn.Faith()`) |
 | `Source/…/Requests/` | `PrayerRequestDef`, `PrayerRequestWorker` (+ Hungry/Cold/Fire/Wounded/RainForCrops/Sign), `PrayerRequestTracker` (create/answer/expire), `Alert_PrayerRequests`, `IncidentWorker_PrayerWish` |
+| `Source/…/Temple/` | `TempleTuningDef` (tiers, `AGM_TempleTuning.xml`), `TempleUtility.Evaluate`, `HolyFurnitureExtension`, `RoomRoleWorker_Temple`, `Building_OfferingBowl`, `CompPylon` + tend work/job, `AGM_TempleDefOf` |
 | `Source/…/Guide/` | `GodGuideTracker` (the god's path steps + letters), `Alert_GodGuide` |
 | `Source/…/Awakening/` | `AwakeningTracker` (stages, tuning def `AGM_AwakeningTuning`), `DivineTrance` (trance mental state, draw-sign job, research hide/lock patches, `ScenPart_StartWithShrine`) |
 | `Source/…/Power/` | `DivinePower` GameComponent (global pool, cap, lifetime) |
@@ -94,6 +98,9 @@ Read before changing things:
   accepts only "Unnatural" filth while rough stone accepts only "Terrain". Spawn the filth thing directly.
 - Before the Awakening **nobody has the Faith need** (`BelieverTracker` + `ShouldHaveNeed` patch). Test setups must
   convert colonists (`AGM_TestScenarios.SetUpGodColony` / `BelieverTracker.ConvertAllColonists`).
+- The user may have RimWorld open: the build then fails to copy the DLL ("locked by RimWorld"). Compile-check with
+  `-p:OutputPath=<scratch>\` and ask them to close the game before running the self-test. Never kill their game.
+- Patching DLC defs: wrap in `PatchOperationConditional` (an xpath that matches nothing is an error).
 - Harmony 3: patch the class that *declares* a method (e.g. `IncidentWorker_Raid`, not `IncidentWorker_RaidEnemy`)
   and type-check the instance inside the patch.
 - The log is `%USERPROFILE%\AppData\LocalLow\Ludeon Studios\RimWorld by Ludeon Studios\Logs\Player.log`.

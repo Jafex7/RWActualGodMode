@@ -314,7 +314,7 @@ Record results in `docs/WAYLITH_NOTES.md`.
 Hardship / gratitude / witnessing events, `FaithTraitExtension` + vanilla trait
 patches, Zealot / Sceptic, prayer requests (needs-driven + incidents).
 
-### M5 — Entry & Temple (M5a entry ✔ pending in-game test; M5b temple next)
+### M5 — Entry & Temple (M5a ✔, M5a+ ✔, M5b temple pending in-game test)
 Awakening storyline, Shrine research, Chosen People scenario, Temple room role +
 tiers + holy furniture, Offering Bowl, Pylon.
 
@@ -359,3 +359,8 @@ The Creature.
 
 ## Open questions
 See conversation log; resolved items get moved into the sections above.
+
+## M5b notes
+- Tier thresholds (impressiveness 30/60/100, holy 1/3/6) may be easy: the self-test's
+  "temple" build already scored 98 impressiveness with masterwork sculptures. Revisit
+  in the balance pass.

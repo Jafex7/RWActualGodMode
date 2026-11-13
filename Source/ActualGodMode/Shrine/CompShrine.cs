@@ -43,9 +43,32 @@ namespace ActualGodMode
         private int worshippersCachedTick = -1;
         private int worshippersCached;
 
+        private const int TempleEvalIntervalTicks = 250;
+
+        private TempleInfo temple;
+        private int templeEvaluatedTick = -9999;
+
         public CompProperties_Shrine Props => (CompProperties_Shrine)props;
 
-        public int Slots => Props.baseSlots;
+        /// <summary>The room around the shrine, re-judged every few seconds.</summary>
+        public TempleInfo Temple
+        {
+            get
+            {
+                int tick = Find.TickManager.TicksGame;
+                if (tick - templeEvaluatedTick >= TempleEvalIntervalTicks || tick < templeEvaluatedTick)
+                {
+                    templeEvaluatedTick = tick;
+                    temple = TempleUtility.Evaluate(parent);
+                }
+                return temple;
+            }
+        }
+
+        public void InvalidateTemple() => templeEvaluatedTick = -9999;
+
+        /// <summary>Prayer spots available: set by the temple tier.</summary>
+        public int Slots => Temple.Tier.prayerSlots;
 
         /// <summary>Cells pawns may pray on, nearest first. Its count is the worshipper cap.</summary>
         public List<IntVec3> PraySpots
@@ -153,6 +176,23 @@ namespace ActualGodMode
         public override string CompInspectStringExtra()
         {
             var sb = new StringBuilder();
+            TempleInfo t = Temple;
+            sb.Append("AGM_Temple_Tier".Translate(t.Tier.label.CapitalizeFirst()));
+            if (t.conflictingUse)
+            {
+                sb.Append(" " + "AGM_Temple_Conflict".Translate());
+            }
+            else if (!t.enclosed)
+            {
+                sb.Append(" " + "AGM_Temple_NotEnclosed".Translate());
+            }
+            else if (t.NextTier != null)
+            {
+                sb.Append(" " + "AGM_Temple_Next".Translate(t.NextTier.label,
+                    t.impressiveness.ToString("F0"), t.NextTier.minImpressiveness.ToString("F0"),
+                    t.holyFurniture.ToString("0.#"), t.NextTier.minHolyFurniture.ToString("0.#")));
+            }
+            sb.AppendLine();
             sb.Append("AGM_Shrine_Worshippers".Translate(CurrentWorshippers, Slots));
             int blocked = Slots - PraySpots.Count;
             if (blocked > 0)
