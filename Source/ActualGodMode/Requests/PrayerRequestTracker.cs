@@ -142,7 +142,8 @@ namespace ActualGodMode
 
         private void Answer(PrayerRequest r, IntVec3 cell, Map map)
         {
-            r.pawn.Faith()?.Gain(r.def.reward);
+            r.pawn.Faith()?.Gain(r.def.reward, "AGM_Cause_PrayerAnswered".Translate(r.def.label));
+            FaithThoughts.Give(r.pawn, AGM_ThoughtDefOf.AGM_PrayerAnswered);
             float radiusSq = 12f * 12f;
             foreach (Pawn p in map.mapPawns.FreeColonistsSpawned)
             {
@@ -154,7 +155,7 @@ namespace ActualGodMode
                     || ((p.Position - cell).LengthHorizontalSquared <= radiusSq && GenSight.LineOfSight(p.Position, cell, map));
                 if (shares)
                 {
-                    p.Faith()?.Gain(r.def.witnessReward);
+                    p.Faith()?.Gain(r.def.witnessReward, "AGM_Cause_SharedAnswer".Translate(r.pawn.LabelShort));
                 }
             }
             Messages.Message("AGM_Request_Answered".Translate(r.pawn.Named("PAWN")), new LookTargets(r.pawn), MessageTypeDefOf.PositiveEvent);
@@ -162,7 +163,8 @@ namespace ActualGodMode
 
         private void Expire(PrayerRequest r)
         {
-            r.pawn.Faith()?.Lose(r.def.ignoredPenalty);
+            r.pawn.Faith()?.Lose(r.def.ignoredPenalty, "AGM_Cause_PrayerIgnored".Translate(r.def.label));
+            FaithThoughts.Give(r.pawn, AGM_ThoughtDefOf.AGM_PrayerIgnored);
             Messages.Message("AGM_Request_Ignored".Translate(r.pawn.Named("PAWN")), new LookTargets(r.pawn), MessageTypeDefOf.NegativeEvent);
         }
 

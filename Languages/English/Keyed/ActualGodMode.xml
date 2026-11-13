@@ -42,6 +42,28 @@
   <AGM_Patience_Medium>wearing thin</AGM_Patience_Medium>
   <AGM_Patience_Low>exhausted</AGM_Patience_Low>
 
+  <!-- Faith history -->
+  <AGM_Log_Header>Faith history:</AGM_Log_Header>
+  <AGM_Log_Today>today</AGM_Log_Today>
+  <AGM_Log_Yesterday>yesterday</AGM_Log_Yesterday>
+  <AGM_Log_DaysAgo>{0} days ago</AGM_Log_DaysAgo>
+  <AGM_Log_Absorbed>(patience absorbed {0})</AGM_Log_Absorbed>
+  <AGM_Cause_Unknown>other</AGM_Cause_Unknown>
+  <AGM_Cause_Prayer>prayed at the shrine</AGM_Cause_Prayer>
+  <AGM_Cause_Gratitude>grateful for a good day</AGM_Cause_Gratitude>
+  <AGM_Cause_Witnessed>witnessed a miracle ({0})</AGM_Cause_Witnessed>
+  <AGM_Cause_BlessedMeal>ate a blessed meal</AGM_Cause_BlessedMeal>
+  <AGM_Cause_PrayerAnswered>prayer answered ({0})</AGM_Cause_PrayerAnswered>
+  <AGM_Cause_SharedAnswer>saw {0}'s prayer answered</AGM_Cause_SharedAnswer>
+  <AGM_Cause_PrayerIgnored>prayer unanswered ({0})</AGM_Cause_PrayerIgnored>
+  <AGM_Cause_Hunger>hunger</AGM_Cause_Hunger>
+  <AGM_Cause_Temperature>freezing or overheating</AGM_Cause_Temperature>
+  <AGM_Cause_Sickness>sickness</AGM_Cause_Sickness>
+  <AGM_Cause_Misery>misery</AGM_Cause_Misery>
+  <AGM_Cause_MentalBreak>mental break</AGM_Cause_MentalBreak>
+  <AGM_Cause_Death>{0} died</AGM_Cause_Death>
+  <AGM_Cause_Downed>fell wounded</AGM_Cause_Downed>
+
   <!-- Prayer requests -->
   <AGM_Request_Answered>{PAWN_nameDef}'s prayer was answered. {PAWN_possessive} faith grows.</AGM_Request_Answered>
   <AGM_Request_Ignored>{PAWN_nameDef}'s prayer went unanswered. {PAWN_possessive} faith suffers.</AGM_Request_Ignored>

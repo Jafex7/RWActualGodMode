@@ -424,6 +424,19 @@ namespace ActualGodMode
                 Check(faith.CurLevel < 0.5f, $"ignored prayer lowered faith (faith {faith.CurLevel:F3})");
             }
 
+            // Faith history and thoughts
+            var memories = pawn.needs.mood.thoughts.memories;
+            Check(memories.GetFirstMemoryOfDef(AGM_ThoughtDefOf.AGM_PrayerAnswered) != null, "answered prayer gives the 'prayer answered' thought");
+            Check(memories.GetFirstMemoryOfDef(AGM_ThoughtDefOf.AGM_WitnessedMiracle) != null, "witnessing gives the 'witnessed a miracle' thought");
+            Check(memories.GetFirstMemoryOfDef(AGM_ThoughtDefOf.AGM_AteBlessedMeal) != null, "blessed meal gives its thought");
+            Check(memories.GetFirstMemoryOfDef(AGM_ThoughtDefOf.AGM_FaithShaken) != null, "hardship past patience gives 'faith shaken'");
+            var history = faith.History.Entries;
+            Check(history.Any(e => e.absorbed > 0f), "history records hardship absorbed by patience");
+            Check(history.Any(e => e.label == "AGM_Cause_BlessedMeal".Translate().ToString() && e.delta > 0f), "history records the blessed meal");
+            string section = faith.History.TooltipSection();
+            Log.Message(Tag + "  tooltip history:\n" + section);
+            Check(!section.NullOrEmpty(), "faith tooltip shows a history section");
+
             // Ignored past the deadline: penalty (a wish never withdraws itself, so the expiry path runs)
             PrayerRequestDef sign = DefDatabase<PrayerRequestDef>.GetNamed("AGM_Wish_Sign");
             req = requests.Create(pawn, sign);
@@ -433,6 +446,7 @@ namespace ActualGodMode
             float penalty = sign.ignoredPenalty * FaithTraitUtility.Factor(pawn, f => f.hardshipFactor);
             Check(!requests.Active.Contains(req) && Mathf.Abs(0.5f - faith.CurLevel - penalty) < 0.001f,
                 $"ignored prayer lowered faith by its penalty (-{0.5f - faith.CurLevel:F3}, expected -{penalty:F3})");
+            Check(memories.GetFirstMemoryOfDef(AGM_ThoughtDefOf.AGM_PrayerIgnored) != null, "ignored prayer gives the 'unanswered' thought");
 
             // Wish: a sign, answered by any miracle on the map, rewards everyone
             Pawn other = map.mapPawns.FreeColonistsSpawned.First(p => p != pawn);

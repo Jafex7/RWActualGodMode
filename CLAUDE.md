@@ -10,8 +10,8 @@ Read before changing things:
 ## Status
 - Done: **M0** setup, **M1** faith / divine power / shrine / worship, **M2** miracles (toolbar casting).
 - Done: **M3** Hand of God mode (gesture casting, Book of Gestures, recorder), verified in-game.
-- **M4** faith dynamics: implemented and self-tested (patience buffer, hardship, gratitude, blessed food,
-  traits + vanilla patches, Zealot/Sceptic, Heal I, prayer requests, storyteller wishes); awaiting in-game test.
+- Done: **M4** faith dynamics (patience buffer, hardship, gratitude, blessed food, faith history tooltip, thoughts,
+  traits + vanilla patches, Zealot/Sceptic, Heal I, prayer requests, storyteller wishes).
 - Next after M4: **M5** entry & temple (Awakening, Shrine research, Chosen People, temple tiers, Offering Bowl, Pylon).
 
 ## Commands

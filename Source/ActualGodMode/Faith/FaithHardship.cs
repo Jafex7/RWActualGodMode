@@ -10,28 +10,27 @@ namespace ActualGodMode
     /// <summary>What counts as hardship, and the event hooks that report it.</summary>
     public static class FaithHardship
     {
-        /// <summary>Ongoing hardship per day from the pawn's current condition.</summary>
-        public static float OngoingPerDay(Pawn pawn)
+        /// <summary>Ongoing hardship per day from the pawn's current condition, one entry per cause.</summary>
+        public static void AddOngoingCauses(Pawn pawn, List<(string label, float perDay)> into)
         {
             FaithTuningDef t = FaithTuningDef.Get;
             HediffSet hediffs = pawn.health?.hediffSet;
             if (hediffs == null)
             {
-                return 0f;
+                return;
             }
-            float total = 0f;
 
             Hediff malnutrition = hediffs.GetFirstHediffOfDef(HediffDefOf.Malnutrition);
             if (malnutrition != null)
             {
-                total += t.malnutritionPerDay + t.malnutritionPerDayPerSeverity * malnutrition.Severity;
+                into.Add(("AGM_Cause_Hunger".Translate(), t.malnutritionPerDay + t.malnutritionPerDayPerSeverity * malnutrition.Severity));
             }
 
             Hediff cold = hediffs.GetFirstHediffOfDef(HediffDefOf.Hypothermia);
             Hediff heat = hediffs.GetFirstHediffOfDef(HediffDefOf.Heatstroke);
             if ((cold != null && cold.Severity >= t.temperatureMinSeverity) || (heat != null && heat.Severity >= t.temperatureMinSeverity))
             {
-                total += t.temperaturePerDay;
+                into.Add(("AGM_Cause_Temperature".Translate(), t.temperaturePerDay));
             }
 
             float sickness = 0f;
@@ -43,15 +42,17 @@ namespace ActualGodMode
                     sickness += t.sicknessPerDay;
                 }
             }
-            total += Mathf.Min(sickness, t.sicknessMaxPerDay);
+            if (sickness > 0f)
+            {
+                into.Add(("AGM_Cause_Sickness".Translate(), Mathf.Min(sickness, t.sicknessMaxPerDay)));
+            }
 
             Need_Mood mood = pawn.needs?.mood;
             if (mood != null && pawn.mindState?.mentalBreaker != null
                 && mood.CurLevel < pawn.mindState.mentalBreaker.BreakThresholdMinor)
             {
-                total += t.miseryPerDay;
+                into.Add(("AGM_Cause_Misery".Translate(), t.miseryPerDay));
             }
-            return total;
         }
 
         public static bool IsBeliever(Pawn pawn) => pawn != null && pawn.IsColonist && pawn.Faith() != null;
@@ -68,7 +69,7 @@ namespace ActualGodMode
             Pawn pawn = PawnRef(__instance);
             if (__result && causedByMood && FaithHardship.IsBeliever(pawn))
             {
-                pawn.Faith().Hardship(FaithTuningDef.Get.mentalBreak);
+                pawn.Faith().Hardship(FaithTuningDef.Get.mentalBreak, "AGM_Cause_MentalBreak".Translate());
             }
         }
     }
@@ -101,7 +102,7 @@ namespace ActualGodMode
                     {
                         amount += t.colonistDiedCloseExtra;
                     }
-                    mourner.Faith().Hardship(amount);
+                    mourner.Faith().Hardship(amount, "AGM_Cause_Death".Translate(__instance.LabelShort));
                 }
             }
         }
@@ -120,7 +121,7 @@ namespace ActualGodMode
             {
                 return;
             }
-            pawn.Faith().Hardship(FaithTuningDef.Get.downed);
+            pawn.Faith().Hardship(FaithTuningDef.Get.downed, "AGM_Cause_Downed".Translate());
             MiracleTracker.Instance?.RecordEvent(MiracleTracker.Event_ColonistDowned);
         }
     }
@@ -138,7 +139,8 @@ namespace ActualGodMode
         {
             if (__state && FaithHardship.IsBeliever(ingester))
             {
-                ingester.Faith().Gain(FaithTuningDef.Get.blessedFoodGain);
+                ingester.Faith().Gain(FaithTuningDef.Get.blessedFoodGain, "AGM_Cause_BlessedMeal".Translate());
+                FaithThoughts.Give(ingester, AGM_ThoughtDefOf.AGM_AteBlessedMeal);
             }
         }
     }

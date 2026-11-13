@@ -57,9 +57,10 @@ namespace ActualGodMode
                 {
                     continue;
                 }
-                if (GenSight.LineOfSight(p.Position, cell, map))
+                if (GenSight.LineOfSight(p.Position, cell, map) && p.Faith() != null)
                 {
-                    p.Faith()?.Gain(def.witnessFaithGain);
+                    p.Faith().Gain(def.witnessFaithGain, "AGM_Cause_Witnessed".Translate(def.label));
+                    FaithThoughts.Give(p, AGM_ThoughtDefOf.AGM_WitnessedMiracle);
                 }
             }
         }

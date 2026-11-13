@@ -282,7 +282,7 @@ pause between strokes, label position.
 - Drawing a despawned thing at the cursor (needed in M6 for Hand moving).
 Record results in `docs/WAYLITH_NOTES.md`.
 
-### M4 — Faith dynamics
+### M4 — Faith dynamics ✔
 Hardship / gratitude / witnessing events, `FaithTraitExtension` + vanilla trait
 patches, Zealot / Sceptic, prayer requests (needs-driven + incidents).
 

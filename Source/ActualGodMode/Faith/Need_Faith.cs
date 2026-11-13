@@ -28,6 +28,14 @@ namespace ActualGodMode
         /// <summary>Tick of this pawn's last prayer request (for cooldowns).</summary>
         public int lastRequestTick = -999999;
 
+        private int lastShakenDay = -1;
+
+        private FaithLog log = new FaithLog();
+
+        public FaithLog History => log;
+
+        private readonly List<(string label, float perDay)> ongoing = new List<(string, float)>();
+
         public Need_Faith(Pawn pawn) : base(pawn)
         {
             threshPercents = new List<float> { LowThreshold, HighThreshold };
@@ -71,11 +79,15 @@ namespace ActualGodMode
                 * FaithTraitUtility.Factor(pawn, f => f.decayFactor);
             CurLevel -= decayPerDay * dayFraction;
 
-            float hardshipPerDay = FaithHardship.OngoingPerDay(pawn);
+            ongoing.Clear();
+            FaithHardship.AddOngoingCauses(pawn, ongoing);
             float mood = pawn.needs?.mood?.CurLevelPercentage ?? 0.5f;
-            if (hardshipPerDay > 0f)
+            if (ongoing.Count > 0)
             {
-                Hardship(hardshipPerDay * dayFraction);
+                foreach ((string label, float perDay) in ongoing)
+                {
+                    Hardship(perDay * dayFraction, label);
+                }
             }
             else if (mood >= Tuning.patienceRegenMinMood)
             {
@@ -106,22 +118,24 @@ namespace ActualGodMode
             }
             if (moodSum / moodSamples >= Tuning.gratitudeMinAverageMood)
             {
-                Gain(Tuning.gratitudePerDay * FaithTraitUtility.Factor(pawn, f => f.gratitudeFactor));
+                Gain(Tuning.gratitudePerDay * FaithTraitUtility.Factor(pawn, f => f.gratitudeFactor), "AGM_Cause_Gratitude".Translate());
             }
         }
 
-        /// <summary>Raise faith. Positive amounts are scaled by the pawn's traits.</summary>
-        public void Gain(float amount)
+        /// <summary>Raise faith. Positive amounts are scaled by the pawn's traits. Logged under <paramref name="cause"/>.</summary>
+        public void Gain(float amount, string cause = null)
         {
             if (amount > 0f)
             {
                 amount *= FaithTraitUtility.Factor(pawn, f => f.gainFactor);
             }
+            float before = CurLevel;
             CurLevel += amount;
+            log.Add(cause, CurLevel - before);
         }
 
         /// <summary>Hardship: drains patience first, then faith. Scaled by the pawn's traits.</summary>
-        public void Hardship(float amount)
+        public void Hardship(float amount, string cause = null)
         {
             if (amount <= 0f)
             {
@@ -134,14 +148,24 @@ namespace ActualGodMode
             amount *= FaithTraitUtility.Factor(pawn, f => f.hardshipFactor);
             float absorbed = Mathf.Min(patience, amount);
             patience -= absorbed;
+            float before = CurLevel;
             CurLevel -= amount - absorbed;
             hardshipToday = true;
+            log.Add(cause, CurLevel - before, absorbed);
+
+            if (amount - absorbed > 0f && GenDate.DaysPassed != lastShakenDay)
+            {
+                lastShakenDay = GenDate.DaysPassed;
+                FaithThoughts.Give(pawn, AGM_ThoughtDefOf.AGM_FaithShaken);
+            }
         }
 
         /// <summary>A direct loss that patience doesn't absorb (e.g. an ignored prayer).</summary>
-        public void Lose(float amount)
+        public void Lose(float amount, string cause = null)
         {
+            float before = CurLevel;
             CurLevel -= amount * FaithTraitUtility.Factor(pawn, f => f.hardshipFactor);
+            log.Add(cause, CurLevel - before);
         }
 
         public void DebugSetPatience(float value) => patience = value;
@@ -152,7 +176,13 @@ namespace ActualGodMode
             string patienceLabel = PatiencePercent >= 0.66f ? "AGM_Patience_High".Translate()
                 : PatiencePercent >= 0.33f ? "AGM_Patience_Medium".Translate()
                 : "AGM_Patience_Low".Translate();
-            return tip + "\n\n" + "AGM_Patience_Tip".Translate(patienceLabel);
+            tip += "\n\n" + "AGM_Patience_Tip".Translate(patienceLabel);
+            string history = log.TooltipSection();
+            if (history != null)
+            {
+                tip += "\n\n" + history;
+            }
+            return tip;
         }
 
         public override void ExposeData()
@@ -165,6 +195,12 @@ namespace ActualGodMode
             Scribe_Values.Look(ref hardshipToday, "hardshipToday", false);
             Scribe_Values.Look(ref lastDay, "lastDay", -1);
             Scribe_Values.Look(ref lastRequestTick, "lastRequestTick", -999999);
+            Scribe_Values.Look(ref lastShakenDay, "lastShakenDay", -1);
+            Scribe_Deep.Look(ref log, "log");
+            if (Scribe.mode == LoadSaveMode.PostLoadInit && log == null)
+            {
+                log = new FaithLog();
+            }
         }
     }
 }

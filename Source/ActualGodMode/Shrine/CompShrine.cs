@@ -96,7 +96,7 @@ namespace ActualGodMode
         public void DoPrayerTick(Pawn pawn, int delta)
         {
             DivinePower.Instance?.Add(PowerPerTickFor(pawn) * delta);
-            pawn.Faith()?.Gain(Props.faithGainPerDay / GenDate.TicksPerDay * delta);
+            pawn.Faith()?.Gain(Props.faithGainPerDay / GenDate.TicksPerDay * delta, "AGM_Cause_Prayer".Translate());
         }
 
         private void RecalculatePraySpots()
