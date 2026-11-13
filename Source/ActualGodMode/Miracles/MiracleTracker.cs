@@ -63,8 +63,18 @@ namespace ActualGodMode
             }
         }
 
+        /// <summary>False until the first check after the god is revealed; that check unlocks silently.</summary>
+        private bool caughtUp;
+
         public void CheckUnlocks()
         {
+            // Nothing unlocks before the god is known (Revelation, Chosen People, or the skip setting).
+            if (!(AwakeningTracker.Instance?.Revealed ?? false))
+            {
+                return;
+            }
+            bool silent = !caughtUp;
+            caughtUp = true;
             foreach (MiracleDef def in DefDatabase<MiracleDef>.AllDefsListForReading)
             {
                 for (int i = 0; i < def.levels.Count; i++)
@@ -83,7 +93,7 @@ namespace ActualGodMode
                         break;
                     }
                     unlocked.Add(Key(def, i));
-                    if (level.requirements.Count > 0)
+                    if (level.requirements.Count > 0 && !silent)
                     {
                         Find.LetterStack.ReceiveLetter(
                             "AGM_MiracleUnlocked_Label".Translate(def.LevelLabel(i)),
@@ -107,6 +117,7 @@ namespace ActualGodMode
 
         public override void ExposeData()
         {
+            Scribe_Values.Look(ref caughtUp, "caughtUp");
             Scribe_Collections.Look(ref unlocked, "unlocked", LookMode.Value);
             Scribe_Collections.Look(ref events, "events", LookMode.Value);
             Scribe_Collections.Look(ref blessedThings, "blessedThings", LookMode.Value);

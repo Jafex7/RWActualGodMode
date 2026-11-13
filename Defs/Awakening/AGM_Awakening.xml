@@ -10,7 +10,8 @@
     <firstWhisperDelayDays>0.1~0.3</firstWhisperDelayDays>
     <whisperIntervalDays>0.6~1.0</whisperIntervalDays>
     <tranceDelayDays>0.3~0.6</tranceDelayDays>
-    <revelationDelayHours>6</revelationDelayHours>
+    <revelationDelayHours>4</revelationDelayHours>
+    <revelationHour>5</revelationHour>
     <revelationFaithGain>0.2</revelationFaithGain>
     <zealotWeight>3</zealotWeight>
     <scepticWeight>0.2</scepticWeight>

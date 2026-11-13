@@ -103,6 +103,23 @@ The narrative entry point of the mod. Kept simple for v1.
 - **Chosen People** scenario: skips the Awakening; starts with a Shrine.
 - Setting to skip the Awakening (research available from the start).
 
+- Implemented (M5a). The Revelation happens at the **next dawn** (≥ 4 h after the
+  drawing); a sleeping chosen pawn is woken. Miracle unlocks don't run before the
+  god is revealed (first check after that is silent).
+
+### Feedback from first play (to refine)
+- **Context-aware whispers**: lines should reflect things that actually happened
+  in the colony (a fire, a raid, a death, rain, a lucky escape) rather than generic
+  ones ("it always rains when there's a fire" felt odd when it had never rained).
+- **Guided path after the Revelation** (quest-like, not railroading): research and
+  build the Shrine → flavor + tips once built (Worship schedule, Hand of God) →
+  convince the others with a first miracle → answer a first prayer. Optional
+  hints; consider real Quests-tab entries.
+- **Believers and conversion**: before the Awakening no one has faith. The chosen
+  pawn is the first believer; others get the Faith need only once convinced
+  (witnessing a miracle, the chosen one preaching, a friend's answered prayer).
+  Chosen People: everyone starts as a believer at low faith (it just happened).
+
 ### Deferred
 - Night vigil climax (fits Ideology rituals).
 - The **Prophet** (first believer gets a special role; likely an Ideology role).

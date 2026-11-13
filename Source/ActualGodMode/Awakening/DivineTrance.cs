@@ -85,7 +85,7 @@ namespace ActualGodMode
                 {
                     return; // interrupted before finishing
                 }
-                FilthMaker.TryMakeFilth(pawn.Position, Map, AGM_AwakeningDefOf.AGM_Filth_DivineSign);
+                PlaceSign(pawn.Position, Map);
                 if (pawn.MentalState is MentalState_DivineTrance trance)
                 {
                     trance.drawn = true; // the trance ends itself on its next tick
@@ -93,6 +93,19 @@ namespace ActualGodMode
                 }
             });
             yield return draw;
+        }
+
+        /// <summary>Draw on this cell, or the nearest one that accepts it (some floors/items refuse filth).</summary>
+        private static void PlaceSign(IntVec3 at, Map map)
+        {
+            foreach (IntVec3 c in GenRadial.RadialCellsAround(at, 3f, useCenter: true))
+            {
+                if (c.InBounds(map) && FilthMaker.TryMakeFilth(c, map, AGM_AwakeningDefOf.AGM_Filth_DivineSign))
+                {
+                    return;
+                }
+            }
+            Log.Warning("[Actual God Mode] Couldn't find a cell to draw the divine sign near " + at);
         }
     }
 

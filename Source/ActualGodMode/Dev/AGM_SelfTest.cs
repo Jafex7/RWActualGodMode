@@ -104,6 +104,14 @@ namespace ActualGodMode
             }
             Log.Message(Tag + $"Shrine placed at {shrine.Position}. Pray spots: {shrine.TryGetComp<CompShrine>().PraySpots.Count}");
 
+            // Nothing unlocks before the god is revealed; once revealed, the starting miracles unlock.
+            MiracleDef water = DefDatabase<MiracleDef>.GetNamed("AGM_Miracle_Water");
+            MiracleTracker.Instance.CheckUnlocks();
+            Check(!MiracleTracker.Instance.IsUnlocked(water, 0), "no miracles unlock before the god is revealed");
+            AwakeningTracker.Instance.MarkRevealedByScenario();
+            MiracleTracker.Instance.CheckUnlocks();
+            Check(MiracleTracker.Instance.IsUnlocked(water, 0), "starting miracles unlock once revealed");
+
             foreach (Pawn p in colonists)
             {
                 for (int hour = 0; hour < GenDate.HoursPerDay; hour++)
@@ -246,6 +254,14 @@ namespace ActualGodMode
             Check(!timedOut, $"trance pawn drew the sign (took {Find.TickManager.TicksGame - awakeningStartTick} ticks)");
             Check(signs > 0, $"the strange drawing exists on the map ({signs})");
             Check(!awakeningPawn.InMentalState, "trance ends after drawing");
+
+            int revealAt = t.NextEventTick;
+            float longitude = Find.WorldGrid.LongLatOf(map.Tile).x;
+            long revealAbs = revealAt + (Find.TickManager.TicksAbs - Find.TickManager.TicksGame);
+            int hour = GenDate.HourOfDay(revealAbs, longitude);
+            float hoursAway = (revealAt - Find.TickManager.TicksGame) / (float)GenDate.TicksPerHour;
+            Check(hour == AwakeningTuningDef.Get.revelationHour && hoursAway >= AwakeningTuningDef.Get.revelationDelayHours - 0.1f && hoursAway <= 28.1f,
+                $"revelation scheduled for the next dawn ({hour}:00 local, in {hoursAway:F1} h)");
 
             ResearchProjectDef research = AGM_AwakeningDefOf.AGM_ShrineResearch;
             t.Reveal();

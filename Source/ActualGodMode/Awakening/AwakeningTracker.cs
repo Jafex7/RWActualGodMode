@@ -24,7 +24,11 @@ namespace ActualGodMode
         public FloatRange firstWhisperDelayDays = new FloatRange(0.1f, 0.3f);
         public FloatRange whisperIntervalDays = new FloatRange(0.6f, 1.0f);
         public FloatRange tranceDelayDays = new FloatRange(0.3f, 0.6f);
-        public float revelationDelayHours = 6f;
+        /// <summary>Minimum hours between the drawing and the Revelation; it then waits for the next dawn.</summary>
+        public float revelationDelayHours = 4f;
+
+        /// <summary>Local hour the Revelation happens (dawn).</summary>
+        public int revelationHour = 5;
         public float revelationFaithGain = 0.2f;
         public float zealotWeight = 3f;
         public float scepticWeight = 0.2f;
@@ -197,7 +201,20 @@ namespace ActualGodMode
                 return;
             }
             stage = AwakeningStage.AwaitingRevelation;
-            nextEventTick = Now + UnityEngine.Mathf.RoundToInt(Tuning.revelationDelayHours * GenDate.TicksPerHour);
+            nextEventTick = NextDawnAfter(Now + UnityEngine.Mathf.RoundToInt(Tuning.revelationDelayHours * GenDate.TicksPerHour), pawn.MapHeld);
+        }
+
+        /// <summary>The first dawn (revelationHour, local time) at or after the given tick.</summary>
+        private static int NextDawnAfter(int tick, Map map)
+        {
+            float longitude = map != null ? Find.WorldGrid.LongLatOf(map.Tile).x : 0f;
+            // GenDate works in absolute ticks; ours are game ticks.
+            long abs = tick + (Find.TickManager.TicksAbs - Find.TickManager.TicksGame);
+            int localHour = GenDate.HourOfDay(abs, longitude);
+            int ticksIntoHour = (int)((GenDate.LocalTicksOffsetFromLongitude(longitude) + abs) % GenDate.TicksPerHour);
+            int hoursUntil = (Tuning.revelationHour - localHour + 24) % 24;
+            int result = tick + hoursUntil * GenDate.TicksPerHour - ticksIntoHour;
+            return result < tick ? result + GenDate.TicksPerDay : result;
         }
 
         /// <summary>The trance ended before the sign was drawn (interrupted): try again later.</summary>
@@ -214,12 +231,22 @@ namespace ActualGodMode
             stage = AwakeningStage.Revealed;
             Pawn p = ChosenValid() ? chosen : PawnsFinder.AllMaps_FreeColonistsSpawned.FirstOrDefault();
             p?.Faith()?.Gain(Tuning.revelationFaithGain, "AGM_Cause_Revelation".Translate());
-            string name = p != null ? p.LabelShort : "AGM_Someone".Translate().ToString();
+
+            // Asleep: the god wakes them before dawn. Awake: they stop and look up at first light.
+            bool wasAsleep = p != null && p.Spawned && !p.Awake();
+            if (wasAsleep)
+            {
+                RestUtility.WakeUp(p);
+            }
+            string text = p == null ? "AGM_Revelation_TextNoPawn".Translate()
+                : wasAsleep ? "AGM_Revelation_Text".Translate(p.Named("PAWN"))
+                : "AGM_Revelation_TextAwake".Translate(p.Named("PAWN"));
             Find.LetterStack.ReceiveLetter(
                 "AGM_Revelation_Label".Translate(),
-                p != null ? "AGM_Revelation_Text".Translate(p.Named("PAWN")) : "AGM_Revelation_TextNoPawn".Translate(),
+                text,
                 LetterDefOf.PositiveEvent,
                 p != null ? new LookTargets(p) : LookTargets.Invalid);
+            MiracleTracker.Instance?.CheckUnlocks();
         }
 
         /// <summary>Scenario or debug: the god is already known; no Awakening needed.</summary>
