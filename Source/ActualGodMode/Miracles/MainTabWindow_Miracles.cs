@@ -19,7 +19,7 @@ namespace ActualGodMode
             DefDatabase<MiracleDef>.AllDefsListForReading.OrderBy(d => d.order).ToList();
 
         public override Vector2 RequestedTabSize =>
-            new Vector2(420f, HeaderHeight + Miracles.Count * RowHeight + Margin * 2f);
+            new Vector2(520f, HeaderHeight + Miracles.Count * RowHeight + Margin * 2f);
 
         public override MainTabWindowAnchor Anchor => MainTabWindowAnchor.Left;
 
@@ -41,6 +41,11 @@ namespace ActualGodMode
             {
                 HandOfGodMode.Toggle();
                 Close();
+            }
+            Rect bookButton = new Rect(handButton.x - 150f - 6f, inRect.y, 150f, HeaderHeight - 4f);
+            if (Widgets.ButtonText(bookButton, "AGM_BookOfGestures".Translate()))
+            {
+                Find.WindowStack.Add(new Window_BookOfGestures());
             }
 
             float y = inRect.y + HeaderHeight;

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Default gestures. Points are in a 0-1 box, y pointing DOWN (like the screen).
+  Size, speed, stroke order and stroke direction don't matter; orientation does.
+  Players can re-record any of these in the Book of Gestures.
+-->
+<Defs>
+
+  <!-- Water: a wave, drawn left to right (or right to left) -->
+  <ActualGodMode.GestureDef>
+    <defName>AGM_Gesture_Wave</defName>
+    <label>wave</label>
+    <templates>
+      <li>
+        <strokes>
+          <li>
+            <points>
+              <li>(0,0.5)</li><li>(0.08,0.29)</li><li>(0.17,0.2)</li><li>(0.25,0.29)</li>
+              <li>(0.33,0.5)</li><li>(0.42,0.71)</li><li>(0.5,0.8)</li><li>(0.58,0.71)</li>
+              <li>(0.67,0.5)</li><li>(0.75,0.29)</li><li>(0.83,0.2)</li><li>(0.92,0.29)</li>
+              <li>(1,0.5)</li>
+            </points>
+          </li>
+        </strokes>
+      </li>
+    </templates>
+  </ActualGodMode.GestureDef>
+
+  <!-- Food: a circle, either direction, starting anywhere -->
+  <ActualGodMode.GestureDef>
+    <defName>AGM_Gesture_Circle</defName>
+    <label>circle</label>
+    <templates>
+      <li>
+        <strokes>
+          <li>
+            <points>
+              <li>(1,0.5)</li><li>(0.962,0.691)</li><li>(0.854,0.854)</li><li>(0.691,0.962)</li>
+              <li>(0.5,1)</li><li>(0.309,0.962)</li><li>(0.146,0.854)</li><li>(0.038,0.691)</li>
+              <li>(0,0.5)</li><li>(0.038,0.309)</li><li>(0.146,0.146)</li><li>(0.309,0.038)</li>
+              <li>(0.5,0)</li><li>(0.691,0.038)</li><li>(0.854,0.146)</li><li>(0.962,0.309)</li>
+              <li>(1,0.5)</li>
+            </points>
+          </li>
+        </strokes>
+      </li>
+    </templates>
+  </ActualGodMode.GestureDef>
+
+  <!-- Wood: a tree (trunk and two branches), in any stroke order -->
+  <ActualGodMode.GestureDef>
+    <defName>AGM_Gesture_Tree</defName>
+    <label>tree</label>
+    <templates>
+      <li>
+        <strokes>
+          <li><points><li>(0.5,1)</li><li>(0.5,0.4)</li></points></li>
+          <li><points><li>(0.5,0.4)</li><li>(0.1,0)</li></points></li>
+          <li><points><li>(0.5,0.4)</li><li>(0.9,0)</li></points></li>
+        </strokes>
+      </li>
+    </templates>
+  </ActualGodMode.GestureDef>
+
+</Defs>

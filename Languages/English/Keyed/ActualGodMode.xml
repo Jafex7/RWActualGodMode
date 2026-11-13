@@ -36,8 +36,36 @@
   <AGM_HoG_Active>Hand of God</AGM_HoG_Active>
   <AGM_HoG_HintToggled>Left-drag to draw · right-click or {0} to leave</AGM_HoG_HintToggled>
   <AGM_HoG_HintHeld>Left-drag to draw · release the key to leave</AGM_HoG_HintHeld>
-  <AGM_HoG_StrokeDebug>Stroke: {0} points, {1} px, {2} s</AGM_HoG_StrokeDebug>
+  <AGM_HoG_HintCharged>Left-click to cast · {0} / {1} change level · right-click to cancel</AGM_HoG_HintCharged>
   <AGM_HoG_Toggle>Hand of God mode</AGM_HoG_Toggle>
+
+  <!-- Gestures -->
+  <AGM_Gesture_NotUnderstood>The god's hand trembles: that sign means nothing.</AGM_Gesture_NotUnderstood>
+  <AGM_Gesture_NotGranted>Your followers don't yet know to pray for {0}.</AGM_Gesture_NotGranted>
+  <AGM_Setting_GestureTolerance>Gesture tolerance: {0}</AGM_Setting_GestureTolerance>
+  <AGM_Setting_GestureTolerance_Tip>How forgiving gesture recognition is. Higher accepts sloppier drawings but may confuse similar gestures.</AGM_Setting_GestureTolerance_Tip>
+
+  <AGM_BookOfGestures>Book of Gestures</AGM_BookOfGestures>
+  <AGM_Book_Intro>In Hand of God mode ({0}), draw a miracle's sign on the map, then click where it should happen. You can re-record any sign to suit your hand.</AGM_Book_Intro>
+  <AGM_Book_Default>default sign</AGM_Book_Default>
+  <AGM_Book_Custom>your sign</AGM_Book_Custom>
+  <AGM_Book_NotGranted>not yet granted</AGM_Book_NotGranted>
+  <AGM_Book_Record>Re-record</AGM_Book_Record>
+  <AGM_Book_Reset>Reset to default</AGM_Book_Reset>
+
+  <AGM_Rec_Title>New sign for {0}</AGM_Rec_Title>
+  <AGM_Rec_DrawHere>Draw the sign here\n(sample {0} of {1})</AGM_Rec_DrawHere>
+  <AGM_Rec_Samples>Samples: {0} / {1}</AGM_Rec_Samples>
+  <AGM_Rec_Clear>Clear drawing</AGM_Rec_Clear>
+  <AGM_Rec_AddSample>Add sample</AGM_Rec_AddSample>
+  <AGM_Rec_RemoveLast>Remove last</AGM_Rec_RemoveLast>
+  <AGM_Rec_Save>Save sign</AGM_Rec_Save>
+  <AGM_Rec_SaveAnyway>Save anyway</AGM_Rec_SaveAnyway>
+  <AGM_Rec_Saved>New sign saved for {0}.</AGM_Rec_Saved>
+  <AGM_Rec_LooksGood>These drawings agree and don't look like any other sign.</AGM_Rec_LooksGood>
+  <AGM_Rec_Inconsistent>Your drawings don't match each other well. Try a simpler shape, drawn the same way each time.</AGM_Rec_Inconsistent>
+  <AGM_Rec_Conflict>This looks a lot like the sign for {0}. It may be mistaken for it.</AGM_Rec_Conflict>
+  <AGM_Rec_Tips>Tips:\n• Use clearly different shapes for different miracles.\n• 1 to 3 strokes works best. Several strokes are fine; their order doesn't matter.\n• Direction doesn't matter, but orientation does: a "V" is not a "^".\n• Big, confident movements are recognized better than small careful ones.\n• Avoid near-twins, like a circle and a spiral.</AGM_Rec_Tips>
 
   <AGM_Req_LifetimePower>{0} Divine Power received in total (now {1})</AGM_Req_LifetimePower>
 </LanguageData>

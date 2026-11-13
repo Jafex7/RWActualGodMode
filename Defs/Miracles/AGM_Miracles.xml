@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Defs>
 
   <MainButtonDef>
@@ -17,6 +17,7 @@
     <label>water</label>
     <description>Rain falls on the chosen spot, putting out fires and soaking the ground.</description>
     <workerClass>ActualGodMode.MiracleWorker_Water</workerClass>
+    <gesture>AGM_Gesture_Wave</gesture>
     <iconThing>Filth_Water</iconThing>
     <order>10</order>
     <levels>
@@ -44,6 +45,7 @@
     <label>food</label>
     <description>Food appears from nowhere. A small blessing feeds one person for a day; a greater one feeds a household.</description>
     <workerClass>ActualGodMode.MiracleWorker_SpawnThing</workerClass>
+    <gesture>AGM_Gesture_Circle</gesture>
     <iconThing>MealSimple</iconThing>
     <order>20</order>
     <levels>
@@ -76,6 +78,7 @@
     <label>wood</label>
     <description>Logs appear at the chosen spot. A small blessing is enough for a campfire.</description>
     <workerClass>ActualGodMode.MiracleWorker_SpawnThing</workerClass>
+    <gesture>AGM_Gesture_Tree</gesture>
     <iconThing>WoodLog</iconThing>
     <order>30</order>
     <levels>

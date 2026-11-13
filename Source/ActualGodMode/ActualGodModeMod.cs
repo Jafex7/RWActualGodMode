@@ -10,8 +10,11 @@ namespace ActualGodMode
 
         public static ActualGodModeSettings Settings { get; private set; }
 
+        public static ActualGodModeMod Instance { get; private set; }
+
         public ActualGodModeMod(ModContentPack content) : base(content)
         {
+            Instance = this;
             Settings = GetSettings<ActualGodModeSettings>();
             new Harmony(PackageId).PatchAll(typeof(ActualGodModeMod).Assembly);
             Log.Message("[Actual God Mode] Loaded.");

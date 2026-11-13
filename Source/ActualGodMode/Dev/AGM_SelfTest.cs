@@ -151,6 +151,15 @@ namespace ActualGodMode
 
             try
             {
+                RunGestureTests();
+            }
+            catch (System.Exception e)
+            {
+                Check(false, "gesture tests threw: " + e);
+            }
+
+            try
+            {
                 RunMiracleTests();
             }
             catch (System.Exception e)
@@ -212,6 +221,104 @@ namespace ActualGodMode
             dp.DebugSet(3f);
             r = MiracleUtility.TryCast(food, 0, near, map);
             Check(!r.Accepted && Mathf.Approximately(dp.Power, 3f), "cast without enough power refused: " + r.Reason);
+        }
+
+        /// <summary>
+        /// Simulates human drawings of each default gesture (size, jitter, rotation, reversed
+        /// direction, shuffled strokes, dense sampling) and checks they're recognized. Also logs
+        /// the closest wrong match and some non-gestures, to calibrate the threshold.
+        /// </summary>
+        private void RunGestureTests()
+        {
+            Log.Message(Tag + $"Gesture phase (threshold {GestureLibrary.Threshold:F2})");
+            var rng = new System.Random(1234);
+            float worstCorrect = 0f;
+            float bestWrong = float.MaxValue;
+            int trials = 0, correct = 0;
+
+            foreach (MiracleDef miracle in GestureLibrary.MiraclesWithGestures)
+            {
+                List<List<Vector2>> template = miracle.gesture.templates[0].AsPointLists();
+                for (int t = 0; t < 40; t++)
+                {
+                    List<List<Vector2>> drawn = SimulateDrawing(template, rng);
+                    GestureMatch m = GestureLibrary.Recognize(drawn);
+                    trials++;
+                    if (m.miracle == miracle && m.Recognized)
+                    {
+                        correct++;
+                    }
+                    if (m.miracle == miracle)
+                    {
+                        worstCorrect = Mathf.Max(worstCorrect, m.distance);
+                        bestWrong = Mathf.Min(bestWrong, m.runnerUpDistance);
+                    }
+                    else
+                    {
+                        Log.Message(Tag + $"    misread {miracle.defName} as {m.miracle?.defName} (d={m.distance:F2})");
+                    }
+                }
+            }
+            Log.Message(Tag + $"  simulated drawings: {correct}/{trials} recognized; worst correct d={worstCorrect:F2}, closest wrong d={bestWrong:F2}");
+            Check(correct >= trials * 0.95f, "at least 95% of simulated drawings recognized");
+            Check(worstCorrect < bestWrong, "worst correct match still closer than any wrong one");
+
+            // Non-gestures should be rejected (logged for calibration).
+            var line = new List<List<Vector2>> { new List<Vector2> { new Vector2(0, 0), new Vector2(200, 0) } };
+            var scribble = new List<List<Vector2>> { RandomWalk(rng, 40) };
+            var dot = new List<List<Vector2>> { new List<Vector2> { new Vector2(10, 10), new Vector2(11, 11) } };
+            foreach (var (name, g) in new[] { ("straight line", line), ("scribble", scribble), ("dot", dot) })
+            {
+                GestureMatch m = GestureLibrary.Recognize(g);
+                Log.Message(Tag + $"  {name}: best={m.miracle?.defName} d={m.distance:F2} recognized={m.Recognized}");
+            }
+            Check(!GestureLibrary.Recognize(scribble).Recognized, "random scribble rejected");
+        }
+
+        private static List<List<Vector2>> SimulateDrawing(List<List<Vector2>> template, System.Random rng)
+        {
+            float size = 80f + (float)rng.NextDouble() * 260f;
+            float angle = ((float)rng.NextDouble() * 2f - 1f) * 10f * Mathf.Deg2Rad;
+            float jitter = 0.025f;
+            Vector2 origin = new Vector2((float)rng.NextDouble() * 800f, (float)rng.NextDouble() * 600f);
+            var strokes = new List<List<Vector2>>();
+            foreach (List<Vector2> s in template)
+            {
+                var dense = new List<Vector2>();
+                for (int i = 1; i < s.Count; i++)
+                {
+                    for (int k = 0; k < 6; k++)
+                    {
+                        Vector2 p = Vector2.Lerp(s[i - 1], s[i], k / 6f) - new Vector2(0.5f, 0.5f);
+                        p = new Vector2(p.x * Mathf.Cos(angle) - p.y * Mathf.Sin(angle), p.x * Mathf.Sin(angle) + p.y * Mathf.Cos(angle));
+                        p += new Vector2(((float)rng.NextDouble() * 2f - 1f) * jitter, ((float)rng.NextDouble() * 2f - 1f) * jitter);
+                        dense.Add(origin + p * size);
+                    }
+                }
+                dense.Add(origin + (s[s.Count - 1] - new Vector2(0.5f, 0.5f)) * size);
+                if (rng.NextDouble() < 0.5)
+                {
+                    dense.Reverse();
+                }
+                strokes.Add(dense);
+            }
+            // Shuffle stroke order.
+            for (int i = strokes.Count - 1; i > 0; i--)
+            {
+                int j = rng.Next(i + 1);
+                (strokes[i], strokes[j]) = (strokes[j], strokes[i]);
+            }
+            return strokes;
+        }
+
+        private static List<Vector2> RandomWalk(System.Random rng, int steps)
+        {
+            var pts = new List<Vector2> { Vector2.zero };
+            for (int i = 0; i < steps; i++)
+            {
+                pts.Add(pts[pts.Count - 1] + new Vector2((float)rng.NextDouble() * 60f - 30f, (float)rng.NextDouble() * 60f - 30f));
+            }
+            return pts;
         }
 
         private static int CountOf(Map map, ThingDef def) => map.listerThings.ThingsOfDef(def).Sum(t => t.stackCount);

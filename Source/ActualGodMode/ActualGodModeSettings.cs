@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using Verse;
 
@@ -16,9 +17,21 @@ namespace ActualGodMode
         public bool handLabelAutoY = true;
         public float handLabelY = 0.12f;
 
+        // Gestures
+        public float gestureTolerance = 1f;
+
+        /// <summary>Player-recorded gestures by MiracleDef defName (global across saves, like keybindings).</summary>
+        public Dictionary<string, CustomGesture> customGestures = new Dictionary<string, CustomGesture>();
+
         public override void ExposeData()
         {
             base.ExposeData();
+            Scribe_Values.Look(ref gestureTolerance, "gestureTolerance", 1f);
+            Scribe_Collections.Look(ref customGestures, "customGestures", LookMode.Value, LookMode.Deep);
+            if (customGestures == null)
+            {
+                customGestures = new Dictionary<string, CustomGesture>();
+            }
             Scribe_Values.Look(ref faithDecayMultiplier, "faithDecayMultiplier", 1f);
             Scribe_Values.Look(ref skipAwakening, "skipAwakening", false);
             Scribe_Values.Look(ref handLabelX, "handLabelX", 0.5f);
@@ -39,6 +52,15 @@ namespace ActualGodMode
             listing.CheckboxLabeled(
                 "AGM_Setting_SkipAwakening".Translate(), ref skipAwakening,
                 "AGM_Setting_SkipAwakening_Tip".Translate());
+
+            listing.GapLine();
+            gestureTolerance = listing.SliderLabeled(
+                "AGM_Setting_GestureTolerance".Translate(gestureTolerance.ToStringPercent()), gestureTolerance, 0.5f, 2f,
+                tooltip: "AGM_Setting_GestureTolerance_Tip".Translate());
+            if (listing.ButtonText("AGM_BookOfGestures".Translate()))
+            {
+                Find.WindowStack.Add(new Window_BookOfGestures());
+            }
 
             listing.GapLine();
             listing.Label("AGM_Setting_HandLabel".Translate());

@@ -9,7 +9,8 @@ Read before changing things:
 
 ## Status
 - Done: **M0** setup, **M1** faith / divine power / shrine / worship, **M2** miracles (toolbar casting).
-- Next: **M3** Hand of God mode (start with the Waylith input/cursor spike listed in DESIGN.md).
+- **M3** Hand of God mode: spike verified in-game (cursor, input, trail, label). Gesture casting, Book of
+  Gestures and recorder implemented and self-tested; awaiting the user's in-game test.
 
 ## Commands
 - Build: `dotnet build Source/ActualGodMode/ActualGodMode.csproj -c Release` (outputs to `1.7/Assemblies/`).
@@ -27,7 +28,9 @@ Read before changing things:
 | `Source/…/Shrine/` | `CompShrine` (prayer spots, slots, group bonus, power rate), `ShrineUtility` + one-per-map PlaceWorker, `InfluenceUtility` |
 | `Source/…/Worship/` | `JobDriver_PrayAtShrine`, job/joy givers, `WorshipUtility.TryMakePrayJob` |
 | `Source/…/Miracles/` | `MiracleDef` + `MiracleLevel`, `MiracleRequirement` (+ `Req_*`), `MiracleWorker` (+ subclasses), `MiracleTracker` (unlocks), `MiracleUtility` (CanCast/TryCast/witnesses), `Designator_Miracle`, `MainTabWindow_Miracles` |
-| `Source/…/Patches/` | Harmony patches: Worship schedule block, power readout |
+| `Source/…/HandOfGod/` | `HandOfGodMode` (state: toggle/hold, strokes, recognition, charged miracle, casting, label), `HandOfGodCursor` (RGBA cursor via Waylith `HardwareCursor`) |
+| `Source/…/Gestures/` | `GestureDef` (+ template/stroke/custom), `PointCloudRecognizer` ($P), `GestureLibrary` (default vs player gestures, threshold, matching), `Window_BookOfGestures`, `Dialog_RecordGesture` |
+| `Source/…/Patches/` | Harmony patches: Worship schedule block, power readout, Hand of God input (`MapInterface.HandleMapClicks` / `HandleLowPriorityInput`) |
 | `Source/…/Dev/` | Debug actions, `AGM_SelfTest` (runs only with `-agmselftest`) |
 | `Defs/` | XML defs by feature (Faith, Worship, Shrine, Miracles) |
 | `Patches/` | XML patch operations (think tree) |
@@ -50,6 +53,9 @@ Read before changing things:
 - **Add a miracle**: add a `ActualGodMode.MiracleDef` in `Defs/Miracles/` (levels with cost/radius/amount/thingDef
   and optional `requirements`), reuse `MiracleWorker_SpawnThing` / `_Water` or subclass `MiracleWorker`
   (`CanCastAt`, `Cast`, `DrawPreview`), add strings, add a check to `AGM_SelfTest.RunMiracleTests`.
+- **Add a gesture**: `ActualGodMode.GestureDef` in `Defs/Gestures/` (points in a 0–1 box, **y down**), reference it from
+  the miracle's `<gesture>`. Rerun the self-test: it simulates drawings of every gesture and logs the closest wrong
+  match. If two signs get close, change a shape rather than the threshold (`GestureLibrary.BaseThreshold`, calibrated).
 - **Add an unlock requirement**: subclass `MiracleRequirement` (`IsMet`, `Description`), then reference it in XML as
   `<li Class="ActualGodMode.Req_X">`.
 - **Anything reading the schedule**: vanilla `JobGiver_GetRest` / `JobGiver_Work` throw on unknown time assignments.
@@ -60,5 +66,8 @@ Read before changing things:
 - `-mod=` only loads mods from the local Mods folder (ignores Workshop Harmony). Use the self-test script instead.
 - Def config errors only show with dev mode on (the self-test profile has it on).
 - Vanilla only starts fires on flammable cells; spawn `Fire` directly in tests.
+- Textures built in code lose their CPU pixels under Waylith (hardware cursor showed a black square); see
+  WAYLITH_NOTES.md. Flecks freeze while paused. `\` is a dev-mode key; our toggle default is `=`.
+- Headless can't test input or visuals: list what the user should check in-game.
 - The log is `%USERPROFILE%\AppData\LocalLow\Ludeon Studios\RimWorld by Ludeon Studios\Logs\Player.log`.
 - Vanilla already has a `Pray` job/joy giver (private room prayer); ours is `AGM_PrayAtShrine`.

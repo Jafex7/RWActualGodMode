@@ -13,6 +13,9 @@ namespace ActualGodMode
     {
         public Type workerClass;
 
+        /// <summary>Default gesture that casts this miracle in Hand of God mode (players can re-record it).</summary>
+        public GestureDef gesture;
+
         /// <summary>Icon taken from this thing's UI icon (placeholder until custom art).</summary>
         public ThingDef iconThing;
         public string iconPath;
