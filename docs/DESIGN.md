@@ -134,6 +134,8 @@ The narrative entry point of the mod. Kept simple for v1.
     - "Reset to default" per gesture. Defaults ship with the mod.
     - Saved in mod settings (global across saves, like keybindings).
   - No scoring of drawing quality.
+- *Later polish*: miracle animations and richer effects (current: flash, sparks,
+  splashes, puddles, plus placeholder icons).
 - Pool of later miracles: Heal, Lightning, Fireball, Shield (vanilla projectile
   interceptor), Calm, Growth, Storm, Earthquake, Teleport, Inspire, Resurrect.
 

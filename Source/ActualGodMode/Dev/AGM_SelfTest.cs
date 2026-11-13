@@ -141,6 +141,12 @@ namespace ActualGodMode
             Check(dp.Power > 0f, "worship generated power");
             Check(maxWorshippers == shrine.TryGetComp<CompShrine>().Slots, "worshippers filled all prayer slots");
 
+            Texture2D cursor = HandOfGodCursor.Texture;
+            Check(cursor != null && cursor.width == 32 && cursor.height == 32, "Hand of God cursor texture generated");
+            Cursor.SetCursor(cursor, HandOfGodCursor.Hotspot, CursorMode.Auto);
+            Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
+            Log.Message(Tag + "  (cursor set and reset; an 'Invalid texture used for cursor' warning would mean Waylith rejected it)");
+
             try
             {
                 RunMiracleTests();

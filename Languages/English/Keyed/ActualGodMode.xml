@@ -26,5 +26,12 @@
   <AGM_MiracleUnlocked_Label>New miracle: {0}</AGM_MiracleUnlocked_Label>
   <AGM_MiracleUnlocked_Text>Your followers' faith has grown, and with it their idea of what you can do for them. They now pray for {0}.\n\n{1}</AGM_MiracleUnlocked_Text>
   <AGM_Req_Believers>{0} colonists with at least {1} faith (now {2})</AGM_Req_Believers>
+  <!-- Hand of God mode -->
+  <AGM_HoG_Active>Hand of God</AGM_HoG_Active>
+  <AGM_HoG_HintToggled>Left-drag to draw · right-click or {0} to leave</AGM_HoG_HintToggled>
+  <AGM_HoG_HintHeld>Left-drag to draw · release the key to leave</AGM_HoG_HintHeld>
+  <AGM_HoG_StrokeDebug>Stroke: {0} points, {1} px, {2} s</AGM_HoG_StrokeDebug>
+  <AGM_HoG_Toggle>Hand of God mode</AGM_HoG_Toggle>
+
   <AGM_Req_LifetimePower>{0} Divine Power received in total (now {1})</AGM_Req_LifetimePower>
 </LanguageData>

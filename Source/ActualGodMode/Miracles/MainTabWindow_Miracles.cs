@@ -35,6 +35,14 @@ namespace ActualGodMode
             Widgets.Label(new Rect(inRect.x, inRect.y, inRect.width, HeaderHeight),
                 "AGM_PowerReadout".Translate(dp.Power.ToString("F1"), dp.MaxPower.ToString("F0")));
 
+            Rect handButton = new Rect(inRect.xMax - 170f, inRect.y, 170f, HeaderHeight - 4f);
+            string handLabel = "AGM_HoG_Toggle".Translate() + " (" + AGM_KeyBindingDefOf.AGM_ToggleHandOfGod.MainKeyLabel + ")";
+            if (Widgets.ButtonText(handButton, handLabel))
+            {
+                HandOfGodMode.Toggle();
+                Close();
+            }
+
             float y = inRect.y + HeaderHeight;
             foreach (MiracleDef def in Miracles)
             {

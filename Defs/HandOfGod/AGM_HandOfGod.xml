@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+  <KeyBindingCategoryDef>
+    <defName>AGM_HandOfGod</defName>
+    <label>Actual God Mode</label>
+    <description>Controls for the god's hand.</description>
+    <isGameUniversal>true</isGameUniversal>
+    <checkForConflicts>
+      <li>Development</li>
+      <li>Game</li>
+      <li>GameMapCamera</li>
+      <li>SelectionMisc</li>
+      <li>MainTabs</li>
+    </checkForConflicts>
+  </KeyBindingCategoryDef>
+
+  <KeyBindingDef>
+    <defName>AGM_ToggleHandOfGod</defName>
+    <label>toggle Hand of God mode</label>
+    <category>AGM_HandOfGod</category>
+    <defaultKeyCodeA>Backslash</defaultKeyCodeA>
+  </KeyBindingDef>
+
+  <KeyBindingDef>
+    <defName>AGM_HoldHandOfGod</defName>
+    <label>hold for Hand of God mode</label>
+    <category>AGM_HandOfGod</category>
+    <defaultKeyCodeA>Mouse3</defaultKeyCodeA>
+  </KeyBindingDef>
+
+</Defs>
