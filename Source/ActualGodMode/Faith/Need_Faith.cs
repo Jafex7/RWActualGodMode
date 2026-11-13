@@ -91,7 +91,8 @@ namespace ActualGodMode
             }
             else if (mood >= Tuning.patienceRegenMinMood)
             {
-                patience = Mathf.Min(MaxPatience, patience + Tuning.patienceRegenPerDay * dayFraction);
+                float regen = Tuning.patienceRegenPerDay * (AlignmentTracker.Instance?.PatienceRegenFactor ?? 1f);
+                patience = Mathf.Min(MaxPatience, patience + regen * dayFraction);
             }
 
             moodSum += mood;
@@ -118,7 +119,8 @@ namespace ActualGodMode
             }
             if (moodSum / moodSamples >= Tuning.gratitudeMinAverageMood)
             {
-                Gain(Tuning.gratitudePerDay * FaithTraitUtility.Factor(pawn, f => f.gratitudeFactor), "AGM_Cause_Gratitude".Translate());
+                float factor = FaithTraitUtility.Factor(pawn, f => f.gratitudeFactor) * (AlignmentTracker.Instance?.GratitudeFactor ?? 1f);
+                Gain(Tuning.gratitudePerDay * factor, "AGM_Cause_Gratitude".Translate());
             }
         }
 

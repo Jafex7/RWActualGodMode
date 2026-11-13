@@ -164,7 +164,8 @@ namespace ActualGodMode
             byte[] px = HandOfGodCursor.Rgba;
             int inside = (10 * HandOfGodCursor.Size + 5) * 4;
             int outside = (30 * HandOfGodCursor.Size + 30) * 4;
-            Check(px[inside + 3] == 255 && px[inside] > 200, $"cursor pixels: inside opaque gold ({px[inside]},{px[inside + 1]},{px[inside + 2]},{px[inside + 3]})");
+            Check(px[inside + 3] == 255 && px[inside] + px[inside + 1] + px[inside + 2] > 300,
+                $"cursor pixels: inside opaque, in the {HandOfGodCursor.CurrentStyle} style ({px[inside]},{px[inside + 1]},{px[inside + 2]},{px[inside + 3]})");
             Check(px[outside + 3] == 0, "cursor pixels: corner transparent");
             HandOfGodCursor.Apply();
             HandOfGodCursor.Restore();
@@ -363,7 +364,99 @@ namespace ActualGodMode
             guide.Notify_PrayerAnswered();
             guide.CheckProgress();
             Check(guide.Step == GuideStep.Done, "guide completes after a prayer is answered");
+
+            try
+            {
+                RunAlignmentTests();
+            }
+            catch (System.Exception e)
+            {
+                Check(false, "alignment tests threw: " + e);
+            }
             Complete();
+        }
+
+        /// <summary>M6a: deeds, bands, Lightning classification, punishment, fear, cursor style, deliverance prayer.</summary>
+        private void RunAlignmentTests()
+        {
+            Log.Message(Tag + "Alignment phase");
+            Map map = shrine.Map;
+            AlignmentTracker alignment = AlignmentTracker.Instance;
+            DivinePower dp = DivinePower.Instance;
+            MiracleDef lightning = AGM_AlignmentDefOf.AGM_Miracle_Lightning;
+            MiracleDef heal = DefDatabase<MiracleDef>.GetNamed("AGM_Miracle_Heal");
+            List<Pawn> colonists = map.mapPawns.FreeColonistsSpawned.Where(p => !p.Dead).ToList();
+            Pawn a = colonists[0];
+            Pawn b = colonists[1];
+
+            // Bands
+            alignment.DebugSet(30f);
+            Check(alignment.Band == AlignmentBand.Kind && alignment.GratitudeFactor > 1f, "+30 is 'kind', with a gratitude bonus");
+            alignment.DebugSet(-70f);
+            Check(alignment.Band == AlignmentBand.Wrathful && HandOfGodCursor.CurrentStyle == HandStyle.Evil, "-70 is 'wrathful', and the hand turns evil");
+            byte[] evilPx = HandOfGodCursor.Rgba;
+            int inside = (10 * HandOfGodCursor.Size + 5) * 4;
+            Check(evilPx[inside] > evilPx[inside + 1] * 2 && evilPx[inside + 3] == 255, "evil cursor is red");
+            alignment.DebugSet(0f);
+            Check(HandOfGodCursor.CurrentStyle == HandStyle.Neutral, "0 is neutral (pale hand)");
+
+            // Healing is good
+            Teleport(a, shrine.Position + new IntVec3(2, 0, 2), map);
+            a.TakeDamage(new DamageInfo(DamageDefOf.Cut, 5f));
+            dp.Add(dp.MaxPower);
+            MiracleUtility.TryCast(heal, 0, a.Position, map);
+            Check(alignment.Value > 0.5f, $"healing a follower is a good deed ({alignment.Value:F1})");
+
+            // Lightning: who is struck decides the deed
+            MiracleTracker.Instance.RecordEvent(MiracleTracker.Event_Raid);
+            Check(MiracleTracker.Instance.IsUnlocked(lightning, 0), "lightning unlocks after surviving a raid");
+            Check(MiracleWorker_Lightning.Classify(a) == MiracleWorker_Lightning.SmiteTarget.OwnFollower, "a calm colonist counts as 'own follower'");
+
+            alignment.DebugSet(0f);
+            dp.Add(dp.MaxPower);
+            MiracleUtility.TryCast(lightning, 0, a.Position, map);
+            Check(alignment.Value <= AlignmentTuningDef.Get.smiteOwnFollower + 0.5f, $"striking your own follower is evil ({alignment.Value:F1})");
+
+            // Punishment: strike someone mid-break; a witness nearby is cowed
+            alignment.DebugSet(0f);
+            Teleport(b, shrine.Position + new IntVec3(-2, 0, -2), map);
+            Teleport(a, shrine.Position + new IntVec3(1, 0, -4), map);
+            b.mindState.mentalStateHandler.TryStartMentalState(MentalStateDefOf.Wander_Sad, forced: true);
+            Check(MiracleWorker_Lightning.Classify(b) == MiracleWorker_Lightning.SmiteTarget.Punishment, "a colonist in a (non-violent) break counts as punishment");
+            dp.Add(dp.MaxPower);
+            MiracleUtility.TryCast(lightning, 0, b.Position, map);
+            Check(!b.InMentalState, "punishment ends the break");
+            Check(a.health.hediffSet.HasHediff(AGM_AlignmentDefOf.AGM_WontBeNext), "a witness of punishment is cowed (lower break threshold)");
+            Check(alignment.Value < 0f && alignment.Value > AlignmentTuningDef.Get.smiteOwnFollower, $"punishment is evil, but less than striking an innocent ({alignment.Value:F1})");
+
+            // Evil god: witnessing wrath strengthens faith out of fear
+            alignment.DebugSet(-40f);
+            Teleport(a, shrine.Position + new IntVec3(4, 0, 0), map);
+            float faithBefore = a.Faith().CurLevel;
+            dp.Add(dp.MaxPower);
+            MiracleUtility.TryCast(lightning, 0, shrine.Position + new IntVec3(-4, 0, 3), map);
+            Check(a.Faith().CurLevel > faithBefore && a.needs.mood.thoughts.memories.GetFirstMemoryOfDef(AGM_AlignmentDefOf.AGM_FearedWrath) != null,
+                "under an evil god, witnessing wrath raises faith (fear) and weighs on mood");
+
+            // Deliverance prayer: an enemy close by
+            Faction enemy = Find.FactionManager.RandomEnemyFaction(allowNonHumanlike: false);
+            if (enemy != null)
+            {
+                Pawn raider = PawnGenerator.GeneratePawn(PawnKindDefOf.Villager, enemy);
+                GenSpawn.Spawn(raider, CellFinder.RandomClosewalkCellNear(a.Position, map, 4), map);
+                Check(PrayerRequestWorker_Hunted.Threat(a) != null, "an enemy nearby can make a believer pray for deliverance");
+                Check(MiracleWorker_Lightning.Classify(raider) == MiracleWorker_Lightning.SmiteTarget.Enemy, "an armed enemy counts as a just target");
+                raider.Destroy();
+            }
+            Log.Message(Tag + "  deeds ledger:\n" + alignment.Deeds.TooltipSection("AGM_Alignment_LedgerHeader", asPercent: false));
+        }
+
+        private static void Teleport(Pawn p, IntVec3 c, Map map)
+        {
+            IntVec3 dest = CellFinder.RandomClosewalkCellNear(c, map, 2);
+            p.jobs?.StopAll();
+            p.Position = dest;
+            p.Notify_Teleported();
         }
 
         private void RunMiracleTests()
@@ -429,6 +522,7 @@ namespace ActualGodMode
             var rng = new System.Random(1234);
             float worstCorrect = 0f;
             float bestWrong = float.MaxValue;
+            string closestPair = "";
             int trials = 0, correct = 0;
 
             foreach (MiracleDef miracle in GestureLibrary.MiraclesWithGestures)
@@ -446,7 +540,11 @@ namespace ActualGodMode
                     if (m.miracle == miracle)
                     {
                         worstCorrect = Mathf.Max(worstCorrect, m.distance);
-                        bestWrong = Mathf.Min(bestWrong, m.runnerUpDistance);
+                        if (m.runnerUpDistance < bestWrong)
+                        {
+                            bestWrong = m.runnerUpDistance;
+                            closestPair = miracle.defName + " drawn, " + m.runnerUp?.defName + " close";
+                        }
                     }
                     else
                     {
@@ -454,7 +552,8 @@ namespace ActualGodMode
                     }
                 }
             }
-            Log.Message(Tag + $"  simulated drawings: {correct}/{trials} recognized; worst correct d={worstCorrect:F2}, closest wrong d={bestWrong:F2}");
+            Log.Message(Tag + $"  simulated drawings: {correct}/{trials} recognized; worst correct d={worstCorrect:F2}, closest wrong d={bestWrong:F2} ({closestPair})");
+            Check(bestWrong > GestureLibrary.Threshold, $"no wrong sign comes within the threshold ({bestWrong:F2} > {GestureLibrary.Threshold:F2})");
             Check(correct >= trials * 0.95f, "at least 95% of simulated drawings recognized");
             Check(worstCorrect < bestWrong, "worst correct match still closer than any wrong one");
 

@@ -24,6 +24,38 @@
   <AGM_Shrine_SpotsBlocked>{0} prayer spot(s) blocked: keep the area around the shrine clear.</AGM_Shrine_SpotsBlocked>
   <AGM_Shrine_GroupBonus>Group prayer bonus: +{0}</AGM_Shrine_GroupBonus>
 
+  <!-- Alignment -->
+  <AGM_Alignment_Wrathful>wrathful</AGM_Alignment_Wrathful>
+  <AGM_Alignment_Stern>stern</AGM_Alignment_Stern>
+  <AGM_Alignment_Neutral>neutral</AGM_Alignment_Neutral>
+  <AGM_Alignment_Kind>kind</AGM_Alignment_Kind>
+  <AGM_Alignment_Benevolent>benevolent</AGM_Alignment_Benevolent>
+  <AGM_AlignmentReadout>Your god is {0} ({1})</AGM_AlignmentReadout>
+  <AGM_AlignmentReadout_Tip>Your deeds shape what kind of god you are, from wrathful (-100) to benevolent (+100). Without new deeds, it slowly settles back toward neutral.\n\nA kind god's followers are more grateful and regain patience faster. A stern god's followers believe out of fear.</AGM_AlignmentReadout_Tip>
+  <AGM_Alignment_LedgerHeader>Recent deeds:</AGM_Alignment_LedgerHeader>
+  <AGM_Alignment_Changed_Label>Your god is {0}</AGM_Alignment_Changed_Label>
+  <AGM_Alignment_Changed_Benevolent>Your followers speak of you with love. Their god heals and provides, and asks nothing cruel of them.\n\nThey are deeply grateful for good days and regain their patience quickly.</AGM_Alignment_Changed_Benevolent>
+  <AGM_Alignment_Changed_Kind>Your followers have started to call you kind.\n\nThey are more grateful for good days and regain their patience faster.</AGM_Alignment_Changed_Kind>
+  <AGM_Alignment_Changed_Neutral>Your followers can't tell what kind of god you are. You give, and you take, or perhaps you simply watch.</AGM_Alignment_Changed_Neutral>
+  <AGM_Alignment_Changed_Stern>Your followers have learned to fear you.\n\nWhen they see your wrath, it strengthens their faith, though it doesn't make them happy.</AGM_Alignment_Changed_Stern>
+  <AGM_Alignment_Changed_Wrathful>Your name is spoken in whispers, and only with dread. Your followers obey because they are afraid.\n\nYour wrath strengthens their faith, but it weighs on their mood.</AGM_Alignment_Changed_Wrathful>
+  <AGM_Deed_Heal>healed {0}</AGM_Deed_Heal>
+  <AGM_Deed_Mercy>showed mercy to {0}</AGM_Deed_Mercy>
+  <AGM_Deed_HealAnimal>healed {0}</AGM_Deed_HealAnimal>
+  <AGM_Deed_FedHungry>fed the hungry</AGM_Deed_FedHungry>
+  <AGM_Deed_PrayerAnswered>answered {0}'s prayer</AGM_Deed_PrayerAnswered>
+  <AGM_Deed_WishGranted>granted {0}'s wish</AGM_Deed_WishGranted>
+  <AGM_Deed_SmiteHelpless>struck down {0}, helpless</AGM_Deed_SmiteHelpless>
+  <AGM_Deed_SmiteFollower>struck own follower {0}</AGM_Deed_SmiteFollower>
+  <AGM_Deed_Justice>justice against raging {0}</AGM_Deed_Justice>
+  <AGM_Deed_Punish>punished {0} for losing control</AGM_Deed_Punish>
+  <AGM_Deed_SmitePrisoner>struck prisoner {0}</AGM_Deed_SmitePrisoner>
+  <AGM_Deed_SmiteVisitor>struck visitor {0}</AGM_Deed_SmiteVisitor>
+  <AGM_Deed_SmiteAnimal>struck the colony's {0}</AGM_Deed_SmiteAnimal>
+  <AGM_Cause_FearedWrath>feared the god's wrath</AGM_Cause_FearedWrath>
+  <AGM_Lightning_ThickRoof>Lightning can't reach under a mountain.</AGM_Lightning_ThickRoof>
+  <AGM_Req_Event_Raid>The colony has survived a raid</AGM_Req_Event_Raid>
+
   <!-- Temple -->
   <AGM_Temple_Tier>Temple: {0}</AGM_Temple_Tier>
   <AGM_Temple_Conflict>(beds or workbenches in the room: it isn't treated as a temple)</AGM_Temple_Conflict>

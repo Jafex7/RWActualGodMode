@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using RimWorld;
 using Verse;
 
@@ -76,6 +77,16 @@ namespace ActualGodMode
 
         public override void Cast(IntVec3 cell, Map map, MiracleLevel level)
         {
+            if (level.thingDef.IsNutritionGivingIngestible)
+            {
+                // Feeding the hungry is a good deed (only when someone nearby actually needs it).
+                bool hungryNearby = map.mapPawns.FreeColonistsSpawned.Any(p =>
+                    p.Position.InHorDistOf(cell, 8f) && p.needs?.food != null && p.needs.food.CurCategory >= HungerCategory.Hungry);
+                if (hungryNearby)
+                {
+                    AlignmentTracker.Instance?.Deed(AlignmentTuningDef.Get.feedHungry, "AGM_Deed_FedHungry".Translate());
+                }
+            }
             int remaining = level.amount;
             while (remaining > 0)
             {
@@ -136,6 +147,7 @@ namespace ActualGodMode
         public override void Cast(IntVec3 cell, Map map, MiracleLevel level)
         {
             Pawn pawn = TargetAt(cell, map);
+            RecordHealDeed(pawn);
             float remaining = level.amount;
             foreach (Hediff_Injury injury in HealableInjuries(pawn))
             {
@@ -149,6 +161,29 @@ namespace ActualGodMode
             }
             FleckMaker.ThrowMetaIcon(pawn.Position, map, FleckDefOf.HealingCross);
             DivineFlash(pawn.Position, map, 1.5f);
+        }
+
+        /// <summary>Healing is good; healing those who aren't yours (enemies, prisoners, visitors) is mercy.</summary>
+        private static void RecordHealDeed(Pawn pawn)
+        {
+            AlignmentTracker alignment = AlignmentTracker.Instance;
+            AlignmentTuningDef t = AlignmentTuningDef.Get;
+            if (alignment == null)
+            {
+                return;
+            }
+            if (pawn.RaceProps.Animal)
+            {
+                alignment.Deed(t.healAnimal, "AGM_Deed_HealAnimal".Translate(pawn.LabelShort));
+            }
+            else if (pawn.IsColonist)
+            {
+                alignment.Deed(t.healColonist, "AGM_Deed_Heal".Translate(pawn.LabelShort));
+            }
+            else
+            {
+                alignment.Deed(t.healMercy, "AGM_Deed_Mercy".Translate(pawn.LabelShort));
+            }
         }
 
         public override void DrawPreview(IntVec3 cell, Map map, MiracleLevel level)

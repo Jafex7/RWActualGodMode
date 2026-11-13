@@ -21,7 +21,8 @@ build material (stuff) tints them.
 ## Generated in code
 | Asset | Where | Status | Notes |
 |---|---|---|---|
-| Hand of God cursor | `HandOfGod/HandOfGodCursor.cs` | placeholder | 32×32 RGBA golden triangle. Must stay a byte buffer (Waylith evicts CPU pixels of code-built textures). Will need alignment variants (M6). |
+| Hand of God cursor | `HandOfGod/HandOfGodCursor.cs` | placeholder | 32×32 RGBA triangle in 3 styles (good gold, neutral pale blue, evil dark red). Must stay a byte buffer (Waylith evicts CPU pixels of code-built textures). |
+| Cursor particles | `HandOfGodCursor.ThrowParticles` | vanilla | Good: micro sparks; neutral: air puffs; evil: sparks + smoke |
 | Gesture trail | `HandOfGodMode.DrawTrail` | placeholder | Plain gold lines (`Widgets.DrawLine`) |
 
 ## Borrowed from vanilla
@@ -32,6 +33,8 @@ build material (stuff) tints them.
 | Food miracle icon | `MealSimple` icon | placeholder | |
 | Wood miracle icon | `WoodLog` icon | placeholder | |
 | Heal miracle icon | `MedicineHerbal` icon | placeholder | |
+| Lightning miracle icon | `ChunkSlagSteel` icon | placeholder | |
+| Lightning strike | vanilla `WeatherEvent_LightningStrike` (flash, bolt, thunder) | vanilla | Real weather lightning; fine to keep |
 | Offering bowl gizmo icon | the bowl's own UI icon | placeholder | |
 | Whisper / preach speech symbol | `Things/Mote/SpeechSymbols/DeepTalk` | vanilla | Could get a custom symbol |
 | Miracle effects | flecks: LightningGlow, MicroSparks, WaterSplash, HealingCross; `Filth_Water` | vanilla | Later: proper miracle animations/effects |

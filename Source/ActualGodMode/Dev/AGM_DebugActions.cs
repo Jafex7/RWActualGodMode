@@ -14,6 +14,15 @@ namespace ActualGodMode
         [DebugAction(Category, "Divine power = 0", allowedGameStates = AllowedGameStates.Playing)]
         private static void ClearPower() => DivinePower.Instance?.DebugSet(0f);
 
+        [DebugAction(Category, "Alignment +20 (good)", allowedGameStates = AllowedGameStates.Playing)]
+        private static void AlignmentUp() => AlignmentTracker.Instance?.DebugSet(AlignmentTracker.Instance.Value + 20f);
+
+        [DebugAction(Category, "Alignment -20 (evil)", allowedGameStates = AllowedGameStates.Playing)]
+        private static void AlignmentDown() => AlignmentTracker.Instance?.DebugSet(AlignmentTracker.Instance.Value - 20f);
+
+        [DebugAction(Category, "Alignment = 0", allowedGameStates = AllowedGameStates.Playing)]
+        private static void AlignmentReset() => AlignmentTracker.Instance?.DebugSet(0f);
+
         [DebugAction(Category, "Unlock all miracles", allowedGameStates = AllowedGameStates.Playing)]
         private static void UnlockAllMiracles() => MiracleTracker.Instance?.DebugUnlockAll();
 

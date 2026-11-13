@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using RimWorld;
 using UnityEngine;
 using Verse;
@@ -99,6 +100,39 @@ namespace ActualGodMode
                 return Mathf.Clamp(Mathf.RoundToInt(bleedOut * 0.8f), GenDate.TicksPerHour, normal);
             }
             return normal;
+        }
+    }
+
+    /// <summary>An enemy or a manhunting animal is close. Urgent; answered by Lightning near the pawn.</summary>
+    public class PrayerRequestWorker_Hunted : PrayerRequestWorker
+    {
+        private const float ThreatRadius = 10f;
+
+        public static Pawn Threat(Pawn pawn)
+        {
+            if (!pawn.Spawned)
+            {
+                return null;
+            }
+            float radiusSq = ThreatRadius * ThreatRadius;
+            IReadOnlyList<Pawn> all = pawn.Map.mapPawns.AllPawnsSpawned;
+            for (int i = 0; i < all.Count; i++)
+            {
+                Pawn other = all[i];
+                if (other != pawn && !other.Downed && !other.Dead && other.HostileTo(pawn)
+                    && (other.Position - pawn.Position).LengthHorizontalSquared <= radiusSq)
+                {
+                    return other;
+                }
+            }
+            return null;
+        }
+
+        public override bool CanRequest(Pawn pawn) => Threat(pawn) != null;
+
+        public override bool IsAnsweredBy(PrayerRequest request, MiracleDef miracle, IntVec3 cell, Map map)
+        {
+            return miracle == def.miracle && request.pawn.Map == map && cell.InHorDistOf(request.pawn.Position, ThreatRadius + 4f);
         }
     }
 

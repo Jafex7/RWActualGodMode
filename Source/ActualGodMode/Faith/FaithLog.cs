@@ -62,7 +62,10 @@ namespace ActualGodMode
             }
         }
 
-        public string TooltipSection()
+        public string TooltipSection() => TooltipSection("AGM_Log_Header", asPercent: true);
+
+        /// <summary>History lines for a tooltip. <paramref name="asPercent"/> false shows raw points (alignment).</summary>
+        public string TooltipSection(string headerKey, bool asPercent)
         {
             var sb = new StringBuilder();
             int shown = 0;
@@ -84,7 +87,7 @@ namespace ActualGodMode
                 string line = "  " + when + ": " + e.label;
                 if (Mathf.Abs(e.delta) >= MinShown)
                 {
-                    string amount = (e.delta > 0f ? "+" : "") + e.delta.ToStringPercent("0.#");
+                    string amount = (e.delta > 0f ? "+" : "") + (asPercent ? e.delta.ToStringPercent("0.#") : e.delta.ToString("0.#"));
                     line += " " + amount.Colorize(e.delta > 0f ? ColorLibrary.Green : ColorLibrary.RedReadable);
                 }
                 if (e.absorbed >= MinShown)
@@ -97,7 +100,7 @@ namespace ActualGodMode
             {
                 return null;
             }
-            return "AGM_Log_Header".Translate() + "\n" + sb.ToString().TrimEnd();
+            return headerKey.Translate() + "\n" + sb.ToString().TrimEnd();
         }
 
         public void ExposeData()

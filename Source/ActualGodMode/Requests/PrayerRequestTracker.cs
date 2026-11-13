@@ -143,6 +143,9 @@ namespace ActualGodMode
         private void Answer(PrayerRequest r, IntVec3 cell, Map map)
         {
             r.pawn.Faith()?.Gain(r.def.reward, "AGM_Cause_PrayerAnswered".Translate(r.def.label));
+            AlignmentTuningDef at = AlignmentTuningDef.Get;
+            AlignmentTracker.Instance?.Deed(r.def.isWish ? at.wishGranted : at.prayerAnswered,
+                (r.def.isWish ? "AGM_Deed_WishGranted" : "AGM_Deed_PrayerAnswered").Translate(r.pawn.LabelShort));
             FaithThoughts.Give(r.pawn, AGM_ThoughtDefOf.AGM_PrayerAnswered);
             float radiusSq = 12f * 12f;
             FaithTuningDef t = FaithTuningDef.Get;

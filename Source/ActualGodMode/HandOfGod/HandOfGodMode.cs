@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using RimWorld;
 using RimWorld.Planet;
 using UnityEngine;
@@ -24,8 +24,8 @@ namespace ActualGodMode
     /// while the hold key is down, or while a miracle is charged. While active it owns
     /// left/right click on the map (selection and designators are suspended).
     ///
-    /// Flow: draw a gesture (one or more strokes) → after a short pause it is recognized →
-    /// the miracle is "charged" in the cursor → Q/E change level → left-click casts,
+    /// Flow: draw a gesture (one or more strokes) â†’ after a short pause it is recognized â†’
+    /// the miracle is "charged" in the cursor â†’ Q/E change level â†’ left-click casts,
     /// right-click cancels.
     /// </summary>
     public static class HandOfGodMode
@@ -156,7 +156,7 @@ namespace ActualGodMode
                 return;
             }
 
-            StartFade(drawn, InfluenceUtility.InfluenceColor);
+            StartFade(drawn, HandOfGodCursor.TrailColor);
             charged = match.miracle;
             chargedLevel = DefaultLevel(charged);
             SoundDefOf.Tick_High.PlayOneShotOnCamera();
@@ -242,6 +242,10 @@ namespace ActualGodMode
                     HandOfGodCursor.Restore();
                 }
             }
+            if (active && HandOfGodCursor.NeedsReapply)
+            {
+                HandOfGodCursor.Apply(); // alignment band changed while the mode was on
+            }
             if (!active)
             {
                 ClearStrokes();
@@ -267,7 +271,7 @@ namespace ActualGodMode
             Vector3 mousePos = UI.MouseMapPosition();
             if (++glowFrame % (drawingStroke || charged != null ? 3 : 10) == 0 && mousePos.ToIntVec3().InBounds(map))
             {
-                FleckMaker.ThrowMicroSparks(mousePos, map);
+                HandOfGodCursor.ThrowParticles(mousePos, map);
             }
         }
 
@@ -301,7 +305,7 @@ namespace ActualGodMode
                 return;
             }
 
-            Color gold = InfluenceUtility.InfluenceColor;
+            Color gold = HandOfGodCursor.TrailColor;
             foreach (List<Vector2> s in strokes)
             {
                 DrawTrail(s, gold);

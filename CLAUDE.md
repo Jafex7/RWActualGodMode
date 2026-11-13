@@ -16,11 +16,15 @@ Read before changing things:
 - **M5a** entry: Awakening (whispers → trance → revelation at dawn), hidden Shrine research, Chosen People
   scenario. Verified in-game.
 - **M5a+**: believers & conversion (witness / preach / friend's answered prayer), the god's path (guided letters +
-  alert), context-aware whispers. Self-tested; awaiting in-game test.
+  alert), context-aware whispers. Verified in-game.
 - **M5b** temple: tiers (room impressiveness + holy furniture → prayer slots, power cap), idol, incense burner,
-  vanilla/DLC holy furniture patches, Offering Bowl, Pylon (tending, influence, desecration), "Build test temple".
+  vanilla/DLC holy furniture patches, Offering Bowl, Pylon (tending, influence, desecration), "Build test temple",
+  placement influence preview. Verified in-game.
+- **M6a** alignment: value + bands + drift + deed ledger; Lightning (real weather strike; deed depends on target:
+  enemy / helpless / follower / justice / punishment / prisoner / visitor); good god = gratitude + patience; evil god =
+  fear-faith; "cowed" after punishment; deliverance prayer; alignment-tinted cursor/trail/particles.
   Self-tested; awaiting in-game test.
-- Next: **M6** alignment & Hand (alignment value + deeds + drift, tinted cursor, grab/carry/place).
+- Next: **M6b** the Hand (grab / carry / place, costs, lift capacity).
 
 ## Commands
 - Build: `dotnet build Source/ActualGodMode/ActualGodMode.csproj -c Release` (outputs to `1.7/Assemblies/`).
@@ -35,6 +39,7 @@ Read before changing things:
 | `Source/…/AGM_DefOf.cs` | `[DefOf]` references to our defs |
 | `Source/…/Faith/` | `BelieverTracker` (who believes; Faith need gate; conversion; `InteractionWorker_Preach`), `Need_Faith` (faith + hidden patience buffer, gratitude), `FaithHardship` (ongoing hardship + Harmony event hooks: breaks, deaths, downed, blessed food), `FaithTraitExtension` (trait factors), `FaithTuningDef` (all numbers, `Defs/Faith/AGM_FaithTuning.xml`), `FaithUtility` (`pawn.Faith()`) |
 | `Source/…/Requests/` | `PrayerRequestDef`, `PrayerRequestWorker` (+ Hungry/Cold/Fire/Wounded/RainForCrops/Sign), `PrayerRequestTracker` (create/answer/expire), `Alert_PrayerRequests`, `IncidentWorker_PrayerWish` |
+| `Source/…/Alignment/` | `AlignmentTracker` (value, bands, drift, deed ledger, effects; `AGM_AlignmentTuning.xml`), `MiracleWorker_Lightning` (target classification, punishment, fear), `AGM_AlignmentDefOf` |
 | `Source/…/Temple/` | `TempleTuningDef` (tiers, `AGM_TempleTuning.xml`), `TempleUtility.Evaluate`, `HolyFurnitureExtension`, `RoomRoleWorker_Temple`, `Building_OfferingBowl`, `CompPylon` + tend work/job, `AGM_TempleDefOf` |
 | `Source/…/Guide/` | `GodGuideTracker` (the god's path steps + letters), `Alert_GodGuide` |
 | `Source/…/Awakening/` | `AwakeningTracker` (stages, tuning def `AGM_AwakeningTuning`), `DivineTrance` (trance mental state, draw-sign job, research hide/lock patches, `ScenPart_StartWithShrine`) |
