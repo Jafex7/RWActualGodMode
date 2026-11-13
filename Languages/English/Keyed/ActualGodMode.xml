@@ -45,13 +45,24 @@
   <AGM_Deed_FedHungry>fed the hungry</AGM_Deed_FedHungry>
   <AGM_Deed_PrayerAnswered>answered {0}'s prayer</AGM_Deed_PrayerAnswered>
   <AGM_Deed_WishGranted>granted {0}'s wish</AGM_Deed_WishGranted>
-  <AGM_Deed_SmiteHelpless>struck down {0}, helpless</AGM_Deed_SmiteHelpless>
-  <AGM_Deed_SmiteFollower>struck own follower {0}</AGM_Deed_SmiteFollower>
-  <AGM_Deed_Justice>justice against raging {0}</AGM_Deed_Justice>
-  <AGM_Deed_Punish>punished {0} for losing control</AGM_Deed_Punish>
-  <AGM_Deed_SmitePrisoner>struck prisoner {0}</AGM_Deed_SmitePrisoner>
-  <AGM_Deed_SmiteVisitor>struck visitor {0}</AGM_Deed_SmiteVisitor>
-  <AGM_Deed_SmiteAnimal>struck the colony's {0}</AGM_Deed_SmiteAnimal>
+  <AGM_Deed_Smite_Enemy>struck down attacker {0}</AGM_Deed_Smite_Enemy>
+  <AGM_Deed_Smite_HelplessEnemy>struck down {0}, helpless</AGM_Deed_Smite_HelplessEnemy>
+  <AGM_Deed_Smite_OwnFollower>struck own follower {0}</AGM_Deed_Smite_OwnFollower>
+  <AGM_Deed_Smite_Justice>justice against raging {0}</AGM_Deed_Smite_Justice>
+  <AGM_Deed_Smite_Punishment>punished {0} for losing control</AGM_Deed_Smite_Punishment>
+  <AGM_Deed_Smite_Prisoner>struck prisoner {0}</AGM_Deed_Smite_Prisoner>
+  <AGM_Deed_Smite_Visitor>struck visitor {0}</AGM_Deed_Smite_Visitor>
+  <AGM_Deed_Smite_ColonyAnimal>struck the colony's {0}</AGM_Deed_Smite_ColonyAnimal>
+  <AGM_Deed_Smite_Other>struck {0}</AGM_Deed_Smite_Other>
+  <AGM_Deed_Drop_Enemy>retribution: threw attacker {0} into danger</AGM_Deed_Drop_Enemy>
+  <AGM_Deed_Drop_HelplessEnemy>threw {0} into danger, helpless</AGM_Deed_Drop_HelplessEnemy>
+  <AGM_Deed_Drop_OwnFollower>threw own follower {0} into danger</AGM_Deed_Drop_OwnFollower>
+  <AGM_Deed_Drop_Justice>justice: threw raging {0} into danger</AGM_Deed_Drop_Justice>
+  <AGM_Deed_Drop_Punishment>punished {0} for losing control (thrown into danger)</AGM_Deed_Drop_Punishment>
+  <AGM_Deed_Drop_Prisoner>threw prisoner {0} into danger</AGM_Deed_Drop_Prisoner>
+  <AGM_Deed_Drop_Visitor>threw visitor {0} into danger</AGM_Deed_Drop_Visitor>
+  <AGM_Deed_Drop_ColonyAnimal>threw the colony's {0} into danger</AGM_Deed_Drop_ColonyAnimal>
+  <AGM_Deed_Drop_Other>threw {0} into danger</AGM_Deed_Drop_Other>
   <AGM_Deed_CarriedToBed>carried {0} to bed</AGM_Deed_CarriedToBed>
   <AGM_Cause_FearedWrath>feared the god's wrath</AGM_Cause_FearedWrath>
   <AGM_Lightning_ThickRoof>Lightning can't reach under a mountain.</AGM_Lightning_ThickRoof>
@@ -188,6 +199,8 @@
   <AGM_Hand_ShoutJoy>Praise be!</AGM_Hand_ShoutJoy>
   <AGM_Hand_ShoutSurprise>Whoa!</AGM_Hand_ShoutSurprise>
   <AGM_Hand_ShoutFear>No, please!</AGM_Hand_ShoutFear>
+  <AGM_Hand_Danger_Fire>Danger: fire</AGM_Hand_Danger_Fire>
+  <AGM_Hand_Danger_Hostiles>Danger: hostiles ({0})</AGM_Hand_Danger_Hostiles>
   <AGM_HoG_HintCharged>Left-click to cast · {0} / {1} change level · right-click to cancel</AGM_HoG_HintCharged>
   <AGM_HoG_Toggle>Hand of God mode</AGM_HoG_Toggle>
 

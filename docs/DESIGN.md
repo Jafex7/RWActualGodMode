@@ -287,6 +287,16 @@ click a thing = grab, drag from empty ground = gesture, release = put down.
   fits: a warning in vanilla wording ("Cannot cut oak tree: Not assigned to plant
   cutting"), no order. Not for drafted, downed or breaking pawns, and not for drops
   that happen on their own (edge of influence, out of power).
+- **Dangerous drops** (built): a deliberate drop on/next to fire (r1.5), or within 5
+  cells (in sight) of pawns hostile to the dropped one, is judged exactly like a
+  Lightning strike on them (shared `WrathJudgement`, times `dangerDropFactor` = 1):
+  own follower −10, helpless enemy −5, prisoner −6, visitor −8, colony animal −3,
+  punishment of a non-violent break −4 (ends the break, onlookers cowed), justice
+  against a violent break and **retribution** against an attacker: noted, neutral.
+  Evil god: onlookers gain fear-faith. A **drafted** colonist dropped among enemies is
+  being sent to fight: not judged (fire still is). The cursor warns "Danger: fire" /
+  "Danger: hostiles (n)" before you drop. Plain drops don't hurt; no work order is given
+  on a dangerous drop. Later ideas: deep water, toxic/vacuum, falling from height.
 - **Later (user ideas, M6b feedback)**:
   - Drop interactions with a **choice** (food: eat vs haul; corpse: butcher vs bury…):
     maybe a menu later; for now only work-giver jobs, which don't need one.
@@ -308,9 +318,6 @@ click a thing = grab, drag from empty ground = gesture, release = put down.
       rest (warning if it still fails).
     - Settings stored per save (game component) or globally (mod settings): TBD.
   - **Enemies struggle**: cost much more to lift, or locked until a milestone.
-  - **Dangerous drops**: dropping a pawn into fire, among hostile insects, etc. should be
-    detected and judged like Lightning: punishment/evil for your own people,
-    retribution for enemies. A plain drop doesn't hurt.
   - Lifting several things at once.
 
 ## 7. Impressiveness & Factions

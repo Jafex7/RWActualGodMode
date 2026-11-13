@@ -28,6 +28,7 @@ Read before changing things:
   pickup + per-hour costs by mass, drop outside influence or out of power, tuck into bed (+ good deed for a downed
   person). `GodHand` MapComponent holds the thing. Verified in-game. Then: lifted pawns react (flavor thought + shout by
   alignment), and a colonist set down on work starts it (`HandWorkOrder`, vanilla work-giver checks, trees get marked).
+  Dropping into danger (fire / hostiles) is judged like a strike (`WrathJudgement`, shared with Lightning).
   Self-tested; awaiting in-game test.
 - Next: see the roadmap in DESIGN.md (v2: factions/awe, throwing, …).
 
@@ -44,7 +45,7 @@ Read before changing things:
 | `Source/…/AGM_DefOf.cs` | `[DefOf]` references to our defs |
 | `Source/…/Faith/` | `BelieverTracker` (who believes; Faith need gate; conversion; `InteractionWorker_Preach`), `Need_Faith` (faith + hidden patience buffer, gratitude), `FaithHardship` (ongoing hardship + Harmony event hooks: breaks, deaths, downed, blessed food), `FaithTraitExtension` (trait factors), `FaithTuningDef` (all numbers, `Defs/Faith/AGM_FaithTuning.xml`), `FaithUtility` (`pawn.Faith()`) |
 | `Source/…/Requests/` | `PrayerRequestDef`, `PrayerRequestWorker` (+ Hungry/Cold/Fire/Wounded/RainForCrops/Sign), `PrayerRequestTracker` (create/answer/expire), `Alert_PrayerRequests`, `IncidentWorker_PrayerWish` |
-| `Source/…/Alignment/` | `AlignmentTracker` (value, bands, drift, deed ledger, effects; `AGM_AlignmentTuning.xml`), `MiracleWorker_Lightning` (target classification, punishment, fear), `AGM_AlignmentDefOf` |
+| `Source/…/Alignment/` | `AlignmentTracker` (value, bands, drift, deed ledger, effects; `AGM_AlignmentTuning.xml`), `WrathJudgement` (who was harmed → deed, punishment, fear-faith witnesses; used by Lightning and dangerous drops; ledger keys `AGM_Deed_Smite_*` / `AGM_Deed_Drop_*`), `MiracleWorker_Lightning`, `AGM_AlignmentDefOf` |
 | `Source/…/Temple/` | `TempleTuningDef` (tiers, `AGM_TempleTuning.xml`), `TempleUtility.Evaluate`, `HolyFurnitureExtension`, `RoomRoleWorker_Temple`, `Building_OfferingBowl`, `CompPylon` + tend work/job, `AGM_TempleDefOf` |
 | `Source/…/Guide/` | `GodGuideTracker` (the god's path steps + letters), `Alert_GodGuide` |
 | `Source/…/Awakening/` | `AwakeningTracker` (stages, tuning def `AGM_AwakeningTuning`), `DivineTrance` (trance mental state, draw-sign job, research hide/lock patches, `ScenPart_StartWithShrine`) |

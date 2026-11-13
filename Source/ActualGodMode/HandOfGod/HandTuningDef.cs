@@ -30,6 +30,9 @@ namespace ActualGodMode
         public float carryToBedDeed = 1f;
         public float carryToBedCooldownHours = 24f;
 
+        /// <summary>Hostiles this close (in sight) to where a pawn is set down make it a drop into danger.</summary>
+        public float dangerHostileRadius = 5f;
+
         private static HandTuningDef cached;
 
         public static HandTuningDef Get => cached ??= DefDatabase<HandTuningDef>.GetNamed("AGM_HandTuning");

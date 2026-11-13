@@ -418,7 +418,7 @@ namespace ActualGodMode
             // Lightning: who is struck decides the deed
             MiracleTracker.Instance.RecordEvent(MiracleTracker.Event_Raid);
             Check(MiracleTracker.Instance.IsUnlocked(lightning, 0), "lightning unlocks after surviving a raid");
-            Check(MiracleWorker_Lightning.Classify(a) == MiracleWorker_Lightning.SmiteTarget.OwnFollower, "a calm colonist counts as 'own follower'");
+            Check(WrathJudgement.Classify(a) == WrathJudgement.Target.OwnFollower, "a calm colonist counts as 'own follower'");
 
             alignment.DebugSet(0f);
             dp.Add(dp.MaxPower);
@@ -430,7 +430,7 @@ namespace ActualGodMode
             Teleport(b, shrine.Position + new IntVec3(-2, 0, -2), map);
             Teleport(a, shrine.Position + new IntVec3(1, 0, -4), map);
             b.mindState.mentalStateHandler.TryStartMentalState(MentalStateDefOf.Wander_Sad, forced: true);
-            Check(MiracleWorker_Lightning.Classify(b) == MiracleWorker_Lightning.SmiteTarget.Punishment, "a colonist in a (non-violent) break counts as punishment");
+            Check(WrathJudgement.Classify(b) == WrathJudgement.Target.Punishment, "a colonist in a (non-violent) break counts as punishment");
             dp.Add(dp.MaxPower);
             MiracleUtility.TryCast(lightning, 0, b.Position, map);
             Check(!b.InMentalState, "punishment ends the break");
@@ -454,7 +454,7 @@ namespace ActualGodMode
                 Pawn raider = PawnGenerator.GeneratePawn(PawnKindDefOf.Villager, enemy);
                 GenSpawn.Spawn(raider, CellFinder.RandomClosewalkCellNear(a.Position, map, 4), map);
                 Check(PrayerRequestWorker_Hunted.Threat(a) != null, "an enemy nearby can make a believer pray for deliverance");
-                Check(MiracleWorker_Lightning.Classify(raider) == MiracleWorker_Lightning.SmiteTarget.Enemy, "an armed enemy counts as a just target");
+                Check(WrathJudgement.Classify(raider) == WrathJudgement.Target.Enemy, "an armed enemy counts as a just target");
                 raider.Destroy();
             }
             Log.Message(Tag + "  deeds ledger:\n" + alignment.Deeds.TooltipSection("AGM_Alignment_LedgerHeader", asPercent: false));
@@ -565,6 +565,58 @@ namespace ActualGodMode
             colonist.health.RemoveHediff(colonist.health.hediffSet.GetFirstHediffOfDef(HediffDefOf.Anesthetic));
 
             RunHandWorkOrderTests(map, hand, colonist);
+            RunDangerDropTests(map, hand, colonist);
+        }
+
+        /// <summary>Dropping someone into fire / among enemies is judged like a strike.</summary>
+        private void RunDangerDropTests(Map map, GodHand hand, Pawn exclude)
+        {
+            AlignmentTracker alignment = AlignmentTracker.Instance;
+            DivinePower dp = DivinePower.Instance;
+            Pawn victim = map.mapPawns.FreeColonistsSpawned.FirstOrDefault(p => p != exclude && !p.Dead && !p.Downed && !p.InMentalState && !p.Drafted);
+            IntVec3 spot = GenRadial.RadialCellsAround(shrine.Position, 7f, false).FirstOrDefault(c => c.InBounds(map) && c.Standable(map)
+                && InfluenceUtility.InInfluence(c, map) && c.GetFirstPawn(map) == null && !c.ContainsStaticFire(map) && (c - shrine.Position).LengthHorizontal > 3f);
+            if (victim == null || !spot.IsValid || GodHand.MassOf(victim) > GodHand.Capacity)
+            {
+                Log.Message(Tag + "  (no colonist/spot for danger drops: skipping)");
+                return;
+            }
+            IntVec3 fireCell = spot + IntVec3.East;
+            Fire fire = (Fire)GenSpawn.Spawn(ThingDefOf.Fire, fireCell.InBounds(map) ? fireCell : spot, map);
+            Check(GodHand.DangerAt(spot, map, victim, out _) == GodHand.DropDanger.Fire, "a cell next to fire is a dangerous drop");
+            alignment.DebugSet(0f);
+            dp.DebugSet(dp.MaxPower);
+            hand.TryGrab(victim, drag: true);
+            hand.MoveTo(spot);
+            hand.Place(spot, order: true);
+            Check(alignment.Value <= AlignmentTuningDef.Get.smiteOwnFollower * AlignmentTuningDef.Get.dangerDropFactor + 0.5f,
+                $"dropping your own follower into fire is evil, like striking them ({alignment.Value:F1})");
+            if (!fire.Destroyed)
+            {
+                fire.Destroy();
+            }
+            victim.jobs.StopAll();
+
+            // An attacker dropped among your people: retribution, not evil.
+            Faction enemy = Find.FactionManager.RandomEnemyFaction(allowNonHumanlike: false);
+            if (enemy == null)
+            {
+                return;
+            }
+            Pawn raider = PawnGenerator.GeneratePawn(PawnKindDefOf.Villager, enemy);
+            GenSpawn.Spawn(raider, CellFinder.RandomClosewalkCellNear(shrine.Position + new IntVec3(-3, 0, -3), map, 2), map);
+            if (GodHand.MassOf(raider) <= GodHand.Capacity)
+            {
+                alignment.DebugSet(0f);
+                dp.DebugSet(dp.MaxPower);
+                IntVec3 among = CellFinder.RandomClosewalkCellNear(victim.Position, map, 1);
+                hand.TryGrab(raider, drag: true);
+                hand.MoveTo(among);
+                hand.Place(among, order: true);
+                Check(Mathf.Approximately(alignment.Value, 0f) && alignment.Deeds.Entries.Any(e => e.label == "AGM_Deed_Drop_Enemy".Translate(raider.LabelShort).ToString()),
+                    $"dropping an attacker among your people is retribution: noted, not evil ({alignment.Value:F1})");
+            }
+            raider.Destroy();
         }
 
         /// <summary>Setting a colonist down on a tree puts them to cutting it (if assigned), or warns.</summary>

@@ -14,7 +14,8 @@ namespace ActualGodMode
     ///
     /// Costs power to pick up and per hour held (by mass, more for living creatures); lift
     /// capacity grows with believers. Leaving the god's influence, or running out of power,
-    /// drops what is held. Carrying a downed person to a bed is a small good deed.
+    /// drops what is held. Carrying a downed person to a bed is a small good deed; dropping
+    /// someone into danger (fire, hostiles) is judged like a Lightning strike.
     /// </summary>
     public class GodHand : MapComponent, IThingHolder
     {
@@ -249,11 +250,66 @@ namespace ActualGodMode
             if (result is Pawn pawn)
             {
                 pawn.Rotation = Rot4.South;
+                if (order && JudgeDangerousDrop(pawn))
+                {
+                    return true;
+                }
                 if (!TryTuckIntoBed(pawn) && order && target == cell)
                 {
                     OrderWork(pawn, cell);
                 }
             }
+            return true;
+        }
+
+        public enum DropDanger
+        {
+            None,
+            Fire,
+            Hostiles
+        }
+
+        /// <summary>
+        /// Is setting this pawn down here throwing them into danger? Fire on or next to the cell, or
+        /// hostiles to them close by (in sight). A drafted colonist among enemies is being sent to
+        /// fight, not thrown to them.
+        /// </summary>
+        public static DropDanger DangerAt(IntVec3 cell, Map map, Pawn pawn, out int hostiles)
+        {
+            hostiles = 0;
+            foreach (IntVec3 c in GenRadial.RadialCellsAround(cell, 1.5f, useCenter: true))
+            {
+                if (c.InBounds(map) && c.ContainsStaticFire(map))
+                {
+                    return DropDanger.Fire;
+                }
+            }
+            if (pawn.Drafted)
+            {
+                return DropDanger.None;
+            }
+            float radiusSq = T.dangerHostileRadius * T.dangerHostileRadius;
+            foreach (Pawn other in map.mapPawns.AllPawnsSpawned)
+            {
+                if (other != pawn && !other.Downed && !other.Dead && !other.IsPrisoner
+                    && (other.Position - cell).LengthHorizontalSquared <= radiusSq
+                    && other.HostileTo(pawn) && GenSight.LineOfSight(other.Position, cell, map))
+                {
+                    hostiles++;
+                }
+            }
+            return hostiles > 0 ? DropDanger.Hostiles : DropDanger.None;
+        }
+
+        /// <summary>A deliberate drop into danger is the god's doing: judge it like a strike. True if it was dangerous.</summary>
+        private bool JudgeDangerousDrop(Pawn pawn)
+        {
+            if (DangerAt(pawn.Position, map, pawn, out _) == DropDanger.None)
+            {
+                return false;
+            }
+            bool punished = WrathJudgement.Judge(pawn, "AGM_Deed_Drop_", AlignmentTuningDef.Get.dangerDropFactor, logEnemy: true);
+            WrathJudgement.AffectWitnesses(pawn.Position, map, new List<Pawn> { pawn }, punished);
             return true;
         }
 

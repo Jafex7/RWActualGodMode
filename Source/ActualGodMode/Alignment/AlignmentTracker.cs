@@ -39,6 +39,9 @@ namespace ActualGodMode
         public float smiteVisitor = -8f;
         public float smiteColonyAnimal = -3f;
 
+        /// <summary>Dropping a pawn into danger (fire, hostiles) is judged like a strike, scaled by this.</summary>
+        public float dangerDropFactor = 1f;
+
         // Effects
         public float kindGratitudeFactor = 1.5f;
         public float benevolentGratitudeFactor = 2f;

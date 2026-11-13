@@ -22,6 +22,8 @@
     <smitePrisoner>-6</smitePrisoner>
     <smiteVisitor>-8</smiteVisitor>
     <smiteColonyAnimal>-3</smiteColonyAnimal>
+    <!-- dropping a pawn into fire / among hostiles: judged like a strike, times this -->
+    <dangerDropFactor>1</dangerDropFactor>
 
     <kindGratitudeFactor>1.5</kindGratitudeFactor>
     <benevolentGratitudeFactor>2</benevolentGratitudeFactor>

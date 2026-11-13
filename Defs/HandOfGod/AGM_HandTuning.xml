@@ -23,6 +23,8 @@
 
     <carryToBedDeed>1</carryToBedDeed>
     <carryToBedCooldownHours>24</carryToBedCooldownHours>
+    <!-- Dropping a pawn this close to hostiles (or on/next to fire) is judged like a strike -->
+    <dangerHostileRadius>5</dangerHostileRadius>
   </ActualGodMode.HandTuningDef>
 
 </Defs>

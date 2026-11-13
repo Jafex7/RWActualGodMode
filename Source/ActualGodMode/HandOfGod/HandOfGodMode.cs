@@ -491,6 +491,18 @@ namespace ActualGodMode
                 Widgets.Label(new Rect(mouse.x + 24f, mouse.y + 12f, 360f, 22f), line1);
                 Widgets.Label(new Rect(mouse.x + 24f, mouse.y + 30f, 360f, 22f), line2);
             }
+            if (hand.Holding && thing is Pawn held && hand.LastCell.IsValid)
+            {
+                GodHand.DropDanger danger = GodHand.DangerAt(hand.LastCell, Find.CurrentMap, held, out int hostiles);
+                if (danger != GodHand.DropDanger.None)
+                {
+                    string warning = danger == GodHand.DropDanger.Fire ? "AGM_Hand_Danger_Fire".Translate() : "AGM_Hand_Danger_Hostiles".Translate(hostiles);
+                    using (new TextBlock(GameFont.Small, TextAnchor.UpperLeft, ColorLibrary.RedReadable))
+                    {
+                        Widgets.Label(new Rect(mouse.x + 24f, mouse.y + 48f, 360f, 22f), warning);
+                    }
+                }
+            }
         }
 
         /// <summary>
