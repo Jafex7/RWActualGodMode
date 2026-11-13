@@ -11,6 +11,11 @@
     <closesWorldView>true</closesWorldView>
   </MainButtonDef>
 
+  <!-- Miracles have no levels: each is one miracle with its own numbers (cost, amount, ...),
+       which god-progression upgrades will raise later. Poured miracles (<channel>) are cast by
+       holding the click in the god's hand: the charge is the full effect (amount units), paid
+       per unit (cost / units); release pauses, press again to go on, right-click cancels. -->
+
   <!-- ===== Water ===== -->
   <ActualGodMode.MiracleDef>
     <defName>AGM_Miracle_Water</defName>
@@ -20,74 +25,34 @@
     <gesture>AGM_Gesture_Wave</gesture>
     <iconThing>Filth_Water</iconThing>
     <order>10</order>
-    <!-- Pour-only: hold and drag to water `amount` tiles, one at a time (a tile counts once).
-         Release pauses, press again to go on, right-click cancels. No time limit. -->
+    <cost>5</cost>
+    <amount>9</amount>
+    <!-- One tile at a time, no time limit; a tile counts once. -->
     <channel>
-      <pourOnly>true</pourOnly>
       <perTile>true</perTile>
     </channel>
-    <levels>
-      <li>
-        <label>I</label>
-        <cost>5</cost>
-        <amount>9</amount>
-      </li>
-      <li>
-        <label>II</label>
-        <cost>15</cost>
-        <amount>16</amount>
-        <requirements>
-          <li Class="ActualGodMode.Req_Believers">
-            <count>3</count>
-          </li>
-        </requirements>
-      </li>
-    </levels>
   </ActualGodMode.MiracleDef>
 
   <!-- ===== Food ===== -->
   <ActualGodMode.MiracleDef>
     <defName>AGM_Miracle_Food</defName>
     <label>food</label>
-    <description>Food appears from nowhere. A small blessing feeds one person for a day; a greater one feeds a household.</description>
+    <description>Blessed crops fall one by one while the god's hand is held over the spot: a day's food for one if eaten raw, two meals if cooked. Blessed food (and meals cooked from it) gives faith to those who eat it.</description>
     <workerClass>ActualGodMode.MiracleWorker_SpawnThing</workerClass>
     <gesture>AGM_Gesture_Circle</gesture>
-    <iconThing>MealSimple</iconThing>
+    <iconThing>RawPotatoes</iconThing>
     <order>20</order>
-    <!-- Hold the click: raw crops fall one handful at a time. -->
+    <cost>10</cost>
+    <amount>20</amount>
+    <!-- 20 crops = 1 nutrition, one at a time over 3 s of holding: eaten raw a quick fix, cooked two simple meals. -->
     <channel>
-      <maxSeconds>2</maxSeconds>
-      <unitsPerSecond>6</unitsPerSecond>
-      <unitCost>1.2</unitCost>
-      <countPerUnit>5</countPerUnit>
+      <pourSeconds>3</pourSeconds>
       <things>
         <li>RawPotatoes</li>
         <li>RawCorn</li>
         <li>RawRice</li>
       </things>
     </channel>
-    <levels>
-      <li>
-        <label>I</label>
-        <cost>10</cost>
-        <thingDef>MealSimple</thingDef>
-        <amount>2</amount>
-      </li>
-      <li>
-        <label>II</label>
-        <cost>30</cost>
-        <thingDef>MealSimple</thingDef>
-        <amount>6</amount>
-        <requirements>
-          <li Class="ActualGodMode.Req_Believers">
-            <count>3</count>
-          </li>
-          <li Class="ActualGodMode.Req_LifetimePower">
-            <amount>150</amount>
-          </li>
-        </requirements>
-      </li>
-    </levels>
   </ActualGodMode.MiracleDef>
 
   <!-- ===== Heal ===== -->
@@ -99,19 +64,14 @@
     <gesture>AGM_Gesture_Cross</gesture>
     <iconThing>MedicineHerbal</iconThing>
     <order>15</order>
-    <levels>
-      <li>
-        <label>I</label>
-        <cost>15</cost>
-        <amount>10</amount>
-        <requirements>
-          <li Class="ActualGodMode.Req_EventOccurred">
-            <eventKey>ColonistDowned</eventKey>
-            <descriptionKey>AGM_Req_Event_ColonistDowned</descriptionKey>
-          </li>
-        </requirements>
+    <cost>15</cost>
+    <amount>10</amount>
+    <requirements>
+      <li Class="ActualGodMode.Req_EventOccurred">
+        <eventKey>ColonistDowned</eventKey>
+        <descriptionKey>AGM_Req_Event_ColonistDowned</descriptionKey>
       </li>
-    </levels>
+    </requirements>
   </ActualGodMode.MiracleDef>
 
   <!-- ===== Wood ===== -->
@@ -123,31 +83,13 @@
     <gesture>AGM_Gesture_Tree</gesture>
     <iconThing>WoodLog</iconThing>
     <order>30</order>
-    <!-- Pour-only: hold to drop the level's logs one by one; the full amount takes pourSeconds of holding.
-         Release pauses, press again to go on, right-click cancels. -->
+    <cost>5</cost>
+    <thingDef>WoodLog</thingDef>
+    <amount>25</amount>
+    <!-- One log at a time; the full amount takes 3 s of holding. -->
     <channel>
-      <pourOnly>true</pourOnly>
       <pourSeconds>3</pourSeconds>
     </channel>
-    <levels>
-      <li>
-        <label>I</label>
-        <cost>5</cost>
-        <thingDef>WoodLog</thingDef>
-        <amount>25</amount>
-      </li>
-      <li>
-        <label>II</label>
-        <cost>12</cost>
-        <thingDef>WoodLog</thingDef>
-        <amount>75</amount>
-        <requirements>
-          <li Class="ActualGodMode.Req_LifetimePower">
-            <amount>100</amount>
-          </li>
-        </requirements>
-      </li>
-    </levels>
   </ActualGodMode.MiracleDef>
 
 </Defs>

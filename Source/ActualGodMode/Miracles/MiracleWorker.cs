@@ -10,18 +10,18 @@ namespace ActualGodMode
     {
         public MiracleDef def;
 
-        public virtual AcceptanceReport CanCastAt(IntVec3 cell, Map map, MiracleLevel level) => true;
+        public virtual AcceptanceReport CanCastAt(IntVec3 cell, Map map, MiracleStats stats) => true;
 
-        public abstract void Cast(IntVec3 cell, Map map, MiracleLevel level);
+        public abstract void Cast(IntVec3 cell, Map map, MiracleStats stats);
 
         /// <summary>One unit of a channelled cast at this cell (see <see cref="MiracleChannel"/>). False if nothing happened (not charged).</summary>
-        public virtual bool ChannelUnit(IntVec3 cell, Map map, MiracleLevel level, MiracleChannelProps channel, bool first) => false;
+        public virtual bool ChannelUnit(IntVec3 cell, Map map, MiracleStats stats, MiracleChannelProps channel, bool first) => false;
 
-        public virtual void DrawPreview(IntVec3 cell, Map map, MiracleLevel level)
+        public virtual void DrawPreview(IntVec3 cell, Map map, MiracleStats stats)
         {
-            if (level.radius > 0f)
+            if (stats.radius > 0f)
             {
-                GenDraw.DrawRadiusRing(cell, level.radius);
+                GenDraw.DrawRadiusRing(cell, stats.radius);
             }
         }
 
@@ -38,24 +38,24 @@ namespace ActualGodMode
     /// <summary>Rain: puts out fires and wets the ground, on <c>amount</c> tiles (closest first; poured tile by tile in Hand of God mode).</summary>
     public class MiracleWorker_Water : MiracleWorker
     {
-        public override AcceptanceReport CanCastAt(IntVec3 cell, Map map, MiracleLevel level)
+        public override AcceptanceReport CanCastAt(IntVec3 cell, Map map, MiracleStats stats)
         {
             return !cell.Filled(map);
         }
 
-        public override void Cast(IntVec3 cell, Map map, MiracleLevel level)
+        public override void Cast(IntVec3 cell, Map map, MiracleStats stats)
         {
-            foreach (IntVec3 c in Area(cell, map, level))
+            foreach (IntVec3 c in Area(cell, map, stats))
             {
                 Soak(c, map, 0.35f);
             }
         }
 
         /// <summary>The <c>amount</c> closest open tiles (a one-shot cast, e.g. from the toolbar).</summary>
-        private static List<IntVec3> Area(IntVec3 cell, Map map, MiracleLevel level)
+        private static List<IntVec3> Area(IntVec3 cell, Map map, MiracleStats stats)
         {
             var cells = new List<IntVec3>();
-            for (int i = 0; i < GenRadial.NumCellsInRadius(GenRadial.MaxRadialPatternRadius - 1f) && cells.Count < level.amount; i++)
+            for (int i = 0; i < GenRadial.NumCellsInRadius(GenRadial.MaxRadialPatternRadius - 1f) && cells.Count < stats.amount; i++)
             {
                 IntVec3 c = cell + GenRadial.RadialPattern[i];
                 if (c.InBounds(map) && !c.Filled(map))
@@ -66,13 +66,13 @@ namespace ActualGodMode
             return cells;
         }
 
-        public override void DrawPreview(IntVec3 cell, Map map, MiracleLevel level)
+        public override void DrawPreview(IntVec3 cell, Map map, MiracleStats stats)
         {
-            GenDraw.DrawFieldEdges(Area(cell, map, level), InfluenceUtility.InfluenceColor);
+            GenDraw.DrawFieldEdges(Area(cell, map, stats), InfluenceUtility.InfluenceColor);
         }
 
         /// <summary>Channelled: a pinpoint of water on each tile the cursor crosses.</summary>
-        public override bool ChannelUnit(IntVec3 cell, Map map, MiracleLevel level, MiracleChannelProps channel, bool first)
+        public override bool ChannelUnit(IntVec3 cell, Map map, MiracleStats stats, MiracleChannelProps channel, bool first)
         {
             Soak(cell, map, 0.5f);
             return true;
@@ -99,22 +99,33 @@ namespace ActualGodMode
         }
     }
 
-    /// <summary>Spawns a stack of things (food, wood...) at the target.</summary>
+    /// <summary>Spawns things (crops, logs...) at the target: poured one unit at a time, or all at once.</summary>
     public class MiracleWorker_SpawnThing : MiracleWorker
     {
-        public override AcceptanceReport CanCastAt(IntVec3 cell, Map map, MiracleLevel level)
+        public override AcceptanceReport CanCastAt(IntVec3 cell, Map map, MiracleStats stats)
         {
             return cell.Standable(map);
         }
 
-        public override void Cast(IntVec3 cell, Map map, MiracleLevel level)
+        public override void Cast(IntVec3 cell, Map map, MiracleStats stats)
         {
-            RecordFeedDeed(level.thingDef, cell, map);
-            int remaining = level.amount;
+            if (def.channel != null)
+            {
+                // The whole charge at once (e.g. a one-shot cast).
+                int units = MiracleChannel.BudgetOf(def);
+                for (int i = 0; i < units; i++)
+                {
+                    ChannelUnit(cell, map, stats, def.channel, i == 0);
+                }
+                DivineFlash(cell, map, 2f);
+                return;
+            }
+            RecordFeedDeed(stats.thingDef, cell, map);
+            int remaining = stats.amount;
             while (remaining > 0)
             {
-                Thing thing = ThingMaker.MakeThing(level.thingDef);
-                thing.stackCount = System.Math.Min(remaining, level.thingDef.stackLimit);
+                Thing thing = ThingMaker.MakeThing(stats.thingDef);
+                thing.stackCount = System.Math.Min(remaining, stats.thingDef.stackLimit);
                 remaining -= thing.stackCount;
                 if (thing.def.IsIngestible)
                 {
@@ -126,9 +137,9 @@ namespace ActualGodMode
         }
 
         /// <summary>Channelled: a handful of one of the channel's things (raw crops, logs) at the cursor.</summary>
-        public override bool ChannelUnit(IntVec3 cell, Map map, MiracleLevel level, MiracleChannelProps channel, bool first)
+        public override bool ChannelUnit(IntVec3 cell, Map map, MiracleStats stats, MiracleChannelProps channel, bool first)
         {
-            ThingDef def = channel.things.NullOrEmpty() ? level.thingDef : channel.things.RandomElement();
+            ThingDef def = channel.things.NullOrEmpty() ? stats.thingDef : channel.things.RandomElement();
             if (def == null)
             {
                 return false;
@@ -169,7 +180,7 @@ namespace ActualGodMode
     }
 
     /// <summary>
-    /// Mend: heals a single pawn's fresh injuries by level.amount severity in total, most
+    /// Mend: heals a single pawn's fresh injuries by stats.amount severity in total, most
     /// bleeding then most painful first. Doesn't tend (doctors still matter: a miracle tend
     /// would block a proper one), and doesn't touch scars, missing parts or disease.
     /// </summary>
@@ -195,7 +206,7 @@ namespace ActualGodMode
             return result;
         }
 
-        public override AcceptanceReport CanCastAt(IntVec3 cell, Map map, MiracleLevel level)
+        public override AcceptanceReport CanCastAt(IntVec3 cell, Map map, MiracleStats stats)
         {
             Pawn pawn = TargetAt(cell, map);
             if (pawn == null)
@@ -209,11 +220,11 @@ namespace ActualGodMode
             return true;
         }
 
-        public override void Cast(IntVec3 cell, Map map, MiracleLevel level)
+        public override void Cast(IntVec3 cell, Map map, MiracleStats stats)
         {
             Pawn pawn = TargetAt(cell, map);
             RecordHealDeed(pawn);
-            float remaining = level.amount;
+            float remaining = stats.amount;
             foreach (Hediff_Injury injury in HealableInjuries(pawn))
             {
                 if (remaining <= 0f)
@@ -251,7 +262,7 @@ namespace ActualGodMode
             }
         }
 
-        public override void DrawPreview(IntVec3 cell, Map map, MiracleLevel level)
+        public override void DrawPreview(IntVec3 cell, Map map, MiracleStats stats)
         {
             Pawn pawn = TargetAt(cell, map);
             if (pawn != null)

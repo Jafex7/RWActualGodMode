@@ -31,10 +31,11 @@ Read before changing things:
   Dropping into danger (fire / hostiles) is judged like a strike (`WrathJudgement`, shared with Lightning).
   Soft influence border: past the edge, miracles and the Hand cost more and the Hand weakens, sharply with distance
   (`InfluenceUtility.CostFactor` / `LiftFactor` / `InReach`, `AGM_InfluenceTuning.xml`).
-  Soft border verified in-game. Hold-to-cast (`MiracleChannel`, `<channel>` in the MiracleDef): Water and Wood are
-  pour-only (the charge = the level's amount, paid per unit; release pauses, right-click cancels; water 9/16 tiles,
-  wood over 3 s of holding); Food keeps its click (meals) and streams crops while held. Self-tested; awaiting
-  in-game test of the pour-only rework.
+  Soft border verified in-game. Poured miracles (`MiracleChannel`, `<channel>` in the MiracleDef): Water, Food, Wood
+  are cast by holding the click (the charge = the miracle's amount, paid per unit; release pauses, right-click
+  cancels). **Miracles have no levels** (numbers on the def, read via `MiracleDef.Stats` for future upgrades), and
+  the Miracles tab charges the hand like a gesture (no designator). Blessed crops: don't stack with plain food,
+  cooking keeps the blessing. Self-tested; awaiting in-game test.
 - Next: see the roadmap in DESIGN.md (v2: factions/awe, throwing, …).
 
 ## Commands
@@ -57,7 +58,7 @@ Read before changing things:
 | `Source/…/Power/` | `DivinePower` GameComponent (global pool, cap, lifetime) |
 | `Source/…/Shrine/` | `CompShrine` (prayer spots, slots, group bonus, power rate), `ShrineUtility` + one-per-map PlaceWorker, `InfluenceUtility` |
 | `Source/…/Worship/` | `JobDriver_PrayAtShrine`, job/joy givers, `WorshipUtility.TryMakePrayJob` |
-| `Source/…/Miracles/` | `MiracleDef` + `MiracleLevel`, `MiracleRequirement` (+ `Req_*`), `MiracleWorker` (+ subclasses, `ChannelUnit`), `MiracleChannel` (hold-to-cast pour), `MiracleTracker` (unlocks), `MiracleUtility` (CanCast/TryCast/witnesses), `Designator_Miracle`, `MainTabWindow_Miracles` |
+| `Source/…/Miracles/` | `MiracleDef` (+ `MiracleStats`, `MiracleChannelProps`), `MiracleRequirement` (+ `Req_*`), `MiracleWorker` (+ subclasses, `ChannelUnit`), `MiracleChannel` (poured charge), `MiracleTracker` (unlocks, events, blessed food), `MiracleUtility` (CanCast/TryCast/witnesses), `MiracleCostLabel`, `MainTabWindow_Miracles` (charges the hand via `HandOfGodMode.Charge`) |
 | `Source/…/HandOfGod/` | `HandOfGodMode` (state: toggle/hold, strokes, recognition, charged miracle, casting, label, grab-vs-stroke input), `HandOfGodCursor` (RGBA cursor via Waylith `HardwareCursor`), `GodHand` (MapComponent + IThingHolder: held thing, capacity, costs, place/tuck, game-over guard patch), `HandTuningDef` (`AGM_HandTuning.xml`), `HandWorkOrder` (set a colonist down on work → prioritized job, like vanilla's right-click) |
 | `Source/…/Gestures/` | `GestureDef` (+ template/stroke/custom), `PointCloudRecognizer` ($P), `GestureLibrary` (default vs player gestures, threshold, matching), `Window_BookOfGestures`, `Dialog_RecordGesture` |
 | `Source/…/Patches/` | Harmony patches: Worship schedule block, power readout, Hand of God input (`MapInterface.HandleMapClicks` / `HandleLowPriorityInput`) |
@@ -84,9 +85,10 @@ Read before changing things:
 - Commit per milestone or fix; git identity is set per-repo. Push when the user agrees.
 
 ## Recipes
-- **Add a miracle**: add a `ActualGodMode.MiracleDef` in `Defs/Miracles/` (levels with cost/radius/amount/thingDef
-  and optional `requirements`), reuse `MiracleWorker_SpawnThing` / `_Water` or subclass `MiracleWorker`
-  (`CanCastAt`, `Cast`, `DrawPreview`), add strings, add a check to `AGM_SelfTest.RunMiracleTests`.
+- **Add a miracle**: add a `ActualGodMode.MiracleDef` in `Defs/Miracles/` (cost/radius/amount/thingDef, optional
+  `requirements`, optional `<channel>` to pour it), reuse `MiracleWorker_SpawnThing` / `_Water` or subclass
+  `MiracleWorker` (`CanCastAt`, `Cast`, `DrawPreview`, `ChannelUnit` if poured), add strings, add a check to
+  `AGM_SelfTest.RunMiracleTests`. Read numbers through `def.Stats`, not the raw fields (upgrades will hook there).
 - **Add a gesture**: `ActualGodMode.GestureDef` in `Defs/Gestures/` (points in a 0–1 box, **y down**), reference it from
   the miracle's `<gesture>`. Rerun the self-test: it simulates drawings of every gesture and logs the closest wrong
   match. If two signs get close, change a shape rather than the threshold (`GestureLibrary.BaseThreshold`, calibrated).

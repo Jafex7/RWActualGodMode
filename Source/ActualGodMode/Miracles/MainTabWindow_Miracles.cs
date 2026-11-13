@@ -7,12 +7,15 @@ using Verse;
 
 namespace ActualGodMode
 {
-    /// <summary>Bottom-bar "Miracles" tab: pick a miracle level, then click the map to cast it.</summary>
+    /// <summary>
+    /// Bottom-bar "Miracles" tab: pick a miracle to put it in the god's hand, exactly as if its
+    /// gesture had been drawn (an accessibility path: same casting, same pouring, no gestures needed).
+    /// </summary>
     public class MainTabWindow_Miracles : MainTabWindow
     {
         private const float RowHeight = 40f;
         private const float IconSize = 32f;
-        private const float LevelButtonWidth = 72f;
+        private const float CastButtonWidth = 110f;
         private const float HeaderHeight = 30f;
 
         private static List<MiracleDef> Miracles =>
@@ -55,56 +58,51 @@ namespace ActualGodMode
                 Widgets.DrawHighlightIfMouseover(row);
                 TooltipHandler.TipRegion(row, def.description);
 
+                bool unlocked = tracker.IsUnlocked(def);
                 Rect iconRect = new Rect(row.x, row.y + (RowHeight - IconSize) / 2f, IconSize, IconSize);
-                GUI.color = tracker.AnyUnlocked(def) ? Color.white : Color.gray;
+                GUI.color = unlocked ? Color.white : Color.gray;
                 GUI.DrawTexture(iconRect, def.Icon);
                 GUI.color = Color.white;
 
                 using (new TextBlock(TextAnchor.MiddleLeft))
                 {
-                    Widgets.Label(new Rect(iconRect.xMax + 8f, row.y, 110f, RowHeight), def.LabelCap);
+                    Widgets.Label(new Rect(iconRect.xMax + 8f, row.y, 200f, RowHeight), def.LabelCap);
                 }
 
-                float x = row.xMax - def.levels.Count * (LevelButtonWidth + 4f);
-                for (int i = 0; i < def.levels.Count; i++)
-                {
-                    DrawLevelButton(new Rect(x, row.y + 6f, LevelButtonWidth, RowHeight - 12f), def, i, dp, tracker);
-                    x += LevelButtonWidth + 4f;
-                }
+                DrawCastButton(new Rect(row.xMax - CastButtonWidth, row.y + 6f, CastButtonWidth, RowHeight - 12f), def, unlocked, dp);
                 y += RowHeight;
             }
         }
 
-        private void DrawLevelButton(Rect rect, MiracleDef def, int index, DivinePower dp, MiracleTracker tracker)
+        private void DrawCastButton(Rect rect, MiracleDef def, bool unlocked, DivinePower dp)
         {
-            MiracleLevel level = def.levels[index];
-            bool unlocked = tracker.IsUnlocked(def, index);
-            bool affordable = dp.CanAfford(level.cost);
-            string label = level.label + " (" + level.cost.ToString("F0") + ")";
-
+            float cost = def.Stats.cost;
+            string label = "AGM_MiracleCastButton".Translate(cost.ToString("F0"));
             if (!unlocked)
             {
                 Widgets.ButtonText(rect, label, drawBackground: true, doMouseoverSound: false, active: false);
-                TooltipHandler.TipRegion(rect, LockedTip(level));
+                TooltipHandler.TipRegion(rect, LockedTip(def));
                 return;
             }
+            // A poured miracle can be started with less than the full cost (it pours what it can).
+            bool affordable = dp.CanAfford(def.channel != null ? MiracleChannel.BaseUnitCost(def) : cost);
             Color textColor = affordable ? Color.white : ColorLibrary.RedReadable;
             if (Widgets.ButtonText(rect, label, drawBackground: true, doMouseoverSound: true, textColor))
             {
-                Find.DesignatorManager.Select(new Designator_Miracle(def, index));
+                HandOfGodMode.Charge(def);
                 Close();
             }
             if (!affordable)
             {
-                TooltipHandler.TipRegion(rect, "AGM_NotEnoughPower".Translate(level.cost.ToString("F0")));
+                TooltipHandler.TipRegion(rect, "AGM_NotEnoughPower".Translate(cost.ToString("F0")));
             }
         }
 
-        private static string LockedTip(MiracleLevel level)
+        private static string LockedTip(MiracleDef def)
         {
             var sb = new StringBuilder();
             sb.AppendLine("AGM_MiracleLocked".Translate());
-            foreach (MiracleRequirement req in level.requirements)
+            foreach (MiracleRequirement req in def.requirements)
             {
                 sb.AppendLine((req.IsMet() ? "  ✓ " : "  ✗ ") + req.Description);
             }

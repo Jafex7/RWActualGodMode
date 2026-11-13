@@ -12,7 +12,7 @@ namespace ActualGodMode
     /// </summary>
     public class MiracleWorker_Lightning : MiracleWorker
     {
-        public override AcceptanceReport CanCastAt(IntVec3 cell, Map map, MiracleLevel level)
+        public override AcceptanceReport CanCastAt(IntVec3 cell, Map map, MiracleStats stats)
         {
             RoofDef roof = map.roofGrid.RoofAt(cell);
             if (roof != null && roof.isThickRoof)
@@ -22,9 +22,9 @@ namespace ActualGodMode
             return true;
         }
 
-        public override void Cast(IntVec3 cell, Map map, MiracleLevel level)
+        public override void Cast(IntVec3 cell, Map map, MiracleStats stats)
         {
-            float radius = level.radius > 0f ? level.radius : 1.9f;
+            float radius = stats.radius > 0f ? stats.radius : 1.9f;
             List<Pawn> targets = GenRadial.RadialDistinctThingsAround(cell, map, radius, useCenter: true).OfType<Pawn>().ToList();
             bool punished = false;
             foreach (Pawn p in targets)
@@ -41,9 +41,9 @@ namespace ActualGodMode
             WrathJudgement.AffectWitnesses(cell, map, targets, punished);
         }
 
-        public override void DrawPreview(IntVec3 cell, Map map, MiracleLevel level)
+        public override void DrawPreview(IntVec3 cell, Map map, MiracleStats stats)
         {
-            GenDraw.DrawRadiusRing(cell, level.radius > 0f ? level.radius : 1.9f);
+            GenDraw.DrawRadiusRing(cell, stats.radius > 0f ? stats.radius : 1.9f);
         }
     }
 

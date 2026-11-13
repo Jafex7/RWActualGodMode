@@ -42,19 +42,14 @@
     <iconThing>ChunkSlagSteel</iconThing>
     <witnessFaithGain>0.02</witnessFaithGain>
     <order>40</order>
-    <levels>
-      <li>
-        <label>I</label>
-        <cost>20</cost>
-        <radius>1.9</radius>
-        <requirements>
-          <li Class="ActualGodMode.Req_EventOccurred">
-            <eventKey>Raid</eventKey>
-            <descriptionKey>AGM_Req_Event_Raid</descriptionKey>
-          </li>
-        </requirements>
+    <cost>20</cost>
+    <radius>1.9</radius>
+    <requirements>
+      <li Class="ActualGodMode.Req_EventOccurred">
+        <eventKey>Raid</eventKey>
+        <descriptionKey>AGM_Req_Event_Raid</descriptionKey>
       </li>
-    </levels>
+    </requirements>
   </ActualGodMode.MiracleDef>
 
   <!-- Lightning: a jagged bolt, several zigzags from top to bottom (or bottom to top).

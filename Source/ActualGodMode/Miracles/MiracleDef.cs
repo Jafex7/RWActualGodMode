@@ -6,8 +6,9 @@ using Verse;
 namespace ActualGodMode
 {
     /// <summary>
-    /// A miracle the god can cast. Each miracle has one or more levels with a fixed cost
-    /// and effect size. Levels unlock in order once their requirements are met.
+    /// A miracle the god can cast. One miracle, no levels: its numbers (cost, amount, radius...)
+    /// are read through <see cref="Stats"/>, where god-progression upgrades will apply later.
+    /// It unlocks once its <see cref="requirements"/> are met.
     /// </summary>
     public class MiracleDef : Def
     {
@@ -24,9 +25,16 @@ namespace ActualGodMode
         public float witnessFaithGain = 0.03f;
         public float witnessRadius = 12f;
 
-        public List<MiracleLevel> levels = new List<MiracleLevel>();
+        // Base numbers (see Stats).
+        public float cost;
+        public float radius;
+        public int amount;
+        public ThingDef thingDef;
 
-        /// <summary>Optional: holding the click in Hand of God mode pours the miracle under the cursor (see <see cref="MiracleChannel"/>).</summary>
+        /// <summary>What unlocks it; empty = available as soon as the god is revealed.</summary>
+        public List<MiracleRequirement> requirements = new List<MiracleRequirement>();
+
+        /// <summary>Optional: the miracle is poured from the hand while the click is held (see <see cref="MiracleChannel"/>).</summary>
         public MiracleChannelProps channel;
 
         public int order;
@@ -36,6 +44,9 @@ namespace ActualGodMode
 
         [Unsaved(false)]
         private Texture2D iconInt;
+
+        [Unsaved(false)]
+        private MiracleStats statsInt;
 
         public MiracleWorker Worker
         {
@@ -49,6 +60,9 @@ namespace ActualGodMode
                 return workerInt;
             }
         }
+
+        /// <summary>The miracle's current numbers. For now the XML values; upgrades will modify them.</summary>
+        public MiracleStats Stats => statsInt ??= new MiracleStats { cost = cost, radius = radius, amount = amount, thingDef = thingDef };
 
         public Texture2D Icon
         {
@@ -73,8 +87,6 @@ namespace ActualGodMode
             }
         }
 
-        public string LevelLabel(int index) => (label + " " + levels[index].label).CapitalizeFirst();
-
         public override IEnumerable<string> ConfigErrors()
         {
             foreach (string e in base.ConfigErrors())
@@ -85,52 +97,37 @@ namespace ActualGodMode
             {
                 yield return "workerClass must be a MiracleWorker subclass.";
             }
-            if (levels.NullOrEmpty())
+            if (channel != null && amount <= 0)
             {
-                yield return "has no levels.";
+                yield return "a poured miracle needs an amount (units in a full charge).";
             }
         }
     }
 
-    public class MiracleLevel
+    /// <summary>A miracle's effective numbers (base XML values, later raised by upgrades).</summary>
+    public class MiracleStats
     {
-        /// <summary>Shown after the miracle's label, e.g. "I", "II".</summary>
-        public string label = "I";
         public float cost;
         public float radius;
         public int amount;
         public ThingDef thingDef;
-        public List<MiracleRequirement> requirements = new List<MiracleRequirement>();
     }
 
     /// <summary>
-    /// How a miracle is channelled in Hand of God mode. Per tile: one unit for each new cell the
-    /// cursor crosses (water). Timed: units at a fixed rhythm at the cursor (logs, food crops).
-    /// Pour-only: no click cast; the charge is the level's <c>amount</c> poured over as many presses
-    /// as needed (right-click cancels). Otherwise a quick click is the normal cast and holding
-    /// streams for up to <see cref="maxSeconds"/>.
+    /// A poured miracle (Hand of God mode, or picked from the Miracles tab): no click cast; the
+    /// charge is the miracle's full effect (<c>amount</c>, in units of <see cref="countPerUnit"/>),
+    /// paid per unit, poured while the click is held, over as many presses as needed. Right-click
+    /// cancels the rest. Per tile: one unit for each new cell the cursor crosses (water). Timed:
+    /// units at a steady rhythm, the full charge taking <see cref="pourSeconds"/> of holding.
     /// </summary>
     public class MiracleChannelProps
     {
-        public bool pourOnly;
+        public bool perTile;
 
-        /// <summary>Pour-only, timed: seconds of holding to pour the full charge.</summary>
+        /// <summary>Timed: seconds of holding to pour the full charge.</summary>
         public float pourSeconds = 3f;
 
-        /// <summary>Stream: longest it lasts (real seconds of holding).</summary>
-        public float maxSeconds = 2f;
-
-        /// <summary>A press released sooner than this is a click (the normal cast).</summary>
-        public float clickSeconds = 0.2f;
-
-        public bool perTile;
-        public float unitsPerSecond = 6f;
-
-        /// <summary>Stream: power per unit; if 0, the level's cost spread over its area, times <see cref="markup"/>. (Pour-only: level cost / units.)</summary>
-        public float unitCost;
-        public float markup = 1.5f;
-
-        /// <summary>Timed spawns: one of these (default: the level's thingDef), <see cref="countPerUnit"/> at a time.</summary>
+        /// <summary>Timed spawns: one of these at random (default: the miracle's thingDef), <see cref="countPerUnit"/> at a time.</summary>
         public List<ThingDef> things = new List<ThingDef>();
         public int countPerUnit = 1;
     }

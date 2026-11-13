@@ -6,18 +6,21 @@ namespace ActualGodMode
 {
     public static class MiracleUtility
     {
-        /// <summary>What casting this level here costs: the base cost, raised sharply past the edge of influence.</summary>
-        public static float CostAt(MiracleLevel level, IntVec3 cell, Map map) =>
-            map == null || !cell.InBounds(map) ? level.cost : level.cost * InfluenceUtility.CostFactor(cell, map);
+        /// <summary>What a one-shot cast here costs: the base cost, raised sharply past the edge of influence.</summary>
+        public static float CostAt(MiracleDef def, IntVec3 cell, Map map) =>
+            map == null || !cell.InBounds(map) ? def.Stats.cost : def.Stats.cost * InfluenceUtility.CostFactor(cell, map);
 
-        /// <summary>Every check a cast must pass: unlocked, within reach (soft border), affordable, valid target.</summary>
-        public static AcceptanceReport CanCast(MiracleDef def, int levelIndex, IntVec3 cell, Map map)
+        /// <summary>
+        /// Every check a one-shot cast must pass: unlocked, within reach (soft border), affordable, valid target.
+        /// (Poured miracles are normally cast from the hand, unit by unit: <see cref="MiracleChannel"/>.)
+        /// </summary>
+        public static AcceptanceReport CanCast(MiracleDef def, IntVec3 cell, Map map)
         {
             if (map == null || !cell.InBounds(map) || cell.Fogged(map))
             {
                 return false;
             }
-            if (!(MiracleTracker.Instance?.IsUnlocked(def, levelIndex) ?? false))
+            if (!(MiracleTracker.Instance?.IsUnlocked(def) ?? false))
             {
                 return "AGM_MiracleLocked".Translate();
             }
@@ -25,25 +28,23 @@ namespace ActualGodMode
             {
                 return "AGM_OutsideInfluence".Translate();
             }
-            MiracleLevel level = def.levels[levelIndex];
-            float cost = CostAt(level, cell, map);
+            float cost = CostAt(def, cell, map);
             if (!(DivinePower.Instance?.CanAfford(cost) ?? false))
             {
                 return "AGM_NotEnoughPower".Translate(cost.ToString("F0"));
             }
-            return def.Worker.CanCastAt(cell, map, level);
+            return def.Worker.CanCastAt(cell, map, def.Stats);
         }
 
-        public static AcceptanceReport TryCast(MiracleDef def, int levelIndex, IntVec3 cell, Map map)
+        public static AcceptanceReport TryCast(MiracleDef def, IntVec3 cell, Map map)
         {
-            AcceptanceReport report = CanCast(def, levelIndex, cell, map);
+            AcceptanceReport report = CanCast(def, cell, map);
             if (!report.Accepted)
             {
                 return report;
             }
-            MiracleLevel level = def.levels[levelIndex];
-            DivinePower.Instance.TrySpend(CostAt(level, cell, map));
-            def.Worker.Cast(cell, map, level);
+            DivinePower.Instance.TrySpend(CostAt(def, cell, map));
+            def.Worker.Cast(cell, map, def.Stats);
             NotifyWitnesses(def, cell, map);
             PrayerRequestTracker.Instance?.Notify_MiracleCast(def, cell, map);
             return true;

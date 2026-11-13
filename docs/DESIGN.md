@@ -44,7 +44,10 @@ Black & White–inspired deity gameplay for RimWorld 1.7. C# + Harmony.
   minor break threshold). Event drains: own mental break, colonist death (more if
   close), being downed.
 - **Gratitude**: once a day, a mostly-content day with no hardship gives a little faith.
-- **Blessed food**: eating food made by a miracle gives the eater extra faith.
+- **Blessed food**: eating food made by a miracle gives the eater extra faith. The Food
+  miracle drops blessed raw crops; blessing survives stack splits, blessed and ordinary food
+  never stack together, and a meal cooked with any blessed ingredient is blessed. (Nutrient
+  paste from a hopper isn't tracked yet.)
 - All numbers live in `Defs/Faith/AGM_FaithTuning.xml`.
 
 ### Heal — decided for M4
@@ -126,8 +129,8 @@ The narrative entry point of the mod. Kept simple for v1.
   for a day or so: someone in need is heard; (3) the chosen pawn is linked to the
   event (the downed one, the one nearest the fire), so whispers feel personal;
   (4) safety net: guaranteed start by ~day 10-14. Numbers in the tuning file.
-- **Balance pass (future)**: revisit all miracle level requirements. Water II is the
-  only level II without a lifetime-power requirement.
+- **Balance pass (future)**: revisit miracle unlock requirements (levels are gone; their
+  growth moves to god-progression upgrades).
 - **Zealot (future)**: consider making it earnable through long, deep faith
   rather than (or as well as) a starting trait.
 
@@ -157,13 +160,14 @@ The narrative entry point of the mod. Kept simple for v1.
 - *Later*: Shrine visuals change with tier, lifetime power, and alignment.
 
 ## 4. Miracles
-- **Fixed cost** per miracle level. Cost is the only limiter (cooldowns on the
-  backburner).
-- **Miracle levels**: each miracle has levels (e.g. Food I/II/III). A level has a
-  fixed cost and effect size. Early: Water I puts out a small fire, Food I feeds
-  one pawn for a day, Wood I is enough for a campfire.
+- **Fixed cost** per miracle. Cost is the only limiter (cooldowns on the backburner).
+- **No levels** (decided after the pour playtest): each miracle is one miracle with its own
+  numbers (`cost`, `amount`, `radius`, `thingDef` on the `MiracleDef`, read through
+  `MiracleDef.Stats`). God-progression upgrades will raise those numbers (see God progression).
+  Start: Water waters 9 tiles, Food drops 1 nutrition of crops (a day for one raw, two
+  meals cooked), Wood drops 25 logs (a campfire), Heal mends 10 severity, Lightning r1.9.
 - **Starting miracles**: Water, Food, Wood.
-- **Unlocks** (new miracles and new levels) use composable requirements defined in
+- **Unlocks** (new miracles) use composable requirements defined in
   XML on each `MiracleDef`, mixed and matched:
   - number of believers / average faith / lifetime Divine Power
   - surviving a situation (e.g. a raid of at least X points → Shield)
@@ -174,8 +178,9 @@ The narrative entry point of the mod. Kept simple for v1.
   pray for protection").
 - Some miracles are **alignment-locked**, others **change effect** with alignment.
 - **Gesture casting** (primary): draw a symbol with the mouse, the miracle charges
-  in the cursor, click a target inside influence to cast. A toolbar/"Book of
-  Gestures" stays as a reference and fallback.
+  in the cursor, click (or hold, for poured miracles) to cast. **The Miracles tab charges the
+  hand exactly the same way** (an accessibility path, decided: no separate toolbar casting);
+  the Book of Gestures stays as a reference.
   - Input: hold a key + left-drag, **or** toggle Hand of God mode (left-drag draws).
   - Gestures are `GestureDef`s: one or more templates, each a list of strokes,
     each stroke a list of points in a 0–1 box. The same data draws the symbol in
@@ -454,13 +459,12 @@ abilities instead of giving them all at once.
   upgrades later), not from lifetime points or automatic thresholds.
 - Still to design: the tree itself (branches Hand / Miracles / Influence?), costs,
   prerequisites, where it lives (a tab beside Miracles?).
-- **Direction (user): upgrades replace miracle levels**, at least for the poured miracles.
+- **Decided (user): upgrades replace miracle levels** (levels are removed from all miracles).
   Each miracle is a single miracle with straight upgrades to its own traits, bought in the
   progression: e.g. Water's economy (cost per tile), maximum tiles per cast, maybe pour speed;
-  Wood's logs per cast and speed; Food's meals and crop stream. Whether Lightning, Heal (and
-  future miracles) still need levels is to be re-evaluated. Code-wise the charge already reads
-  as numbers (`amount`, cost, `pourSeconds`), so upgrades can modify those instead of picking
-  a level; the Q/E level switch would go away for upgraded miracles.
+  Wood's logs per cast and speed; Food's nutrition per cast. Lightning / Heal upgrades to be
+  decided. Hook: `MiracleDef.Stats` (today the XML values; upgrades will modify cost, amount,
+  radius there, and `pourSeconds` if speed becomes an upgrade).
 
 ## Influence: soft border (built)
 Like B&W, the god's power doesn't stop at the edge: past it, miracles and the Hand still
@@ -475,30 +479,27 @@ work but get sharply dearer and weaker with distance (`AGM_InfluenceTuning.xml`)
 - Prayer answering, pylons and other "in influence" checks stay strict (inside only).
 
 ## Hold-to-cast miracles (built)
-B&W style: miracles are **poured** from the hand in Hand of God mode (the toolbar keeps one-shot casts).
-Two kinds, set by `<channel>` on the MiracleDef:
-- **Pour-only** (Water, Wood; user playtest: the piece-by-piece effect feels better than the click).
-  No click cast. The charge is the level's full effect (`amount` units), paid per unit
-  (level cost / amount, times the soft-border factor at each unit's cell). Hold to pour; **releasing
-  only pauses**, press again to go on with the same charge until it's used up. **Right-click cancels**
-  the rest (what was poured is paid, nothing else). (B&W cancelled by shaking the hand; right-click here.)
-  - **Water**: per tile, no time limit. Water I = 9 tiles, Water II = 16. A tile already watered
-    doesn't count twice; the path between frames is filled in. Water I: 0.56 a tile.
-  - **Wood**: one log at a time; the full amount takes `pourSeconds` 3 of holding (Wood I 25 logs,
-    Wood II 75 in the same 3 s). Time released doesn't count.
-  - Out of power mid-pour: it pauses and keeps the rest of the charge.
-- **Stream** (Food): a quick click (< `clickSeconds` 0.2) casts the meals; holding streams raw crops
-  (6 drops a second of 5 potatoes / corn / rice, 1.2 each) for up to `maxSeconds` 2, and releasing ends
-  it. The user liked food as is.
-- Lightning and Heal stay one-and-done (no `<channel>`).
-- The toolbar (and any one-shot cast) waters the `amount` closest tiles; the preview outlines them.
+B&W style: Water, Food and Wood are **poured** from the hand (set by `<channel>` on the MiracleDef);
+Lightning and Heal are one click. A miracle charged from the Miracles tab behaves exactly the same.
+- No click cast for poured miracles (user playtest: the piece-by-piece effect feels better). The
+  charge is the full effect (`amount` units), paid per unit (cost / units, times the soft-border
+  factor at each unit's cell). Hold to pour; **releasing only pauses**, press again to go on with
+  the same charge until it's used up. **Right-click cancels** the rest (what was poured is paid,
+  nothing else). (B&W cancelled by shaking the hand; right-click here.)
+- **Water**: per tile, no time limit, 9 tiles for 5 (0.56 a tile). A tile already watered doesn't
+  count twice; the path between frames is filled in.
+- **Food**: 20 blessed raw crops (potatoes / corn / rice at random) = 1 nutrition, one at a time
+  over `pourSeconds` 3 of holding, for 10. Eaten raw a quick fix; cooked, two simple meals (the
+  old Food I). Replaces the old meals click.
+- **Wood**: 25 logs one at a time over 3 s of holding, for 5.
+- Time released doesn't count. Out of power mid-pour: it pauses and keeps the rest of the charge.
+- A one-shot cast (`MiracleUtility.TryCast`, used by tests) does the whole charge at once; Water
+  then soaks the `amount` closest tiles.
 - Witnesses gain faith once per pour; prayer requests are checked per unit; feeding the hungry is
   checked on the first drop.
-- Cursor: the full-charge cost, then a bar of what's left and "Hold to pour (x each). Right-click
+- Cursor: the cost of what's left, a bar of the charge, "Hold to pour (x each). Right-click
   cancels." / "n of N left (x each)"; the outline shows the single tile under the cursor.
 - Code: `MiracleChannel` (Press / Release / Update), `MiracleChannelProps`, `MiracleWorker.ChannelUnit`.
-- Balance: Water II is dearer per tile (15 / 16) than Water I (5 / 9). Moot if levels become
-  upgrades (see God progression).
 
 ## Sound (to do near the end)
 SFX wanted for: drawing a gesture (while drawing / recognized / failed), each miracle

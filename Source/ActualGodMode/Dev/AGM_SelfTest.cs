@@ -107,10 +107,10 @@ namespace ActualGodMode
             // Nothing unlocks before the god is revealed; once revealed, the starting miracles unlock.
             MiracleDef water = DefDatabase<MiracleDef>.GetNamed("AGM_Miracle_Water");
             MiracleTracker.Instance.CheckUnlocks();
-            Check(!MiracleTracker.Instance.IsUnlocked(water, 0), "no miracles unlock before the god is revealed");
+            Check(!MiracleTracker.Instance.IsUnlocked(water), "no miracles unlock before the god is revealed");
             AwakeningTracker.Instance.MarkRevealedByScenario();
             MiracleTracker.Instance.CheckUnlocks();
-            Check(MiracleTracker.Instance.IsUnlocked(water, 0), "starting miracles unlock once revealed");
+            Check(MiracleTracker.Instance.IsUnlocked(water), "starting miracles unlock once revealed");
 
             // Nobody believes before the Awakening; converting gives them the Faith need.
             Check(colonists.All(p => p.Faith() == null), "non-believers have no Faith need");
@@ -412,27 +412,27 @@ namespace ActualGodMode
             Teleport(a, shrine.Position + new IntVec3(2, 0, 2), map);
             a.TakeDamage(new DamageInfo(DamageDefOf.Cut, 5f, armorPenetration: 99f)); // armor must not absorb it
             dp.Add(dp.MaxPower);
-            MiracleUtility.TryCast(heal, 0, a.Position, map);
+            MiracleUtility.TryCast(heal, a.Position, map);
             Check(alignment.Value > 0.5f, $"healing a follower is a good deed ({alignment.Value:F1})");
 
             // Lightning: who is struck decides the deed
             MiracleTracker.Instance.RecordEvent(MiracleTracker.Event_Raid);
-            Check(MiracleTracker.Instance.IsUnlocked(lightning, 0), "lightning unlocks after surviving a raid");
+            Check(MiracleTracker.Instance.IsUnlocked(lightning), "lightning unlocks after surviving a raid");
             Check(WrathJudgement.Classify(a) == WrathJudgement.Target.OwnFollower, "a calm colonist counts as 'own follower'");
 
             alignment.DebugSet(0f);
             dp.Add(dp.MaxPower);
-            MiracleUtility.TryCast(lightning, 0, a.Position, map);
+            MiracleUtility.TryCast(lightning, a.Position, map);
             Check(alignment.Value <= AlignmentTuningDef.Get.smiteOwnFollower + 0.5f, $"striking your own follower is evil ({alignment.Value:F1})");
 
             // Punishment: strike someone mid-break; a witness nearby is cowed
             alignment.DebugSet(0f);
             Teleport(b, shrine.Position + new IntVec3(-2, 0, -2), map);
-            Teleport(a, shrine.Position + new IntVec3(1, 0, -4), map);
+            Teleport(a, shrine.Position + new IntVec3(4, 0, -2), map); // 6 cells away: outside the strike even after the random +-2
             b.mindState.mentalStateHandler.TryStartMentalState(MentalStateDefOf.Wander_Sad, forced: true);
             Check(WrathJudgement.Classify(b) == WrathJudgement.Target.Punishment, "a colonist in a (non-violent) break counts as punishment");
             dp.Add(dp.MaxPower);
-            MiracleUtility.TryCast(lightning, 0, b.Position, map);
+            MiracleUtility.TryCast(lightning, b.Position, map);
             Check(!b.InMentalState, "punishment ends the break");
             Check(a.health.hediffSet.HasHediff(AGM_AlignmentDefOf.AGM_WontBeNext), "a witness of punishment is cowed (lower break threshold)");
             Check(alignment.Value < 0f && alignment.Value > AlignmentTuningDef.Get.smiteOwnFollower, $"punishment is evil, but less than striking an innocent ({alignment.Value:F1})");
@@ -443,7 +443,7 @@ namespace ActualGodMode
             a.Faith().CurLevel = 0.5f; // room to grow
             float faithBefore = a.Faith().CurLevel;
             dp.Add(dp.MaxPower);
-            MiracleUtility.TryCast(lightning, 0, shrine.Position + new IntVec3(-4, 0, 3), map);
+            MiracleUtility.TryCast(lightning, shrine.Position + new IntVec3(-4, 0, 3), map);
             Check(a.Faith().CurLevel > faithBefore && a.needs.mood.thoughts.memories.GetFirstMemoryOfDef(AGM_AlignmentDefOf.AGM_FearedWrath) != null,
                 "under an evil god, witnessing wrath raises faith (fear) and weighs on mood");
 
@@ -521,10 +521,11 @@ namespace ActualGodMode
             if (justOut.IsValid)
             {
                 float f1 = InfluenceUtility.CostFactor(justOut, map);
-                MiracleLevel water = DefDatabase<MiracleDef>.GetNamed("AGM_Miracle_Water").levels[0];
-                Check(f1 > 1.2f && f1 < 2f && MiracleUtility.CostAt(water, justOut, map) > water.cost,
+                MiracleDef water = DefDatabase<MiracleDef>.GetNamed("AGM_Miracle_Water");
+                Check(f1 > 1.2f && f1 < 2f && MiracleUtility.CostAt(water, justOut, map) > water.Stats.cost
+                    && MiracleChannel.UnitCostAt(water, justOut, map) > MiracleChannel.BaseUnitCost(water),
                     $"one cell outside the influence a miracle still works but costs more (x{f1:F2})");
-                Check(MiracleUtility.CanCast(DefDatabase<MiracleDef>.GetNamed("AGM_Miracle_Water"), 0, justOut, map).Accepted, "a miracle can be cast just outside the influence");
+                Check(MiracleUtility.CanCast(DefDatabase<MiracleDef>.GetNamed("AGM_Miracle_Water"), justOut, map).Accepted, "a miracle can be cast just outside the influence");
             }
             if (twoOut.IsValid)
             {
@@ -533,7 +534,7 @@ namespace ActualGodMode
             }
             if (beyond.IsValid)
             {
-                Check(!MiracleUtility.CanCast(DefDatabase<MiracleDef>.GetNamed("AGM_Miracle_Water"), 0, beyond, map).Accepted, "far beyond the influence nothing can be cast");
+                Check(!MiracleUtility.CanCast(DefDatabase<MiracleDef>.GetNamed("AGM_Miracle_Water"), beyond, map).Accepted, "far beyond the influence nothing can be cast");
             }
 
             // Too far for what is held: it drops at the last cell where the hand could hold it.
@@ -713,46 +714,44 @@ namespace ActualGodMode
             MiracleDef wood = DefDatabase<MiracleDef>.GetNamed("AGM_Miracle_Wood");
 
             Log.Message(Tag + "Miracle phase");
-            Check(tracker.IsUnlocked(water, 0) && tracker.IsUnlocked(food, 0) && tracker.IsUnlocked(wood, 0), "level I of water/food/wood unlocked from the start");
-            Check(!tracker.IsUnlocked(food, 1), "food II still locked (needs 150 lifetime power)");
+            Check(tracker.IsUnlocked(water) && tracker.IsUnlocked(food) && tracker.IsUnlocked(wood), "water/food/wood unlocked from the start");
 
             CellFinder.TryFindRandomCellNear(shrine.Position, map, 6, c => c.Standable(map) && c.GetFirstItem(map) == null, out IntVec3 near);
             dp.Add(100f);
 
-            // Food I
+            // One-shot casts (the whole charge at once).
             float before = dp.Power;
-            int meals = CountOf(map, ThingDefOf.MealSimple);
-            AcceptanceReport r = MiracleUtility.TryCast(food, 0, near, map);
-            Check(r.Accepted, "food I cast accepted " + r.Reason);
-            Check(CountOf(map, ThingDefOf.MealSimple) - meals == 2, $"food I spawned 2 meals (got {CountOf(map, ThingDefOf.MealSimple) - meals})");
-            Check(Mathf.Approximately(before - dp.Power, 10f), $"food I cost 10 (spent {before - dp.Power:F1})");
+            int crops0 = food.channel.things.Sum(d => CountOf(map, d));
+            AcceptanceReport r = MiracleUtility.TryCast(food, near, map);
+            int crops = food.channel.things.Sum(d => CountOf(map, d)) - crops0;
+            Check(r.Accepted && crops == food.Stats.amount, $"a one-shot food cast drops the whole charge of crops ({crops} of {food.Stats.amount}) " + r.Reason);
+            Check(Mathf.Approximately(before - dp.Power, food.Stats.cost), $"food costs {food.Stats.cost} (spent {before - dp.Power:F1})");
 
-            // Wood I
             int logs = CountOf(map, ThingDefOf.WoodLog);
-            r = MiracleUtility.TryCast(wood, 0, near, map);
-            Check(r.Accepted && CountOf(map, ThingDefOf.WoodLog) - logs == 25, $"wood I spawned 25 logs (got {CountOf(map, ThingDefOf.WoodLog) - logs})");
+            r = MiracleUtility.TryCast(wood, near, map);
+            Check(r.Accepted && CountOf(map, ThingDefOf.WoodLog) - logs == wood.Stats.amount, $"wood spawned {wood.Stats.amount} logs (got {CountOf(map, ThingDefOf.WoodLog) - logs})");
 
-            // Water I puts out a fire
+            // Water puts out a fire
             CellFinder.TryFindRandomCellNear(shrine.Position, map, 8, c => c.Standable(map) && c.GetFirstItem(map) == null && (c - near).LengthHorizontal > 4f, out IntVec3 fireCell);
             // Spawn directly: vanilla only starts fires on flammable cells.
             Fire fire = (Fire)ThingMaker.MakeThing(ThingDefOf.Fire);
             fire.fireSize = 0.5f;
             GenSpawn.Spawn(fire, fireCell, map);
             Check(fireCell.ContainsStaticFire(map), "test fire started");
-            r = MiracleUtility.TryCast(water, 0, fireCell, map);
-            Check(r.Accepted && !fireCell.ContainsStaticFire(map), "water I extinguished the fire");
+            r = MiracleUtility.TryCast(water, fireCell, map);
+            Check(r.Accepted && !fireCell.ContainsStaticFire(map), "water extinguished the fire");
 
             RunChannelTests(map, near, water, food);
 
             // Outside influence is refused and costs nothing
             IntVec3 far = map.AllCells.FirstOrDefault(c => c.Standable(map) && !c.Fogged(map) && !InfluenceUtility.InReach(c, map));
             before = dp.Power;
-            r = MiracleUtility.TryCast(food, 0, far, map);
+            r = MiracleUtility.TryCast(food, far, map);
             Check(!r.Accepted && Mathf.Approximately(before, dp.Power), "cast beyond the soft border refused, no power spent: " + r.Reason);
 
             // Not enough power is refused
             dp.DebugSet(3f);
-            r = MiracleUtility.TryCast(food, 0, near, map);
+            r = MiracleUtility.TryCast(food, near, map);
             Check(!r.Accepted && Mathf.Approximately(dp.Power, 3f), "cast without enough power refused: " + r.Reason);
         }
 
@@ -784,11 +783,11 @@ namespace ActualGodMode
                     GenSpawn.Spawn(fire, a + new IntVec3(i, 0, z), map);
                 }
             }
-            MiracleLevel w1 = water.levels[0];
-            float tile = MiracleChannel.UnitCostAt(water, w1, a, map);
+            MiracleStats w1 = water.Stats;
+            float tile = MiracleChannel.UnitCostAt(water, a, map);
             float t = 1000f;
             float before = dp.Power;
-            var ch = new MiracleChannel(water, 0, map);
+            var ch = new MiracleChannel(water, map);
             ch.Press(a, t);
             ch.Update(a + new IntVec3(5, 0, 0), t + 0.1f);
             bool rowOut = Enumerable.Range(0, 6).All(i => !(a + new IntVec3(i, 0, 0)).ContainsStaticFire(map));
@@ -805,12 +804,16 @@ namespace ActualGodMode
             int secondRowOut = Enumerable.Range(0, 6).Count(i => !(a + new IntVec3(i, 0, 1)).ContainsStaticFire(map));
             Check(ch.finished && ch.units == w1.amount && secondRowOut == w1.amount - 6 && Mathf.Abs(before - dp.Power - w1.cost) < 0.01f,
                 $"pressing again goes on until the full charge ({w1.amount} tiles, {before - dp.Power:F1} power) is used, then stops");
+            foreach (Thing leftover in map.listerThings.ThingsOfDef(ThingDefOf.Fire).ToList())
+            {
+                leftover.Destroy(); // the charge ran out before the last fires: don't leave them for later tests
+            }
 
             // Wood: one log at a time; the full amount takes pourSeconds of holding (time released doesn't count).
             int logs = CountOf(map, ThingDefOf.WoodLog);
-            MiracleLevel wl = wood.levels[0];
+            MiracleStats wl = wood.Stats;
             before = dp.Power;
-            var wc = new MiracleChannel(wood, 0, map);
+            var wc = new MiracleChannel(wood, map);
             wc.Press(near, t);
             float now = t;
             for (; now < t + 1.5f; now += 0.05f)
@@ -830,29 +833,25 @@ namespace ActualGodMode
             Check(wc.finished && gotLogs == wl.amount && Mathf.Abs(before - dp.Power - wl.cost) < 0.01f,
                 $"the full wood charge drops {wl.amount} logs for {wl.cost} power (got {gotLogs}, {before - dp.Power:F1})");
 
-            // Food (stream): raw crops on a rhythm (6 a second): at the start, then 3 more by half a second.
+            // Food: blessed crops one at a time, the full charge over its pour time.
             int crops = food.channel.things.Sum(d => CountOf(map, d));
             before = dp.Power;
-            var fc = new MiracleChannel(food, 0, map);
+            var fc = new MiracleChannel(food, map);
             fc.Press(near, t);
-            fc.Update(near, t);
-            fc.Update(near, t + 0.55f);
+            for (now = t; now < t + food.channel.pourSeconds + 0.5f && !fc.finished; now += 0.02f)
+            {
+                fc.Update(near, now);
+            }
             int got = food.channel.things.Sum(d => CountOf(map, d)) - crops;
-            Check(fc.units == 4 && got == 4 * food.channel.countPerUnit && Mathf.Abs(before - dp.Power - 4 * food.channel.unitCost) < 0.01f,
-                $"holding food drops raw crops one handful at a time ({fc.units} drops, {got} crops, {before - dp.Power:F1} power)");
-            fc.Update(near, t + 2.1f);
-            Check(fc.finished, "the food stream stops after its time limit");
+            Check(fc.finished && got == food.Stats.amount && Mathf.Abs(before - dp.Power - food.Stats.cost) < 0.01f,
+                $"holding food drops its {food.Stats.amount} crops one by one in about {food.channel.pourSeconds} s ({got} crops, {before - dp.Power:F1} power, {now - t:F1} s)");
 
-            // Running dry: a pour-only charge pauses (keeps the rest), a stream ends.
+            // Running dry: the pour pauses and keeps the rest of its charge.
             dp.DebugSet(0.1f);
-            var dry = new MiracleChannel(wood, 0, map);
+            var dry = new MiracleChannel(wood, map);
             dry.Press(near, t);
             dry.Update(near, t);
             Check(!dry.holding && !dry.finished && !dry.message.NullOrEmpty() && Mathf.Approximately(dp.Power, 0.1f), "out of power, a pour pauses and keeps the rest of its charge");
-            var dryFood = new MiracleChannel(food, 0, map);
-            dryFood.Press(near, t);
-            dryFood.Update(near, t);
-            Check(dryFood.finished && Mathf.Approximately(dp.Power, 0.1f), "out of power, a stream stops");
             dp.Add(100f);
         }
 
@@ -1001,16 +1000,26 @@ namespace ActualGodMode
             faith.Hardship(0.15f / hardshipFactor);
             Check(Mathf.Abs(faith.CurLevel - 0.4f) < 0.001f, $"hardship beyond patience lowers faith by the excess (faith {faith.CurLevel:F3}, expected 0.400)");
 
-            // Blessed food: miracle meals are blessed, stay blessed when split, and give faith when eaten
+            // Blessed food: miracle crops are blessed, stay blessed when split, don't stack with ordinary
+            // food, bless what's cooked from them, and give faith when eaten.
             dp.Add(100f);
             CellFinder.TryFindRandomCellNear(shrine.Position, map, 6, c => c.Standable(map) && c.GetFirstItem(map) == null && c.GetFirstPawn(map) == null, out IntVec3 spot);
-            MiracleUtility.TryCast(DefDatabase<MiracleDef>.GetNamed("AGM_Miracle_Food"), 0, spot, map);
-            Thing meal = map.listerThings.ThingsOfDef(ThingDefOf.MealSimple).FirstOrDefault(t => miracles.IsBlessed(t));
-            Check(meal != null, "food miracle meals are blessed");
-            if (meal != null)
+            MiracleUtility.TryCast(DefDatabase<MiracleDef>.GetNamed("AGM_Miracle_Food"), spot, map);
+            Thing crop = map.listerThings.ThingsOfDef(ThingDef.Named("RawPotatoes")).Concat(map.listerThings.ThingsOfDef(ThingDef.Named("RawCorn")))
+                .Concat(map.listerThings.ThingsOfDef(ThingDef.Named("RawRice"))).FirstOrDefault(t => miracles.IsBlessed(t) && t.stackCount > 2);
+            Check(crop != null, "food miracle crops are blessed");
+            if (crop != null)
             {
-                Thing piece = meal.stackCount > 1 ? meal.SplitOff(1) : meal;
+                Thing plain = ThingMaker.MakeThing(crop.def);
+                Check(!crop.CanStackWith(plain) && !plain.CanStackWith(crop), "blessed food doesn't stack with ordinary food");
+                Thing piece = crop.SplitOff(1);
                 Check(miracles.IsBlessed(piece), "blessing survives a stack split");
+                Thing forCooking = crop.SplitOff(1);
+                Pawn cook = map.mapPawns.FreeColonistsSpawned.FirstOrDefault(c => !c.WorkTypeIsDisabled(DefDatabase<WorkTypeDef>.GetNamed("Cooking"))) ?? pawn;
+                List<Thing> cooked = GenRecipe.MakeRecipeProducts(DefDatabase<RecipeDef>.GetNamed("CookMealSimple"), cook,
+                    new List<Thing> { forCooking }, forCooking, null).ToList();
+                Check(cooked.Count > 0 && cooked.All(miracles.IsBlessed), "a meal cooked from blessed food is blessed");
+                plain.Destroy();
                 faith.CurLevel = 0.5f;
                 piece.Ingested(pawn, 1f);
                 float expected = FaithTuningDef.Get.blessedFoodGain * FaithTraitUtility.Factor(pawn, f => f.gainFactor);
@@ -1019,28 +1028,28 @@ namespace ActualGodMode
 
             // Heal: locked until a colonist is downed; heals up to 10 severity, worst first
             MiracleDef heal = DefDatabase<MiracleDef>.GetNamed("AGM_Miracle_Heal");
-            Check(!miracles.IsUnlocked(heal, 0), "heal locked before anyone is downed");
+            Check(!miracles.IsUnlocked(heal), "heal locked before anyone is downed");
             miracles.RecordEvent(MiracleTracker.Event_ColonistDowned);
-            Check(miracles.IsUnlocked(heal, 0), "heal unlocked after a colonist is downed");
+            Check(miracles.IsUnlocked(heal), "heal unlocked after a colonist is downed");
             for (int i = 0; i < 3; i++)
             {
                 pawn.TakeDamage(new DamageInfo(DamageDefOf.Cut, 6f));
             }
             float severityBefore = MiracleWorker_Heal.HealableInjuries(pawn).Sum(h => h.Severity);
             dp.Add(100f);
-            AcceptanceReport r = MiracleUtility.TryCast(heal, 0, pawn.Position, map);
+            AcceptanceReport r = MiracleUtility.TryCast(heal, pawn.Position, map);
             float severityAfter = MiracleWorker_Heal.HealableInjuries(pawn).Sum(h => h.Severity);
             float healed = severityBefore - severityAfter;
             Check(r.Accepted && Mathf.Abs(healed - Mathf.Min(10f, severityBefore)) < 0.01f,
                 $"heal I mended {healed:F1} of {severityBefore:F1} severity (expected {Mathf.Min(10f, severityBefore):F1}) {r.Reason}");
-            Check(!MiracleUtility.CanCast(heal, 0, spot, map).Accepted, "heal refuses a cell with no one in it");
+            Check(!MiracleUtility.CanCast(heal, spot, map).Accepted, "heal refuses a cell with no one in it");
 
             // Request answered: cast the asked-for miracle near the requester
             PrayerRequestDef foodRequest = DefDatabase<PrayerRequestDef>.GetNamed("AGM_Request_Food");
             dp.Add(100f);
             PrayerRequest req = requests.Create(pawn, foodRequest);
             faith.CurLevel = 0.5f;
-            MiracleUtility.TryCast(DefDatabase<MiracleDef>.GetNamed("AGM_Miracle_Food"), 0, NearFreeCell(pawn, map), map);
+            MiracleUtility.TryCast(DefDatabase<MiracleDef>.GetNamed("AGM_Miracle_Food"), NearFreeCell(pawn, map), map);
             Check(!requests.Active.Contains(req), "food request answered by Food cast nearby");
             Check(faith.CurLevel - 0.5f >= foodRequest.reward * FaithTraitUtility.Factor(pawn, f => f.gainFactor) - 0.001f,
                 $"answered prayer raised faith (+{faith.CurLevel - 0.5f:F3})");
@@ -1087,7 +1096,7 @@ namespace ActualGodMode
             other.Faith().CurLevel = 0.5f;
             req = requests.Create(pawn, sign);
             dp.Add(100f);
-            MiracleUtility.TryCast(DefDatabase<MiracleDef>.GetNamed("AGM_Miracle_Wood"), 0, NearFreeCell(shrine, map), map);
+            MiracleUtility.TryCast(DefDatabase<MiracleDef>.GetNamed("AGM_Miracle_Wood"), NearFreeCell(shrine, map), map);
             Check(!requests.Active.Contains(req) && other.Faith().CurLevel > 0.5f, "wish for a sign granted by any miracle; others share the joy");
 
             // Conversion rules: Sceptics are never talked into it; Zealots convince easily; preaching skips Sceptics

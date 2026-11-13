@@ -87,7 +87,7 @@ namespace ActualGodMode
                         {
                             continue;
                         }
-                        if (def.miracle != null && !miracles.AnyUnlocked(def.miracle))
+                        if (def.miracle != null && !miracles.IsUnlocked(def.miracle))
                         {
                             continue; // they don't know to ask for it yet
                         }
@@ -263,7 +263,7 @@ namespace ActualGodMode
             var options = new List<(Pawn, PrayerRequestDef)>();
             foreach (PrayerRequestDef def in DefDatabase<PrayerRequestDef>.AllDefsListForReading)
             {
-                if (!def.isWish || (def.miracle != null && !miracles.AnyUnlocked(def.miracle)))
+                if (!def.isWish || (def.miracle != null && !miracles.IsUnlocked(def.miracle)))
                 {
                     continue;
                 }

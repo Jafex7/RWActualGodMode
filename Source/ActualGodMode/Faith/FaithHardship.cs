@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using HarmonyLib;
 using RimWorld;
 using UnityEngine;
@@ -171,6 +172,46 @@ namespace ActualGodMode
             if (tracker != null && __result != __instance && tracker.IsBlessed(__instance))
             {
                 tracker.Bless(__result);
+            }
+        }
+    }
+
+    /// <summary>Blessed and ordinary food never merge into one stack (the blessing would spread or vanish).</summary>
+    [HarmonyPatch(typeof(Thing), nameof(Thing.CanStackWith))]
+    public static class Patch_BlessedFoodStacking
+    {
+        public static void Postfix(Thing __instance, Thing other, ref bool __result)
+        {
+            MiracleTracker tracker = MiracleTracker.Instance;
+            if (__result && tracker != null && tracker.IsBlessed(__instance) != tracker.IsBlessed(other))
+            {
+                __result = false;
+            }
+        }
+    }
+
+    /// <summary>A meal cooked with any blessed ingredient is blessed (read before the ingredients are used up).</summary>
+    [HarmonyPatch(typeof(GenRecipe), nameof(GenRecipe.MakeRecipeProducts))]
+    public static class Patch_BlessedFoodCooked
+    {
+        public static void Postfix(ref IEnumerable<Thing> __result, List<Thing> ingredients)
+        {
+            MiracleTracker tracker = MiracleTracker.Instance;
+            if (tracker != null && ingredients != null && ingredients.Any(tracker.IsBlessed))
+            {
+                __result = BlessIngestibles(__result, tracker);
+            }
+        }
+
+        private static IEnumerable<Thing> BlessIngestibles(IEnumerable<Thing> products, MiracleTracker tracker)
+        {
+            foreach (Thing product in products)
+            {
+                if (product.def.IsIngestible)
+                {
+                    tracker.Bless(product);
+                }
+                yield return product;
             }
         }
     }

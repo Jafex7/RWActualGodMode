@@ -32,7 +32,7 @@ build material (stuff) tints them.
 |---|---|---|---|
 | Shrine graphic | `Things/Building/Furniture/Column` (gold-tinted) | placeholder | Needs its own art; later visual stages by tier/alignment |
 | Water miracle icon | `Filth_Water` icon | placeholder | |
-| Food miracle icon | `MealSimple` icon | placeholder | |
+| Food miracle icon | `RawPotatoes` icon | placeholder | |
 | Wood miracle icon | `WoodLog` icon | placeholder | |
 | Heal miracle icon | `MedicineHerbal` icon | placeholder | |
 | Lightning miracle icon | `ChunkSlagSteel` icon | placeholder | |

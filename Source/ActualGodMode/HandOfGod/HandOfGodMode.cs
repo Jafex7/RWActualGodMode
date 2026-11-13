@@ -50,13 +50,9 @@ namespace ActualGodMode
 
         // Charged miracle
         private static MiracleDef charged;
-        private static int chargedLevel;
 
-        // Channelling: a press on a channel-able charged miracle. Pour-only: the channel lives as long as the
-        // charge (press = pour, release = pause). Stream: released quickly = normal cast, held = stream.
+        // A poured miracle's charge lives as long as the charge: press = pour, release = pause.
         private static bool chargePressed;
-        private static float chargePressTime;
-        private static IntVec3 chargePressCell;
         private static MiracleChannel channel;
 
         // Hand: a press on a grabbable thing becomes a grab unless the mouse moves (then it's a stroke).
@@ -110,13 +106,8 @@ namespace ActualGodMode
                     if (charged != null && charged.channel != null)
                     {
                         chargePressed = true;
-                        chargePressTime = Time.realtimeSinceStartup;
-                        chargePressCell = UI.MouseCell();
-                        if (charged.channel.pourOnly)
-                        {
-                            channel ??= new MiracleChannel(charged, chargedLevel, Find.CurrentMap);
-                            channel.Press(chargePressCell, chargePressTime);
-                        }
+                        channel ??= new MiracleChannel(charged, Find.CurrentMap);
+                        channel.Press(UI.MouseCell(), Time.realtimeSinceStartup);
                     }
                     else if (charged != null)
                     {
@@ -139,7 +130,7 @@ namespace ActualGodMode
                     break;
 
                 case EventType.MouseUp when e.button == 0 && chargePressed:
-                    EndChargePress();
+                    ReleaseCharge();
                     e.Use();
                     break;
 
@@ -173,11 +164,7 @@ namespace ActualGodMode
                     break;
 
                 case EventType.MouseDown when e.button == 1:
-                    if (channel != null && !channel.PourOnly)
-                    {
-                        FinishChannel();
-                    }
-                    else if (charged != null)
+                    if (charged != null)
                     {
                         CancelCharge();
                         SoundDefOf.CancelMode.PlayOneShotOnCamera();
@@ -250,7 +237,7 @@ namespace ActualGodMode
                 Messages.Message("AGM_Gesture_NotUnderstood".Translate(), MessageTypeDefOf.RejectInput, historical: false);
                 return;
             }
-            if (tracker == null || !tracker.AnyUnlocked(match.miracle))
+            if (tracker == null || !tracker.IsUnlocked(match.miracle))
             {
                 StartFade(drawn, ColorLibrary.RedReadable);
                 Messages.Message("AGM_Gesture_NotGranted".Translate(match.miracle.label), MessageTypeDefOf.RejectInput, historical: false);
@@ -258,111 +245,60 @@ namespace ActualGodMode
             }
 
             StartFade(drawn, HandOfGodCursor.TrailColor);
-            charged = match.miracle;
-            chargedLevel = DefaultLevel(charged);
+            Charge(match.miracle);
+        }
+
+        /// <summary>
+        /// Puts a miracle in the hand, ready to cast. A drawn gesture and the Miracles tab both end here,
+        /// so casting behaves the same either way.
+        /// </summary>
+        public static void Charge(MiracleDef miracle)
+        {
+            if (MiracleTracker.Instance?.IsUnlocked(miracle) != true)
+            {
+                return;
+            }
+            Find.DesignatorManager.Deselect();
+            Find.Targeter.StopTargeting();
+            ClearStrokes();
+            CancelCharge();
+            charged = miracle;
             SoundDefOf.Tick_High.PlayOneShotOnCamera();
         }
 
-        /// <summary>Highest unlocked level you can afford, else the lowest unlocked.</summary>
-        private static int DefaultLevel(MiracleDef miracle)
-        {
-            MiracleTracker tracker = MiracleTracker.Instance;
-            DivinePower dp = DivinePower.Instance;
-            for (int i = miracle.levels.Count - 1; i >= 0; i--)
-            {
-                if (tracker.IsUnlocked(miracle, i) && dp.CanAfford(miracle.levels[i].cost))
-                {
-                    return i;
-                }
-            }
-            return 0;
-        }
-
-        /// <summary>Released: a pour pauses (the rest of the charge stays), a stream ends, a quick click casts as usual.</summary>
-        private static void EndChargePress()
+        /// <summary>Released: the pour pauses; the rest of the charge stays.</summary>
+        private static void ReleaseCharge()
         {
             chargePressed = false;
-            if (channel != null && channel.PourOnly)
-            {
-                channel.Release();
-            }
-            else if (channel != null)
-            {
-                FinishChannel();
-            }
-            else if (charged != null)
-            {
-                TryCastCharged(chargePressCell);
-            }
+            channel?.Release();
         }
 
-        /// <summary>Per frame while the click is held on a channel-able miracle: start, then pour under the cursor.</summary>
-        private static void UpdateChannel(Map map)
+        /// <summary>Per frame while a poured miracle is charged: pour under the cursor while the click is held.</summary>
+        private static void UpdateChannel()
         {
-            float now = Time.realtimeSinceStartup;
             if (chargePressed && !Input.GetMouseButton(0))
             {
-                EndChargePress(); // the release happened over UI or was eaten
-                return;
+                ReleaseCharge(); // the release happened over UI or was eaten
             }
-            if (chargePressed && channel == null && charged?.channel != null && now - chargePressTime >= charged.channel.clickSeconds)
-            {
-                channel = new MiracleChannel(charged, chargedLevel, map);
-                channel.Press(chargePressCell, chargePressTime);
-            }
-            if (channel != null)
-            {
-                channel.Update(UI.MouseCell(), now);
-                if (!channel.message.NullOrEmpty())
-                {
-                    Messages.Message(channel.message, MessageTypeDefOf.RejectInput, historical: false);
-                    channel.message = null;
-                }
-                if (channel.finished)
-                {
-                    FinishChannel();
-                }
-            }
-        }
-
-        /// <summary>The pour is over: the charge is used up if anything was poured.</summary>
-        private static void FinishChannel()
-        {
-            MiracleChannel ended = channel;
-            channel = null;
-            chargePressed = false;
-            if (ended == null)
+            if (channel == null)
             {
                 return;
             }
-            if (!ended.message.NullOrEmpty())
+            channel.Update(UI.MouseCell(), Time.realtimeSinceStartup);
+            if (!channel.message.NullOrEmpty())
             {
-                Messages.Message(ended.message, MessageTypeDefOf.RejectInput, historical: false);
+                Messages.Message(channel.message, MessageTypeDefOf.RejectInput, historical: false);
+                channel.message = null;
             }
-            if (ended.units > 0 || ended.PourOnly)
+            if (channel.finished)
             {
-                CancelCharge();
-            }
-        }
-
-        private static void ChangeLevel(int delta)
-        {
-            if (channel != null)
-            {
-                return;
-            }
-            MiracleTracker tracker = MiracleTracker.Instance;
-            int next = chargedLevel + delta;
-            if (next >= 0 && next < charged.levels.Count && tracker.IsUnlocked(charged, next))
-            {
-                chargedLevel = next;
-                SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+                CancelCharge(); // all poured
             }
         }
 
         private static void TryCastCharged(IntVec3 cell)
         {
-            AcceptanceReport result = MiracleUtility.TryCast(charged, chargedLevel, cell, Find.CurrentMap);
+            AcceptanceReport result = MiracleUtility.TryCast(charged, cell, Find.CurrentMap);
             if (result.Accepted)
             {
                 CancelCharge();
@@ -436,7 +372,7 @@ namespace ActualGodMode
             }
             if (charged != null)
             {
-                UpdateChannel(map);
+                UpdateChannel();
             }
             if (charged != null)
             {
@@ -444,13 +380,13 @@ namespace ActualGodMode
                 IntVec3 mouse = UI.MouseCell();
                 if (mouse.InBounds(map))
                 {
-                    if (channel != null || charged.channel?.pourOnly == true)
+                    if (charged.channel != null)
                     {
                         GenDraw.DrawFieldEdges(new List<IntVec3> { mouse }, InfluenceUtility.InfluenceColor);
                     }
                     else
                     {
-                        charged.Worker.DrawPreview(mouse, map, charged.levels[chargedLevel]);
+                        charged.Worker.DrawPreview(mouse, map, charged.Stats);
                     }
                 }
             }
@@ -478,19 +414,6 @@ namespace ActualGodMode
             {
                 Toggle();
                 Event.current.Use();
-            }
-            if (charged != null)
-            {
-                if (KeyBindingDefOf.Designator_RotateLeft.KeyDownEvent)
-                {
-                    ChangeLevel(-1);
-                    Event.current.Use();
-                }
-                else if (KeyBindingDefOf.Designator_RotateRight.KeyDownEvent)
-                {
-                    ChangeLevel(1);
-                    Event.current.Use();
-                }
             }
             if (Event.current.type != EventType.Repaint)
             {
@@ -530,7 +453,7 @@ namespace ActualGodMode
                 string hint = Hand?.Holding == true
                     ? "AGM_HoG_HintHolding".Translate()
                     : charged != null
-                    ? "AGM_HoG_HintCharged".Translate(KeyBindingDefOf.Designator_RotateLeft.MainKeyLabel, KeyBindingDefOf.Designator_RotateRight.MainKeyLabel)
+                    ? (charged.channel != null ? "AGM_HoG_HintPour".Translate() : "AGM_HoG_HintCharged".Translate())
                     : Toggled
                         ? "AGM_HoG_HintToggled".Translate(AGM_KeyBindingDefOf.AGM_ToggleHandOfGod.MainKeyLabel)
                         : "AGM_HoG_HintHeld".Translate();
@@ -543,47 +466,30 @@ namespace ActualGodMode
 
         private static void DrawChargedReadout()
         {
-            MiracleLevel level = charged.levels[chargedLevel];
-            float power = DivinePower.Instance?.Power ?? 0f;
             Vector2 mouse = Event.current.mousePosition;
             Rect icon = new Rect(mouse.x + 22f, mouse.y + 14f, 32f, 32f);
             GUI.DrawTexture(icon, charged.Icon);
-            float y = MiracleCostLabel.Draw(new Rect(icon.xMax + 6f, icon.y - 2f, 260f, 22f), charged.LevelLabel(chargedLevel), level, UI.MouseCell(), Find.CurrentMap);
+            IntVec3 cell = UI.MouseCell();
+            Map map = Find.CurrentMap;
             if (charged.channel == null)
             {
+                MiracleCostLabel.Draw(new Rect(icon.xMax + 6f, icon.y - 2f, 260f, 22f), charged.LabelCap, charged.Stats.cost, cell, map);
                 return;
             }
+            // A poured miracle: the cost of what's left, a bar of the charge, and the price of one unit here.
+            int budget = MiracleChannel.BudgetOf(charged);
+            int left = channel?.Remaining ?? budget;
+            float y = MiracleCostLabel.Draw(new Rect(icon.xMax + 6f, icon.y - 2f, 260f, 22f), charged.LabelCap,
+                MiracleChannel.BaseUnitCost(charged) * left, cell, map);
             Rect line = new Rect(icon.xMax + 6f, y, 300f, 22f);
-            float unitCost = MiracleChannel.UnitCostAt(charged, level, UI.MouseCell(), Find.CurrentMap);
-            if (charged.channel.pourOnly)
+            Widgets.FillableBar(new Rect(line.x, line.y + 3f, 160f, 8f), (float)left / budget);
+            string unitCost = MiracleChannel.UnitCostAt(charged, cell, map).ToString("F2");
+            using (new TextBlock(GameFont.Small, TextAnchor.UpperLeft, Color.white))
             {
-                // The charge: a bar of what's left, and a hint until something is poured.
-                int budget = MiracleChannel.BudgetOf(charged, level);
-                int left = channel?.Remaining ?? budget;
-                Widgets.FillableBar(new Rect(line.x, line.y + 3f, 160f, 8f), (float)left / budget);
-                using (new TextBlock(GameFont.Small, TextAnchor.UpperLeft, Color.white))
-                {
-                    Widgets.Label(new Rect(line.x, line.y + 12f, 300f, 22f),
-                        channel == null || channel.units == 0
-                            ? (string)"AGM_Channel_HintPour".Translate(unitCost.ToString("F2"))
-                            : (string)"AGM_Channel_Left".Translate(left, budget, unitCost.ToString("F2")));
-                }
-                return;
-            }
-            if (channel != null)
-            {
-                Widgets.FillableBar(new Rect(line.x, line.y + 3f, 160f, 8f), 1f - channel.Progress);
-                using (new TextBlock(GameFont.Small, TextAnchor.UpperLeft, Color.white))
-                {
-                    Widgets.Label(new Rect(line.x, line.y + 12f, 260f, 22f), "AGM_Channel_Pouring".Translate(channel.spent.ToString("F1")));
-                }
-            }
-            else
-            {
-                using (new TextBlock(GameFont.Tiny, TextAnchor.UpperLeft, new Color(0.85f, 0.85f, 0.85f)))
-                {
-                    Widgets.Label(line, (charged.channel.perTile ? "AGM_Channel_HintTile" : "AGM_Channel_HintUnit").Translate(unitCost.ToString("F2")));
-                }
+                Widgets.Label(new Rect(line.x, line.y + 12f, 300f, 22f),
+                    channel == null || channel.units == 0
+                        ? (string)"AGM_Channel_HintPour".Translate(unitCost)
+                        : (string)"AGM_Channel_Left".Translate(left, budget, unitCost));
             }
         }
 

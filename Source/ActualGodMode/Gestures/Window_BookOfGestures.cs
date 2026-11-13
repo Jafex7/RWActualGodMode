@@ -57,7 +57,7 @@ namespace ActualGodMode
             Rect icon = new Rect(inner.x, inner.y + (inner.height - 32f) / 2f, 32f, 32f);
             GUI.DrawTexture(icon, miracle.Icon);
 
-            bool unlocked = MiracleTracker.Instance?.AnyUnlocked(miracle) ?? false;
+            bool unlocked = MiracleTracker.Instance?.IsUnlocked(miracle) ?? false;
             bool custom = GestureLibrary.HasCustom(miracle);
             Rect label = new Rect(icon.xMax + 8f, inner.y, 150f, inner.height);
             using (new TextBlock(TextAnchor.MiddleLeft))

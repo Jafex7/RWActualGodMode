@@ -9,11 +9,12 @@ namespace ActualGodMode
         /// <param name="rect">Title line; the cost goes on the line below, then the outside-influence factor if any.</param>
         /// <param name="title">Optional title (e.g. the miracle and level).</param>
         /// <returns>The y of the next free line.</returns>
-        public static float Draw(Rect rect, string title, MiracleLevel level, IntVec3 cell, Map map)
+        /// <param name="baseCost">Cost inside the influence (the full cast, or what's left of a pour).</param>
+        public static float Draw(Rect rect, string title, float baseCost, IntVec3 cell, Map map)
         {
             float power = DivinePower.Instance?.Power ?? 0f;
             bool reach = map != null && cell.InBounds(map) && InfluenceUtility.InReach(cell, map);
-            float cost = MiracleUtility.CostAt(level, cell, map);
+            float cost = baseCost * (reach ? InfluenceUtility.CostFactor(cell, map) : 1f);
             Color color = reach && power >= cost ? Color.white : ColorLibrary.RedReadable;
             using (new TextBlock(GameFont.Small, TextAnchor.UpperLeft, color))
             {

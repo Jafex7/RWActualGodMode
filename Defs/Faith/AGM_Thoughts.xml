@@ -47,7 +47,7 @@
     <stackLimit>1</stackLimit>
     <stages>
       <li>
-        <label>ate a blessed meal</label>
+        <label>ate blessed food</label>
         <description>That food came from the god. It tasted like more than food.</description>
         <baseMoodEffect>3</baseMoodEffect>
       </li>

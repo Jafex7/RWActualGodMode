@@ -92,9 +92,6 @@
   <AGM_MiracleLocked>Your followers haven't thought to ask for this yet.</AGM_MiracleLocked>
   <AGM_OutsideInfluence>Beyond the god's reach.</AGM_OutsideInfluence>
   <AGM_OutsideCostFactor>outside influence: cost ×{0}</AGM_OutsideCostFactor>
-  <AGM_Channel_HintTile>Hold: pour tile by tile ({0} each)</AGM_Channel_HintTile>
-  <AGM_Channel_HintUnit>Hold: drop one by one ({0} each)</AGM_Channel_HintUnit>
-  <AGM_Channel_Pouring>Pouring: {0} power spent</AGM_Channel_Pouring>
   <AGM_Channel_HintPour>Hold to pour ({0} each). Right-click cancels.</AGM_Channel_HintPour>
   <AGM_Channel_Left>{0} of {1} left ({2} each)</AGM_Channel_Left>
   <AGM_Channel_OutOfPower>The god's power ran dry.</AGM_Channel_OutOfPower>
@@ -170,7 +167,7 @@
   <AGM_Cause_Prayer>prayed at the shrine</AGM_Cause_Prayer>
   <AGM_Cause_Gratitude>grateful for a good day</AGM_Cause_Gratitude>
   <AGM_Cause_Witnessed>witnessed a miracle ({0})</AGM_Cause_Witnessed>
-  <AGM_Cause_BlessedMeal>ate a blessed meal</AGM_Cause_BlessedMeal>
+  <AGM_Cause_BlessedMeal>ate blessed food</AGM_Cause_BlessedMeal>
   <AGM_Cause_PrayerAnswered>prayer answered ({0})</AGM_Cause_PrayerAnswered>
   <AGM_Cause_SharedAnswer>saw {0}'s prayer answered</AGM_Cause_SharedAnswer>
   <AGM_Cause_PrayerIgnored>prayer unanswered ({0})</AGM_Cause_PrayerIgnored>
@@ -208,7 +205,9 @@
   <AGM_Hand_ShoutFear>No, please!</AGM_Hand_ShoutFear>
   <AGM_Hand_Danger_Fire>Danger: fire</AGM_Hand_Danger_Fire>
   <AGM_Hand_Danger_Hostiles>Danger: hostiles ({0})</AGM_Hand_Danger_Hostiles>
-  <AGM_HoG_HintCharged>Left-click to cast · {0} / {1} change level · right-click to cancel</AGM_HoG_HintCharged>
+  <AGM_HoG_HintCharged>Left-click to cast · right-click to cancel</AGM_HoG_HintCharged>
+  <AGM_HoG_HintPour>Hold left-click to pour · release to pause · right-click to cancel</AGM_HoG_HintPour>
+  <AGM_MiracleCastButton>Cast ({0})</AGM_MiracleCastButton>
   <AGM_HoG_Toggle>Hand of God mode</AGM_HoG_Toggle>
 
   <!-- Gestures -->

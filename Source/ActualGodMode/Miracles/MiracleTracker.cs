@@ -4,7 +4,7 @@ using Verse;
 
 namespace ActualGodMode
 {
-    /// <summary>Tracks which miracle levels the god has unlocked. Unlocks are permanent.</summary>
+    /// <summary>Tracks which miracles the god has unlocked (permanent), colony events, and blessed food.</summary>
     public class MiracleTracker : GameComponent
     {
         private const int CheckIntervalTicks = 250;
@@ -51,11 +51,7 @@ namespace ActualGodMode
         {
         }
 
-        private static string Key(MiracleDef def, int level) => def.defName + ":" + level;
-
-        public bool IsUnlocked(MiracleDef def, int level) => unlocked.Contains(Key(def, level));
-
-        public bool AnyUnlocked(MiracleDef def) => IsUnlocked(def, 0);
+        public bool IsUnlocked(MiracleDef def) => def != null && unlocked.Contains(def.defName);
 
         public override void StartedNewGame() => CheckUnlocks();
 
@@ -83,29 +79,17 @@ namespace ActualGodMode
             caughtUp = true;
             foreach (MiracleDef def in DefDatabase<MiracleDef>.AllDefsListForReading)
             {
-                for (int i = 0; i < def.levels.Count; i++)
+                if (IsUnlocked(def) || !def.requirements.TrueForAll(r => r.IsMet()))
                 {
-                    if (IsUnlocked(def, i))
-                    {
-                        continue;
-                    }
-                    if (i > 0 && !IsUnlocked(def, i - 1))
-                    {
-                        break;
-                    }
-                    MiracleLevel level = def.levels[i];
-                    if (!level.requirements.TrueForAll(r => r.IsMet()))
-                    {
-                        break;
-                    }
-                    unlocked.Add(Key(def, i));
-                    if (level.requirements.Count > 0 && !silent)
-                    {
-                        Find.LetterStack.ReceiveLetter(
-                            "AGM_MiracleUnlocked_Label".Translate(def.LevelLabel(i)),
-                            "AGM_MiracleUnlocked_Text".Translate(def.LevelLabel(i), def.description),
-                            LetterDefOf.PositiveEvent);
-                    }
+                    continue;
+                }
+                unlocked.Add(def.defName);
+                if (def.requirements.Count > 0 && !silent)
+                {
+                    Find.LetterStack.ReceiveLetter(
+                        "AGM_MiracleUnlocked_Label".Translate(def.LabelCap),
+                        "AGM_MiracleUnlocked_Text".Translate(def.label, def.description),
+                        LetterDefOf.PositiveEvent);
                 }
             }
         }
@@ -114,10 +98,7 @@ namespace ActualGodMode
         {
             foreach (MiracleDef def in DefDatabase<MiracleDef>.AllDefsListForReading)
             {
-                for (int i = 0; i < def.levels.Count; i++)
-                {
-                    unlocked.Add(Key(def, i));
-                }
+                unlocked.Add(def.defName);
             }
         }
 
@@ -130,6 +111,14 @@ namespace ActualGodMode
             if (Scribe.mode == LoadSaveMode.PostLoadInit)
             {
                 unlocked ??= new HashSet<string>();
+                // Older saves stored unlocks per level ("AGM_Miracle_Water:0"): keep the miracle.
+                var migrated = new HashSet<string>();
+                foreach (string key in unlocked)
+                {
+                    int colon = key.IndexOf(':');
+                    migrated.Add(colon >= 0 ? key.Substring(0, colon) : key);
+                }
+                unlocked = migrated;
                 events ??= new HashSet<string>();
                 blessedThings ??= new HashSet<int>();
             }
