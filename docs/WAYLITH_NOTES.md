@@ -57,7 +57,10 @@ Re-check these sources before relying on anything here; 1.7 docs are still evolv
   listing `brrainz.harmony`, Core, DLCs, `jafex.actualgodmode`. The player's real
   config and saves are untouched.
 - The log still goes to the normal `Player.log` (overwriting the player's last log).
-- Headless doesn't exit by itself; kill it after load. Load errors (XML, patches,
+- **In-game self-test**: add `-quicktest -agmselftest`. `Dev/AGM_SelfTest.cs` places a
+  shrine, schedules everyone to Worship, runs 6 in-game hours at ultrafast, logs
+  `[AGM SelfTest]` lines plus `RESULT: PASS/FAIL`, and quits (~35 s total).
+- Without a self-test, headless doesn't exit by itself; kill it after load. Load errors (XML, patches,
   DefOf) appear within ~10 s after "[Actual God Mode] Loaded."
 
 ## Local reference source
