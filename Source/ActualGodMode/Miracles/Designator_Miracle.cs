@@ -49,13 +49,8 @@ namespace ActualGodMode
         public override void DrawMouseAttachments()
         {
             base.DrawMouseAttachments();
-            float power = DivinePower.Instance?.Power ?? 0f;
-            Color color = power >= Level.cost ? Color.white : ColorLibrary.RedReadable;
             Vector2 pos = Event.current.mousePosition + new Vector2(20f, 20f);
-            using (new TextBlock(GameFont.Small, color))
-            {
-                Widgets.Label(new Rect(pos.x, pos.y, 200f, 24f), "AGM_MiracleCost".Translate(Level.cost.ToString("F0"), power.ToString("F0")));
-            }
+            MiracleCostLabel.Draw(new Rect(pos.x, pos.y - 18f, 260f, 22f), null, Level, UI.MouseCell(), Map);
         }
     }
 }

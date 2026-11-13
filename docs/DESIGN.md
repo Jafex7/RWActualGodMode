@@ -446,11 +446,40 @@ See conversation log; resolved items get moved into the sections above.
 - Assets: see `docs/ASSETS.md` for the catalog of placeholders to replace.
 
 ## God progression (idea, M6b feedback)
-A "research" for the god's own powers, bought with prayer points (power gathered): an
-ability tree where the player picks upgrades, e.g. cheaper miracles, more lift capacity,
-**the ability to lift living things**, then **to lift enemies**, etc. Each costs an amount
-of power to buy. To design later; it would also be the natural place to gate the
-Hand's stronger abilities instead of giving them all at once.
+A "research" for the god's own powers: an ability tree where the player picks upgrades,
+e.g. cheaper miracles, more lift capacity, **the ability to lift living things**, then
+**to lift enemies**, etc. It would also be the natural place to gate the Hand's stronger
+abilities instead of giving them all at once.
+- **Decided: upgrades are paid from the power pool** (a real trade-off: miracles now or
+  upgrades later), not from lifetime points or automatic thresholds.
+- Still to design: the tree itself (branches Hand / Miracles / Influence?), costs,
+  prerequisites, where it lives (a tab beside Miracles?).
+
+## Influence: soft border (built)
+Like B&W, the god's power doesn't stop at the edge: past it, miracles and the Hand still
+work but get sharply dearer and weaker with distance (`AGM_InfluenceTuning.xml`):
+- distance d = cells beyond the nearest edge (shrine or tended pylon).
+- cost ×e^(d/2.5): 1 cell ×1.5, 3 cells ×3.3, 6 cells ×11, 10 cells ×55; nothing beyond 10.
+- Hand capacity ×e^(−d/3): 1 cell 72%, 3 cells 37%, 6 cells 14%. Pickup and per-hour
+  holding costs use the cost factor. Carry something too far for its weight and it slips
+  down at the last cell where the hand could still hold it (so a colonist slips about a
+  cell out, a handful of silver goes much further).
+- Cursor readouts show the cost at the cursor and "outside influence: cost ×N".
+- Prayer answering, pylons and other "in influence" checks stay strict (inside only).
+
+## Hold-to-cast miracles (idea, user; not built)
+B&W style: some miracles can be **channelled**. A click does what it does now (one burst);
+**holding** keeps casting under the cursor for up to ~2 s while you move it, then stops.
+- Water: smaller radius per splash, but drag it over a fire line or a field.
+- Food / wood: a click spawns the set amount; holding spawns single items one by one
+  (food as raw crops: potatoes, corn, rice; wood logs) along the path.
+- Lightning and Heal stay one-and-done.
+- Feasible: a charged miracle starts a "channel" on mouse-down; every few frames while
+  held it applies a small effect at the cursor and drains power per unit; release, the
+  time limit, or running out of power ends it. A quick click (< ~0.2 s) keeps the
+  current single cast. Per-miracle XML: `channel` settings (rate, per-unit cost, max
+  seconds, per-unit radius/amount). Details to refine (cost per second vs per unit,
+  whether channelling works while paused).
 
 ## Sound (to do near the end)
 SFX wanted for: drawing a gesture (while drawing / recognized / failed), each miracle

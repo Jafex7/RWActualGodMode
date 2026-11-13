@@ -47,13 +47,26 @@ namespace ActualGodMode
         /// <summary>How much the god can lift (kg): grows with believers.</summary>
         public static float Capacity => T.baseLiftKg + T.liftPerBelieverKg * (BelieverTracker.Instance?.LivingCount ?? 0);
 
+        /// <summary>Capacity at a cell: full inside the influence, fading fast past its edge.</summary>
+        public static float CapacityAt(IntVec3 cell, Map map) => Capacity * InfluenceUtility.LiftFactor(cell, map);
+
+        /// <summary>Could the hand hold this (mass) here?</summary>
+        public static bool CanHoldAt(float mass, IntVec3 cell, Map map) =>
+            cell.InBounds(map) && InfluenceUtility.InReach(cell, map) && mass <= CapacityAt(cell, map);
+
         public static float UnitMass(Thing t) =>
             t is Pawn p ? p.GetStatValue(StatDefOf.Mass) + MassUtility.GearAndInventoryMass(p) : t.GetStatValue(StatDefOf.Mass);
 
         public static float MassOf(Thing t) => t is Pawn ? UnitMass(t) : UnitMass(t) * t.stackCount;
 
+        /// <summary>Power to pick it up where it lies (dearer past the influence edge).</summary>
         public static float PickupCost(Thing t, float mass) =>
-            t is Pawn ? T.pawnPickupCost + T.pawnPickupCostPerKg * mass : T.itemPickupCost + T.itemPickupCostPerKg * mass;
+            (t is Pawn ? T.pawnPickupCost + T.pawnPickupCostPerKg * mass : T.itemPickupCost + T.itemPickupCostPerKg * mass)
+            * (t.Spawned ? InfluenceUtility.CostFactor(t.Position, t.Map) : 1f);
+
+        /// <summary>Power per hour to hold it over this cell (dearer past the influence edge).</summary>
+        public float HoldCostAt(Thing t, IntVec3 cell) =>
+            HoldCostPerHour(t, MassOf(t)) * (cell.IsValid && cell.InBounds(map) ? InfluenceUtility.CostFactor(cell, map) : 1f);
 
         public static float HoldCostPerHour(Thing t, float mass) =>
             (t is Pawn ? T.pawnHoldCostPerKgPerHour : T.itemHoldCostPerKgPerHour) * mass;
@@ -91,12 +104,13 @@ namespace ActualGodMode
         /// <summary>How many of the thing the hand would take (a heavy stack is taken in part).</summary>
         public static int LiftableCount(Thing t)
         {
+            float capacity = CapacityAt(t.Position, t.Map);
             if (t is Pawn)
             {
-                return UnitMass(t) <= Capacity ? 1 : 0;
+                return UnitMass(t) <= capacity ? 1 : 0;
             }
             float unit = UnitMass(t);
-            return unit <= 0.0001f ? t.stackCount : Mathf.Min(t.stackCount, Mathf.FloorToInt(Capacity / unit));
+            return unit <= 0.0001f ? t.stackCount : Mathf.Min(t.stackCount, Mathf.FloorToInt(capacity / unit));
         }
 
         public AcceptanceReport CanGrab(Thing t)
@@ -105,14 +119,14 @@ namespace ActualGodMode
             {
                 return false;
             }
-            if (!InfluenceUtility.InInfluence(t.Position, t.Map))
+            if (!InfluenceUtility.InReach(t.Position, t.Map))
             {
                 return "AGM_Hand_OutOfInfluence".Translate();
             }
             int count = LiftableCount(t);
             if (count <= 0)
             {
-                return "AGM_Hand_TooHeavy".Translate(t.LabelShort, UnitMass(t).ToString("F0"), Capacity.ToString("F0"));
+                return "AGM_Hand_TooHeavy".Translate(t.LabelShort, UnitMass(t).ToString("F0"), CapacityAt(t.Position, t.Map).ToString("F0"));
             }
             float cost = PickupCost(t, t is Pawn ? UnitMass(t) : UnitMass(t) * count);
             if (!DivinePower.Instance.CanAfford(cost))
@@ -174,7 +188,7 @@ namespace ActualGodMode
             {
                 return;
             }
-            if (cell.InBounds(map) && InfluenceUtility.InInfluence(cell, map))
+            if (CanHoldAt(MassOf(Held), cell, map))
             {
                 lastCell = cell;
             }
@@ -233,7 +247,7 @@ namespace ActualGodMode
                 return false;
             }
             dragging = false;
-            IntVec3 target = cell.InBounds(map) && InfluenceUtility.InInfluence(cell, map) ? cell : lastCell;
+            IntVec3 target = CanHoldAt(MassOf(t), cell, map) ? cell : lastCell;
             if (!target.IsValid || !target.InBounds(map))
             {
                 target = map.Center;
@@ -364,7 +378,7 @@ namespace ActualGodMode
             {
                 return true;
             }
-            float cost = HoldCostPerHour(t, MassOf(t)) * ticks / GenDate.TicksPerHour;
+            float cost = HoldCostAt(t, lastCell) * ticks / GenDate.TicksPerHour;
             if (DivinePower.Instance.TrySpend(cost))
             {
                 return true;

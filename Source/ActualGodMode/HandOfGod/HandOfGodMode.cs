@@ -433,13 +433,7 @@ namespace ActualGodMode
             Vector2 mouse = Event.current.mousePosition;
             Rect icon = new Rect(mouse.x + 22f, mouse.y + 14f, 32f, 32f);
             GUI.DrawTexture(icon, charged.Icon);
-            Color color = power >= level.cost ? Color.white : ColorLibrary.RedReadable;
-            using (new TextBlock(GameFont.Small, TextAnchor.UpperLeft, color))
-            {
-                Widgets.Label(new Rect(icon.xMax + 6f, icon.y - 2f, 240f, 22f), charged.LevelLabel(chargedLevel));
-                Widgets.Label(new Rect(icon.xMax + 6f, icon.y + 16f, 240f, 22f),
-                    "AGM_MiracleCost".Translate(level.cost.ToString("F0"), power.ToString("F0")));
-            }
+            MiracleCostLabel.Draw(new Rect(icon.xMax + 6f, icon.y - 2f, 260f, 22f), charged.LevelLabel(chargedLevel), level, UI.MouseCell(), Find.CurrentMap);
         }
 
         /// <summary>Next to the cursor: what's held (mass, upkeep), or what's under it and whether it can be lifted.</summary>
@@ -455,14 +449,14 @@ namespace ActualGodMode
             {
                 return;
             }
-            float capacity = GodHand.Capacity;
+            float capacity = GodHand.CapacityAt(hand.Holding ? hand.LastCell : thing.Position, Find.CurrentMap);
             string line1, line2;
             Color color = Color.white;
             if (hand.Holding)
             {
                 float mass = GodHand.MassOf(thing);
                 line1 = thing.LabelCap;
-                line2 = "AGM_Hand_HoldingLine".Translate(mass.ToString("F0"), capacity.ToString("F0"), GodHand.HoldCostPerHour(thing, mass).ToString("F1"));
+                line2 = "AGM_Hand_HoldingLine".Translate(mass.ToString("F0"), capacity.ToString("F0"), hand.HoldCostAt(thing, hand.LastCell).ToString("F1"));
             }
             else
             {
@@ -477,7 +471,7 @@ namespace ActualGodMode
                 else
                 {
                     float cost = GodHand.PickupCost(thing, mass);
-                    if (!InfluenceUtility.InInfluence(thing.Position, thing.Map) || !DivinePower.Instance.CanAfford(cost))
+                    if (!DivinePower.Instance.CanAfford(cost))
                     {
                         color = ColorLibrary.RedReadable;
                     }

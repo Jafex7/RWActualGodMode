@@ -29,6 +29,8 @@ Read before changing things:
   person). `GodHand` MapComponent holds the thing. Verified in-game. Then: lifted pawns react (flavor thought + shout by
   alignment), and a colonist set down on work starts it (`HandWorkOrder`, vanilla work-giver checks, trees get marked).
   Dropping into danger (fire / hostiles) is judged like a strike (`WrathJudgement`, shared with Lightning).
+  Soft influence border: past the edge, miracles and the Hand cost more and the Hand weakens, sharply with distance
+  (`InfluenceUtility.CostFactor` / `LiftFactor` / `InReach`, `AGM_InfluenceTuning.xml`).
   Self-tested; awaiting in-game test.
 - Next: see the roadmap in DESIGN.md (v2: factions/awe, throwing, …).
 

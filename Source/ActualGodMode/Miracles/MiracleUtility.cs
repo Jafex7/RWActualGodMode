@@ -6,7 +6,11 @@ namespace ActualGodMode
 {
     public static class MiracleUtility
     {
-        /// <summary>Every check a cast must pass: unlocked, inside influence, affordable, valid target.</summary>
+        /// <summary>What casting this level here costs: the base cost, raised sharply past the edge of influence.</summary>
+        public static float CostAt(MiracleLevel level, IntVec3 cell, Map map) =>
+            map == null || !cell.InBounds(map) ? level.cost : level.cost * InfluenceUtility.CostFactor(cell, map);
+
+        /// <summary>Every check a cast must pass: unlocked, within reach (soft border), affordable, valid target.</summary>
         public static AcceptanceReport CanCast(MiracleDef def, int levelIndex, IntVec3 cell, Map map)
         {
             if (map == null || !cell.InBounds(map) || cell.Fogged(map))
@@ -17,14 +21,15 @@ namespace ActualGodMode
             {
                 return "AGM_MiracleLocked".Translate();
             }
-            if (!InfluenceUtility.InInfluence(cell, map))
+            if (!InfluenceUtility.InReach(cell, map))
             {
                 return "AGM_OutsideInfluence".Translate();
             }
             MiracleLevel level = def.levels[levelIndex];
-            if (!(DivinePower.Instance?.CanAfford(level.cost) ?? false))
+            float cost = CostAt(level, cell, map);
+            if (!(DivinePower.Instance?.CanAfford(cost) ?? false))
             {
-                return "AGM_NotEnoughPower".Translate(level.cost.ToString("F0"));
+                return "AGM_NotEnoughPower".Translate(cost.ToString("F0"));
             }
             return def.Worker.CanCastAt(cell, map, level);
         }
@@ -37,7 +42,7 @@ namespace ActualGodMode
                 return report;
             }
             MiracleLevel level = def.levels[levelIndex];
-            DivinePower.Instance.TrySpend(level.cost);
+            DivinePower.Instance.TrySpend(CostAt(level, cell, map));
             def.Worker.Cast(cell, map, level);
             NotifyWitnesses(def, cell, map);
             PrayerRequestTracker.Instance?.Notify_MiracleCast(def, cell, map);

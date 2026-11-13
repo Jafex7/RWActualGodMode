@@ -90,7 +90,8 @@
 
   <!-- Miracles -->
   <AGM_MiracleLocked>Your followers haven't thought to ask for this yet.</AGM_MiracleLocked>
-  <AGM_OutsideInfluence>Outside your influence.</AGM_OutsideInfluence>
+  <AGM_OutsideInfluence>Beyond the god's reach.</AGM_OutsideInfluence>
+  <AGM_OutsideCostFactor>outside influence: cost ×{0}</AGM_OutsideCostFactor>
   <AGM_NotEnoughPower>Not enough Divine Power (needs {0}).</AGM_NotEnoughPower>
   <AGM_MiracleCost>Cost: {0} (have {1})</AGM_MiracleCost>
   <AGM_MiracleUnlocked_Label>New miracle: {0}</AGM_MiracleUnlocked_Label>
@@ -194,7 +195,7 @@
   <AGM_Hand_HoldingLine>{0} kg of {1} kg · {2} power per hour</AGM_Hand_HoldingLine>
   <AGM_Hand_TooHeavy>{0} is too heavy for the god's hand: {1} kg, and it can lift {2} kg. More believers make it stronger.</AGM_Hand_TooHeavy>
   <AGM_Hand_OutOfInfluence>That is beyond the god's reach.</AGM_Hand_OutOfInfluence>
-  <AGM_Hand_Slipped>{0} slipped from the god's hand at the edge of its reach.</AGM_Hand_Slipped>
+  <AGM_Hand_Slipped>{0} slipped from the god's hand: its strength fades away from its influence.</AGM_Hand_Slipped>
   <AGM_Hand_NoPower>The god's power ran out: {0} was set down.</AGM_Hand_NoPower>
   <AGM_Hand_ShoutJoy>Praise be!</AGM_Hand_ShoutJoy>
   <AGM_Hand_ShoutSurprise>Whoa!</AGM_Hand_ShoutSurprise>

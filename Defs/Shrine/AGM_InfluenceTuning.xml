@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+  <!-- The soft border: past the edge of influence the god can still act, at a price that
+       climbs very fast with distance (cells beyond the nearest edge). -->
+  <ActualGodMode.InfluenceTuningDef>
+    <defName>AGM_InfluenceTuning</defName>
+    <!-- Nothing at all beyond this many cells outside -->
+    <maxReachOutside>10</maxReachOutside>
+    <!-- Miracle / hand cost x e^(d / this): 1 cell x1.5, 3 cells x3.3, 6 cells x11, 10 cells x55 -->
+    <costGrowthCells>2.5</costGrowthCells>
+    <!-- Lift capacity x e^(-d / this): 1 cell 72%, 3 cells 37%, 6 cells 14% -->
+    <liftFalloffCells>3</liftFalloffCells>
+  </ActualGodMode.InfluenceTuningDef>
+
+</Defs>

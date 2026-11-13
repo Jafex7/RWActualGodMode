@@ -514,14 +514,35 @@ namespace ActualGodMode
                 hand.Place(near);
             }
 
-            // Leaving the influence drops what is held, at the edge.
+            // The soft border: just outside, things cost more and the hand is weaker; far out, nothing reaches.
+            IntVec3 justOut = map.AllCells.Where(c => Mathf.Abs(InfluenceUtility.DistanceOutside(c, map) - 1f) < 0.3f && c.Standable(map)).FirstOrFallback(IntVec3.Invalid);
+            IntVec3 twoOut = map.AllCells.Where(c => Mathf.Abs(InfluenceUtility.DistanceOutside(c, map) - 2.5f) < 0.3f && c.Standable(map)).FirstOrFallback(IntVec3.Invalid);
+            IntVec3 beyond = map.AllCells.Where(c => !InfluenceUtility.InReach(c, map) && c.Standable(map)).FirstOrFallback(IntVec3.Invalid);
+            if (justOut.IsValid)
+            {
+                float f1 = InfluenceUtility.CostFactor(justOut, map);
+                MiracleLevel water = DefDatabase<MiracleDef>.GetNamed("AGM_Miracle_Water").levels[0];
+                Check(f1 > 1.2f && f1 < 2f && MiracleUtility.CostAt(water, justOut, map) > water.cost,
+                    $"one cell outside the influence a miracle still works but costs more (x{f1:F2})");
+                Check(MiracleUtility.CanCast(DefDatabase<MiracleDef>.GetNamed("AGM_Miracle_Water"), 0, justOut, map).Accepted, "a miracle can be cast just outside the influence");
+            }
+            if (twoOut.IsValid)
+            {
+                Check(InfluenceUtility.CostFactor(twoOut, map) > InfluenceUtility.CostFactor(justOut.IsValid ? justOut : twoOut, map) && GodHand.CapacityAt(twoOut, map) < GodHand.Capacity * 0.5f,
+                    $"further out costs climb and the hand weakens (x{InfluenceUtility.CostFactor(twoOut, map):F1}, {GodHand.CapacityAt(twoOut, map):F0} kg)");
+            }
+            if (beyond.IsValid)
+            {
+                Check(!MiracleUtility.CanCast(DefDatabase<MiracleDef>.GetNamed("AGM_Miracle_Water"), 0, beyond, map).Accepted, "far beyond the influence nothing can be cast");
+            }
+
+            // Too far for what is held: it drops at the last cell where the hand could hold it.
             Thing silver = GenSpawn.Spawn(ThingDefOf.Silver, near, map);
             hand.TryGrab(silver, drag: false);
-            IntVec3 far = map.AllCells.FirstOrDefault(c => !InfluenceUtility.InInfluence(c, map) && c.Standable(map));
-            if (far.IsValid)
+            if (beyond.IsValid)
             {
-                hand.MoveTo(far);
-                Check(!hand.Holding && silver.Spawned && InfluenceUtility.InInfluence(silver.Position, map), "moving out of the god's reach drops the held thing inside it");
+                hand.MoveTo(beyond);
+                Check(!hand.Holding && silver.Spawned && InfluenceUtility.InReach(silver.Position, map), "moving out of the god's reach drops the held thing where the hand could still hold it");
             }
             hand.Place(near);
 
@@ -722,11 +743,10 @@ namespace ActualGodMode
             Check(r.Accepted && !fireCell.ContainsStaticFire(map), "water I extinguished the fire");
 
             // Outside influence is refused and costs nothing
-            float radius = shrine.TryGetComp<CompShrine>().Props.influenceRadius;
-            IntVec3 far = map.AllCells.FirstOrDefault(c => c.Standable(map) && !c.Fogged(map) && (c - shrine.Position).LengthHorizontal > radius + 5f);
+            IntVec3 far = map.AllCells.FirstOrDefault(c => c.Standable(map) && !c.Fogged(map) && !InfluenceUtility.InReach(c, map));
             before = dp.Power;
             r = MiracleUtility.TryCast(food, 0, far, map);
-            Check(!r.Accepted && Mathf.Approximately(before, dp.Power), "cast outside influence refused, no power spent: " + r.Reason);
+            Check(!r.Accepted && Mathf.Approximately(before, dp.Power), "cast beyond the soft border refused, no power spent: " + r.Reason);
 
             // Not enough power is refused
             dp.DebugSet(3f);
