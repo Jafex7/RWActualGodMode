@@ -50,6 +50,9 @@ Read before changing things:
   DLC systems, not duplicate them.
 - Harmony 3: `PatchAll(typeof(X).Assembly)`; `__instance` / `__result` types must match exactly.
 - Extend `AGM_SelfTest` when adding gameplay, so the headless test covers it.
+- **Test setups go in `Dev/AGM_TestScenarios.cs`** as shared builders: the self-test calls them, and each is also a
+  dev-mode debug action so the user can recreate the same setup on their own save (e.g. "Set up god test colony",
+  later "Build test temple"). Add one per milestone.
 - Commit per milestone or fix; git identity is set per-repo. Push when the user agrees.
 
 ## Recipes

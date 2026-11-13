@@ -87,17 +87,13 @@ namespace ActualGodMode
                 Log.Message(Tag + $"  {p.LabelShort}: faith need={(p.Faith() != null ? p.Faith().CurLevelPercentage.ToStringPercent() : "MISSING")}");
             }
 
-            IntVec3 origin = colonists[0].Position;
-            if (!CellFinder.TryFindRandomCellNear(origin, map, 10,
-                    c => c.Standable(map) && GenAdj.CellsAdjacent8Way(new TargetInfo(c, map)).All(a => a.InBounds(map) && a.Standable(map)),
-                    out IntVec3 cell))
+            shrine = AGM_TestScenarios.EnsureShrine(map);
+            if (shrine == null)
             {
                 Fail("No room to place the shrine.");
                 return;
             }
-            shrine = GenSpawn.Spawn(ThingMaker.MakeThing(AGM_DefOf.AGM_Shrine, ThingDefOf.BlocksGranite), cell, map);
-            shrine.SetFaction(Faction.OfPlayer);
-            Log.Message(Tag + $"Shrine placed at {cell}. Pray spots: {shrine.TryGetComp<CompShrine>().PraySpots.Count}");
+            Log.Message(Tag + $"Shrine placed at {shrine.Position}. Pray spots: {shrine.TryGetComp<CompShrine>().PraySpots.Count}");
 
             foreach (Pawn p in colonists)
             {
