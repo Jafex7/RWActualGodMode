@@ -57,6 +57,8 @@ Re-check these sources before relying on anything here; 1.7 docs are still evolv
   listing `brrainz.harmony`, Core, DLCs, `jafex.actualgodmode`. The player's real
   config and saves are untouched.
 - The log still goes to the normal `Player.log` (overwriting the player's last log).
+- **Use `tools/selftest.ps1`**: it does all of the below (profile in `_selftest/`,
+  dev mode on, build, run, parse log, exit code).
 - **In-game self-test**: add `-quicktest -agmselftest`. `Dev/AGM_SelfTest.cs` places a
   shrine, schedules everyone to Worship, runs 6 in-game hours at ultrafast, logs
   `[AGM SelfTest]` lines plus `RESULT: PASS/FAIL`, and quits (~35 s total).

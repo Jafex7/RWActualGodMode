@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+  <MainButtonDef>
+    <defName>AGM_Miracles</defName>
+    <label>miracles</label>
+    <description>Work miracles inside your influence, paid for with Divine Power.</description>
+    <workerClass>ActualGodMode.MainButtonWorker_Miracles</workerClass>
+    <tabWindowClass>ActualGodMode.MainTabWindow_Miracles</tabWindowClass>
+    <order>75</order>
+    <closesWorldView>true</closesWorldView>
+  </MainButtonDef>
+
+  <!-- ===== Water ===== -->
+  <ActualGodMode.MiracleDef>
+    <defName>AGM_Miracle_Water</defName>
+    <label>water</label>
+    <description>Rain falls on the chosen spot, putting out fires and soaking the ground.</description>
+    <workerClass>ActualGodMode.MiracleWorker_Water</workerClass>
+    <iconThing>Filth_Water</iconThing>
+    <order>10</order>
+    <levels>
+      <li>
+        <label>I</label>
+        <cost>5</cost>
+        <radius>2.9</radius>
+      </li>
+      <li>
+        <label>II</label>
+        <cost>15</cost>
+        <radius>5.9</radius>
+        <requirements>
+          <li Class="ActualGodMode.Req_Believers">
+            <count>3</count>
+          </li>
+        </requirements>
+      </li>
+    </levels>
+  </ActualGodMode.MiracleDef>
+
+  <!-- ===== Food ===== -->
+  <ActualGodMode.MiracleDef>
+    <defName>AGM_Miracle_Food</defName>
+    <label>food</label>
+    <description>Food appears from nowhere. A small blessing feeds one person for a day; a greater one feeds a household.</description>
+    <workerClass>ActualGodMode.MiracleWorker_SpawnThing</workerClass>
+    <iconThing>MealSimple</iconThing>
+    <order>20</order>
+    <levels>
+      <li>
+        <label>I</label>
+        <cost>10</cost>
+        <thingDef>MealSimple</thingDef>
+        <amount>2</amount>
+      </li>
+      <li>
+        <label>II</label>
+        <cost>30</cost>
+        <thingDef>MealSimple</thingDef>
+        <amount>6</amount>
+        <requirements>
+          <li Class="ActualGodMode.Req_Believers">
+            <count>3</count>
+          </li>
+          <li Class="ActualGodMode.Req_LifetimePower">
+            <amount>150</amount>
+          </li>
+        </requirements>
+      </li>
+    </levels>
+  </ActualGodMode.MiracleDef>
+
+  <!-- ===== Wood ===== -->
+  <ActualGodMode.MiracleDef>
+    <defName>AGM_Miracle_Wood</defName>
+    <label>wood</label>
+    <description>Logs appear at the chosen spot. A small blessing is enough for a campfire.</description>
+    <workerClass>ActualGodMode.MiracleWorker_SpawnThing</workerClass>
+    <iconThing>WoodLog</iconThing>
+    <order>30</order>
+    <levels>
+      <li>
+        <label>I</label>
+        <cost>5</cost>
+        <thingDef>WoodLog</thingDef>
+        <amount>25</amount>
+      </li>
+      <li>
+        <label>II</label>
+        <cost>12</cost>
+        <thingDef>WoodLog</thingDef>
+        <amount>75</amount>
+        <requirements>
+          <li Class="ActualGodMode.Req_LifetimePower">
+            <amount>100</amount>
+          </li>
+        </requirements>
+      </li>
+    </levels>
+  </ActualGodMode.MiracleDef>
+
+</Defs>

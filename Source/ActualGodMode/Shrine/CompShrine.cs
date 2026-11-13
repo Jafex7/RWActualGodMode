@@ -8,6 +8,9 @@ namespace ActualGodMode
 {
     public class CompProperties_Shrine : CompProperties
     {
+        /// <summary>Radius in which the god can work miracles.</summary>
+        public float influenceRadius = 14.9f;
+
         /// <summary>Radius in which pray spots are chosen.</summary>
         public float praySpotRadius = 2.9f;
 
@@ -142,7 +145,8 @@ namespace ActualGodMode
 
         public override void PostDrawExtraSelectionOverlays()
         {
-            GenDraw.DrawFieldEdges(PraySpots, new Color(1f, 0.85f, 0.4f));
+            GenDraw.DrawFieldEdges(PraySpots, InfluenceUtility.InfluenceColor);
+            GenDraw.DrawRadiusRing(parent.Position, Props.influenceRadius, InfluenceUtility.InfluenceColor);
         }
 
         public override string CompInspectStringExtra()

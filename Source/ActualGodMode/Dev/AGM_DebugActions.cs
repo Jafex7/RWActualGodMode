@@ -14,6 +14,9 @@ namespace ActualGodMode
         [DebugAction(Category, "Divine power = 0", allowedGameStates = AllowedGameStates.Playing)]
         private static void ClearPower() => DivinePower.Instance?.DebugSet(0f);
 
+        [DebugAction(Category, "Unlock all miracles", allowedGameStates = AllowedGameStates.Playing)]
+        private static void UnlockAllMiracles() => MiracleTracker.Instance?.DebugUnlockAll();
+
         [DebugAction(Category, "Faith +20% (colonists)", allowedGameStates = AllowedGameStates.PlayingOnMap)]
         private static void FaithUp() => OffsetFaith(0.2f);
 

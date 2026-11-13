@@ -1,6 +1,9 @@
 # Decompiled game code: reference only, never commit or ship
 _reference/
 
+# Isolated RimWorld profile used by tools/selftest.ps1
+_selftest/
+
 # Build output
 bin/
 obj/

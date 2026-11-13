@@ -17,4 +17,14 @@
   <AGM_Shrine_Worshippers>Praying: {0} / {1}</AGM_Shrine_Worshippers>
   <AGM_Shrine_SpotsBlocked>{0} prayer spot(s) blocked: keep the area around the shrine clear.</AGM_Shrine_SpotsBlocked>
   <AGM_Shrine_GroupBonus>Group prayer bonus: +{0}</AGM_Shrine_GroupBonus>
+
+  <!-- Miracles -->
+  <AGM_MiracleLocked>Your followers haven't thought to ask for this yet.</AGM_MiracleLocked>
+  <AGM_OutsideInfluence>Outside your influence.</AGM_OutsideInfluence>
+  <AGM_NotEnoughPower>Not enough Divine Power (needs {0}).</AGM_NotEnoughPower>
+  <AGM_MiracleCost>Cost: {0} (have {1})</AGM_MiracleCost>
+  <AGM_MiracleUnlocked_Label>New miracle: {0}</AGM_MiracleUnlocked_Label>
+  <AGM_MiracleUnlocked_Text>Your followers' faith has grown, and with it their idea of what you can do for them. They now pray for {0}.\n\n{1}</AGM_MiracleUnlocked_Text>
+  <AGM_Req_Believers>{0} colonists with at least {1} faith (now {2})</AGM_Req_Believers>
+  <AGM_Req_LifetimePower>{0} Divine Power received in total (now {1})</AGM_Req_LifetimePower>
 </LanguageData>
