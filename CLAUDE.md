@@ -6,6 +6,7 @@ package ID `jafex.actualgodmode`. Repo: https://github.com/Jafex7/RWActualGodMod
 Read before changing things:
 - `docs/DESIGN.md`: every design decision and the roadmap (M0–M6, v2, v3). Update it when decisions are made.
 - `docs/WAYLITH_NOTES.md`: 1.7 / Waylith engine facts, Harmony 3 rules, what's verified vs unknown.
+- `docs/ASSETS.md`: catalog of every texture/icon/sound and whether it is a placeholder. Update it when adding assets.
 
 ## Status
 - Done: **M0** setup, **M1** faith / divine power / shrine / worship, **M2** miracles (toolbar casting).

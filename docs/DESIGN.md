@@ -364,3 +364,9 @@ See conversation log; resolved items get moved into the sections above.
 - Tier thresholds (impressiveness 30/60/100, holy 1/3/6) may be easy: the self-test's
   "temple" build already scored 98 impressiveness with masterwork sculptures. Revisit
   in the balance pass.
+- **Offering balance (future)**: a rich colony can convert a hoard of silver into a
+  full power pool instantly, and shedding wealth also lowers raid strength in
+  RimWorld. Ideas: a cooldown, or diminishing returns when many offerings are made
+  in a short time; variety (the god values different kinds of gifts, repeats are
+  worth less).
+- Assets: see `docs/ASSETS.md` for the catalog of placeholders to replace.

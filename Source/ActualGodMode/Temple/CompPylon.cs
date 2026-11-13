@@ -84,6 +84,30 @@ namespace ActualGodMode
         }
     }
 
+    /// <summary>
+    /// While placing a pylon (or a shrine): show the god's current influence and the area the
+    /// new one would cover, so it can be placed strategically.
+    /// </summary>
+    public class PlaceWorker_ShowInfluence : PlaceWorker
+    {
+        public override void DrawGhost(ThingDef def, IntVec3 center, Rot4 rot, Color ghostCol, Thing thing = null)
+        {
+            Map map = Find.CurrentMap;
+            if (map == null)
+            {
+                return;
+            }
+            InfluenceUtility.DrawInfluence(map);
+            float radius = def.GetCompProperties<CompProperties_Pylon>()?.influenceRadius
+                ?? def.GetCompProperties<CompProperties_Shrine>()?.influenceRadius
+                ?? 0f;
+            if (radius > 0f)
+            {
+                GenDraw.DrawRadiusRing(center, radius, Color.white);
+            }
+        }
+    }
+
     /// <summary>Believers tend pylons that are wearing off (Basic work).</summary>
     public class WorkGiver_TendPylon : WorkGiver_Scanner
     {

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Defs>
 
   <!-- ===== Temple tiers (tier 0 = no temple / outdoors) ===== -->
@@ -258,6 +258,9 @@
     <researchPrerequisites>
       <li>AGM_PylonResearch</li>
     </researchPrerequisites>
+    <placeWorkers>
+      <li>ActualGodMode.PlaceWorker_ShowInfluence</li>
+    </placeWorkers>
     <comps>
       <li Class="ActualGodMode.CompProperties_Pylon">
         <influenceRadius>7.9</influenceRadius>
