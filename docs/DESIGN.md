@@ -290,6 +290,23 @@ click a thing = grab, drag from empty ground = gesture, release = put down.
 - **Later (user ideas, M6b feedback)**:
   - Drop interactions with a **choice** (food: eat vs haul; corpse: butcher vs bury…):
     maybe a menu later; for now only work-giver jobs, which don't need one.
+  - **Drop rules** (user idea, planned): an in-game settings window with a category
+    tree like the storage filter (apparel, weapons, food, corpses, raw resources…, plus
+    non-item kinds: workbenches, blueprints/frames, trees, crops, filth, growing zones,
+    animals). Each category gets **one** action from the ones that make sense for it
+    (apparel: wear / equip-haul / haul / ignore; food: eat / haul / ignore; corpse:
+    butcher / bury / haul / ignore; filth: clean / ignore…), inherited down the tree
+    like storage settings, with sensible defaults. "Ignore" = just set the pawn down.
+    Anything specific is still done the vanilla way (drop beside it, right-click).
+    - Work-giver actions (haul, clean, cut, build, bills) reuse `HandWorkOrder`; others
+      (wear, equip, eat) build the vanilla job directly (`JobDefOf.Wear`, `Equip`,
+      `Ingest`).
+    - **Cursor preview** of the order before dropping: the rule tells what to show
+      ("will wear: parka"). Full checks (reachable, assigned, reservable) need the pawn
+      spawned, and a held pawn isn't, so the preview shows the rule's intent plus the
+      checks that don't need the map (work type assigned/disabled), and the drop does the
+      rest (warning if it still fails).
+    - Settings stored per save (game component) or globally (mod settings): TBD.
   - **Enemies struggle**: cost much more to lift, or locked until a milestone.
   - **Dangerous drops**: dropping a pawn into fire, among hostile insects, etc. should be
     detected and judged like Lightning: punishment/evil for your own people,
