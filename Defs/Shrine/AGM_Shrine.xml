@@ -25,6 +25,8 @@
     <altitudeLayer>Building</altitudeLayer>
     <passability>Impassable</passability>
     <fillPercent>0.5</fillPercent>
+    <!-- A monument you can't walk through but can see and shoot over, like a statue on a plinth -->
+    <disableImpassableShotOverConfigError>true</disableImpassableShotOverConfigError>
     <rotatable>false</rotatable>
     <size>(1,1)</size>
     <stuffCategories>
