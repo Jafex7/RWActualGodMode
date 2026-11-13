@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Defs>
 
   <DesignationCategoryDef>
@@ -41,6 +41,9 @@
     </statBases>
     <terrainAffordanceNeeded>Medium</terrainAffordanceNeeded>
     <designationCategory>AGM_Divine</designationCategory>
+    <researchPrerequisites>
+      <li>AGM_ShrineResearch</li>
+    </researchPrerequisites>
     <canOverlapZones>false</canOverlapZones>
     <placeWorkers>
       <li>ActualGodMode.PlaceWorker_OneShrinePerMap</li>

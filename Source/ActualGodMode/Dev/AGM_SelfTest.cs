@@ -52,6 +52,15 @@ namespace ActualGodMode
             {
                 return;
             }
+            if (awakeningPhase)
+            {
+                AwakeningTick();
+                return;
+            }
+            if (syncDone)
+            {
+                return;
+            }
             CompShrine comp = shrine.TryGetComp<CompShrine>();
             if (comp.CurrentWorshippers > maxWorshippers)
             {
@@ -129,9 +138,11 @@ namespace ActualGodMode
             Log.Message(Tag + (condition ? "  ok   " : "  FAIL ") + what);
         }
 
+        private bool syncDone;
+
         private void Finish()
         {
-            finished = true;
+            syncDone = true;
             DivinePower dp = DivinePower.Instance;
             Log.Message(Tag + $"Worship phase: power={dp.Power:F2} lifetime={dp.LifetimePower:F2} maxSimultaneousWorshippers={maxWorshippers}");
             Check(dp.Power > 0f, "worship generated power");
@@ -172,8 +183,77 @@ namespace ActualGodMode
                 Check(false, "faith tests threw: " + e);
             }
 
+            StartAwakeningPhase();
+        }
+
+        private void Complete()
+        {
+            finished = true;
             Log.Message(Tag + $"RESULT: {(failures == 0 ? "PASS" : "FAIL")} ({failures} failure(s))");
             Root.Shutdown();
+        }
+
+        // ---- Awakening phase (needs real ticks: the trance pawn walks and draws) ----
+
+        private bool awakeningPhase;
+        private int awakeningStartTick;
+        private Pawn awakeningPawn;
+        private const int AwakeningTimeoutTicks = 6000;
+
+        private void StartAwakeningPhase()
+        {
+            Log.Message(Tag + "Awakening phase");
+            AwakeningTracker t = AwakeningTracker.Instance;
+            ResearchProjectDef research = AGM_AwakeningDefOf.AGM_ShrineResearch;
+            try
+            {
+                t.ResetToDormant();
+                Check(research.IsHidden && !research.PrerequisitesCompleted, "shrine research hidden and locked before the Revelation");
+
+                awakeningPawn = shrine.Map.mapPawns.FreeColonistsSpawned.FirstOrDefault(p => !p.Downed && p.Awake() && !p.InMentalState);
+                Check(awakeningPawn != null && t.Begin(awakeningPawn) && t.Stage == AwakeningStage.Whispers, "awakening begins with a chosen pawn");
+                int logBefore = Find.PlayLog.AllEntries.Count;
+                for (int i = 0; i < AwakeningTuningDef.Get.whispersNeeded; i++)
+                {
+                    t.Whisper();
+                }
+                Check(Find.PlayLog.AllEntries.Count - logBefore == AwakeningTuningDef.Get.whispersNeeded, "each whisper adds a social log entry");
+                Check(t.Stage == AwakeningStage.Trance, "after the whispers comes the trance stage");
+                Check(t.TryStartTrance() && awakeningPawn.MentalStateDef == AGM_AwakeningDefOf.AGM_DivineTrance, "chosen pawn enters the divine trance");
+            }
+            catch (System.Exception e)
+            {
+                Check(false, "awakening setup threw: " + e);
+                Complete();
+                return;
+            }
+            awakeningPhase = true;
+            awakeningStartTick = Find.TickManager.TicksGame;
+        }
+
+        private void AwakeningTick()
+        {
+            AwakeningTracker t = AwakeningTracker.Instance;
+            bool timedOut = Find.TickManager.TicksGame - awakeningStartTick > AwakeningTimeoutTicks;
+            bool done = t.Stage == AwakeningStage.AwaitingRevelation && !awakeningPawn.InMentalState;
+            if (!done && !timedOut)
+            {
+                return;
+            }
+            awakeningPhase = false;
+            Map map = shrine.Map;
+            int signs = map.listerThings.ThingsOfDef(AGM_AwakeningDefOf.AGM_Filth_DivineSign).Count;
+            Check(!timedOut, $"trance pawn drew the sign (took {Find.TickManager.TicksGame - awakeningStartTick} ticks)");
+            Check(signs > 0, $"the strange drawing exists on the map ({signs})");
+            Check(!awakeningPawn.InMentalState, "trance ends after drawing");
+
+            ResearchProjectDef research = AGM_AwakeningDefOf.AGM_ShrineResearch;
+            t.Reveal();
+            Check(t.Revealed && !research.IsHidden && research.PrerequisitesCompleted, "revelation reveals and unlocks the shrine research");
+
+            new ScenPart_StartWithShrine().PostGameStart();
+            Check(research.IsFinished, "Chosen People scenario part finishes the shrine research");
+            Complete();
         }
 
         private void RunMiracleTests()

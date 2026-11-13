@@ -42,6 +42,19 @@
   <AGM_Patience_Medium>wearing thin</AGM_Patience_Medium>
   <AGM_Patience_Low>exhausted</AGM_Patience_Low>
 
+  <!-- Awakening -->
+  <AGM_Whisper_First>{PAWN_nameDef} has been saying odd things lately.</AGM_Whisper_First>
+  <AGM_Whisper_Alone1>"It always rains when there's a fire..."</AGM_Whisper_Alone1>
+  <AGM_Whisper_Alone2>"There was a triangle in the sky. Flat. Featureless."</AGM_Whisper_Alone2>
+  <AGM_Whisper_Alone3>"Is someone there? I can feel you watching."</AGM_Whisper_Alone3>
+  <AGM_Whisper_Alone4>"I dreamed of a hand bigger than the mountains."</AGM_Whisper_Alone4>
+  <AGM_Revelation_Label>The Revelation</AGM_Revelation_Label>
+  <AGM_Revelation_Text>{PAWN_nameDef} wakes before dawn and looks straight up, past the clouds, as if meeting someone's eyes.\n\n"I knew you were there. I knew you were real!"\n\n"It wants a place. A place where we can speak to it, and it can hear us."\n\nNew research available in the Divine tab: Shrine of the god.</AGM_Revelation_Text>
+  <AGM_Revelation_TextNoPawn>Your colonists all wake from the same dream: a place to speak to their god.\n\nNew research available in the Divine tab: Shrine of the god.</AGM_Revelation_TextNoPawn>
+  <AGM_Someone>someone</AGM_Someone>
+  <AGM_Cause_Revelation>the Revelation</AGM_Cause_Revelation>
+  <AGM_ScenPart_StartWithShrine>Start beside a shrine to the god (the Awakening has already happened).</AGM_ScenPart_StartWithShrine>
+
   <!-- Faith history -->
   <AGM_Log_Header>Faith history:</AGM_Log_Header>
   <AGM_Log_Today>today</AGM_Log_Today>

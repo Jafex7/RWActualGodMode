@@ -286,7 +286,7 @@ Record results in `docs/WAYLITH_NOTES.md`.
 Hardship / gratitude / witnessing events, `FaithTraitExtension` + vanilla trait
 patches, Zealot / Sceptic, prayer requests (needs-driven + incidents).
 
-### M5 — Entry & Temple
+### M5 — Entry & Temple (M5a entry ✔ pending in-game test; M5b temple next)
 Awakening storyline, Shrine research, Chosen People scenario, Temple room role +
 tiers + holy furniture, Offering Bowl, Pylon.
 

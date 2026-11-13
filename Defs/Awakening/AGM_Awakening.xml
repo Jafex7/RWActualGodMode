@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+  <!-- Pacing (days are in-game days) -->
+  <ActualGodMode.AwakeningTuningDef>
+    <defName>AGM_AwakeningTuning</defName>
+    <startDay>3</startDay>
+    <beginMtbDays>1</beginMtbDays>
+    <whispersNeeded>3</whispersNeeded>
+    <firstWhisperDelayDays>0.1~0.3</firstWhisperDelayDays>
+    <whisperIntervalDays>0.6~1.0</whisperIntervalDays>
+    <tranceDelayDays>0.3~0.6</tranceDelayDays>
+    <revelationDelayHours>6</revelationDelayHours>
+    <revelationFaithGain>0.2</revelationFaithGain>
+    <zealotWeight>3</zealotWeight>
+    <scepticWeight>0.2</scepticWeight>
+  </ActualGodMode.AwakeningTuningDef>
+
+  <!-- Whispers: odd talk in the social log -->
+  <InteractionDef>
+    <defName>AGM_StrangeTalk</defName>
+    <label>strange talk</label>
+    <workerClass>InteractionWorker</workerClass>
+    <symbol>Things/Mote/SpeechSymbols/DeepTalk</symbol>
+    <logRulesInitiator>
+      <rulesStrings>
+        <li>r_logentry->[INITIATOR_nameDef] told [RECIPIENT_nameDef] that [whisper].</li>
+        <li>r_logentry->[INITIATOR_nameDef] insisted to [RECIPIENT_nameDef] that [whisper].</li>
+        <li>r_logentry->[INITIATOR_nameDef] whispered to [RECIPIENT_nameDef] that [whisper].</li>
+        <li>whisper->it always rains when there's a fire</li>
+        <li>whisper->[INITIATOR_pronoun] saw something in the sky that wasn't a ship: a flat, featureless triangle</li>
+        <li>whisper->the wind stops when [INITIATOR_pronoun] speaks, as if something is listening</li>
+        <li>whisper->[INITIATOR_pronoun] dreamed of a hand bigger than the mountains</li>
+        <li>whisper->the stars moved, just once, when nobody else was looking</li>
+        <li>whisper->something is watching over the colony, and it isn't unkind</li>
+      </rulesStrings>
+    </logRulesInitiator>
+  </InteractionDef>
+
+  <ThoughtDef>
+    <defName>AGM_HeardStrangeTalk</defName>
+    <thoughtClass>Thought_MemorySocial</thoughtClass>
+    <durationDays>3</durationDays>
+    <stackLimit>3</stackLimit>
+    <stackLimitForSameOtherPawn>3</stackLimitForSameOtherPawn>
+    <stages>
+      <li>
+        <label>strange talk</label>
+        <baseOpinionOffset>-3</baseOpinionOffset>
+      </li>
+    </stages>
+  </ThoughtDef>
+
+  <!-- Trance: draws the god's sign in the dirt -->
+  <MentalStateDef ParentName="BaseMentalState">
+    <defName>AGM_DivineTrance</defName>
+    <stateClass>ActualGodMode.MentalState_DivineTrance</stateClass>
+    <label>divine trance</label>
+    <category>Misc</category>
+    <colonistsOnly>true</colonistsOnly>
+    <minTicksBeforeRecovery>99999</minTicksBeforeRecovery>
+    <maxTicksBeforeRecovery>5000</maxTicksBeforeRecovery>
+    <recoveryMtbDays>99</recoveryMtbDays>
+    <nameColor>(1, 0.85, 0.4)</nameColor>
+    <recoveryMessage>{0} blinks and comes back to {1}self, unsure what just happened.</recoveryMessage>
+    <beginLetterLabel>strange trance</beginLetterLabel>
+    <beginLetter>{0} has stopped what {1} was doing and is staring at nothing. {1} seems to be listening to something no one else can hear.</beginLetter>
+    <beginLetterDef>NeutralEvent</beginLetterDef>
+    <baseInspectLine>Mental state: Divine trance</baseInspectLine>
+    <allowBeatfire>true</allowBeatfire>
+    <escapingPrisonersIgnore>true</escapingPrisonersIgnore>
+  </MentalStateDef>
+
+  <JobDef>
+    <defName>AGM_DrawDivineSign</defName>
+    <driverClass>ActualGodMode.JobDriver_DrawDivineSign</driverClass>
+    <reportString>drawing something in the dirt.</reportString>
+    <casualInterruptible>false</casualInterruptible>
+  </JobDef>
+
+  <ThingDef ParentName="BaseFilth">
+    <defName>AGM_Filth_DivineSign</defName>
+    <label>strange drawing</label>
+    <description>A flat, featureless triangle scratched into the ground. Whoever drew it went over the lines again and again.</description>
+    <graphicData>
+      <texPath>Things/AGM/SignInDirt</texPath>
+      <graphicClass>Graphic_Single</graphicClass>
+      <drawSize>1.6</drawSize>
+    </graphicData>
+    <statBases>
+      <Beauty>0</Beauty>
+      <Cleanliness>0</Cleanliness>
+    </statBases>
+    <filth>
+      <placementMask>
+        <li>Terrain</li>
+        <li>Unnatural</li>
+      </placementMask>
+      <disappearsInDays>4~6</disappearsInDays>
+      <rainWashes>true</rainWashes>
+      <cleaningWorkToReduceThickness>35</cleaningWorkToReduceThickness>
+      <maxThickness>1</maxThickness>
+      <canFilthAttach>false</canFilthAttach>
+    </filth>
+  </ThingDef>
+
+  <!-- Revelation unlocks this research -->
+  <ResearchTabDef>
+    <defName>AGM_Divine</defName>
+    <label>divine</label>
+    <generalTitle>The god's revelations</generalTitle>
+    <generalDescription>Knowledge your followers receive from their god.</generalDescription>
+  </ResearchTabDef>
+
+  <ResearchProjectDef>
+    <defName>AGM_ShrineResearch</defName>
+    <label>shrine of the god</label>
+    <description>After the Revelation, your people understand: the god wants a place where they can speak to it. Learn to build a Shrine.</description>
+    <baseCost>300</baseCost>
+    <techLevel>Neolithic</techLevel>
+    <tab>AGM_Divine</tab>
+    <researchViewX>0</researchViewX>
+    <researchViewY>0</researchViewY>
+  </ResearchProjectDef>
+
+  <!-- Scenario part, usable in custom scenarios too -->
+  <ScenPartDef>
+    <defName>AGM_StartWithShrine</defName>
+    <label>start with a shrine</label>
+    <category>Misc</category>
+    <scenPartClass>ActualGodMode.ScenPart_StartWithShrine</scenPartClass>
+    <maxUses>1</maxUses>
+  </ScenPartDef>
+
+  <ScenarioDef ParentName="ScenarioBase">
+    <defName>AGM_ChosenPeople</defName>
+    <label>Chosen People</label>
+    <description>The three of you crashlanded together, and the same voice spoke to all of you in your dreams on the way down. You already know your god. You landed beside its shrine.</description>
+    <scenario>
+      <summary>Three survivors who already know their god, starting beside its shrine. (Actual God Mode)</summary>
+      <parts>
+        <li Class="ScenPart_ConfigPage_ConfigureStartingPawns">
+          <def>ConfigPage_ConfigureStartingPawns</def>
+          <pawnCount>3</pawnCount>
+          <pawnChoiceCount>8</pawnChoiceCount>
+        </li>
+        <li Class="ScenPart_PlayerPawnsArriveMethod">
+          <def>PlayerPawnsArriveMethod</def>
+          <method>DropPods</method>
+          <visible>false</visible>
+        </li>
+        <li Class="ScenPart_StartingThing_Defined">
+          <def>StartingThing_Defined</def>
+          <thingDef>Silver</thingDef>
+          <count>500</count>
+        </li>
+        <li Class="ScenPart_StartingThing_Defined">
+          <def>StartingThing_Defined</def>
+          <thingDef>MealSurvivalPack</thingDef>
+          <count>40</count>
+        </li>
+        <li Class="ScenPart_StartingThing_Defined">
+          <def>StartingThing_Defined</def>
+          <thingDef>MedicineIndustrial</thingDef>
+          <count>20</count>
+        </li>
+        <li Class="ScenPart_StartingThing_Defined">
+          <def>StartingThing_Defined</def>
+          <thingDef>ComponentIndustrial</thingDef>
+          <count>20</count>
+        </li>
+        <li Class="ScenPart_StartingThing_Defined">
+          <def>StartingThing_Defined</def>
+          <thingDef>Gun_BoltActionRifle</thingDef>
+        </li>
+        <li Class="ScenPart_StartingThing_Defined">
+          <def>StartingThing_Defined</def>
+          <thingDef>MeleeWeapon_Knife</thingDef>
+          <stuff>Steel</stuff>
+        </li>
+        <li Class="ScenPart_ScatterThingsNearPlayerStart">
+          <def>ScatterThingsNearPlayerStart</def>
+          <thingDef>Steel</thingDef>
+          <count>300</count>
+        </li>
+        <li Class="ScenPart_ScatterThingsNearPlayerStart">
+          <def>ScatterThingsNearPlayerStart</def>
+          <thingDef>WoodLog</thingDef>
+          <count>300</count>
+        </li>
+        <li Class="ActualGodMode.ScenPart_StartWithShrine">
+          <def>AGM_StartWithShrine</def>
+        </li>
+        <li Class="ScenPart_GameStartDialog">
+          <def>GameStartDialog</def>
+          <text>The voice was the last thing you heard before the ship broke apart, and the first thing you remembered when you woke in the wreckage. "Here. Build here." Beside the crash site stands a simple shrine you don't remember anyone making.\n\nYour god is waiting.</text>
+          <closeSound>GameStartSting</closeSound>
+        </li>
+      </parts>
+    </scenario>
+  </ScenarioDef>
+
+</Defs>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Patch>
+
+  <!-- In the divine trance, the pawn draws the god's sign. -->
+  <Operation Class="PatchOperationInsert">
+    <xpath>Defs/ThinkTreeDef[defName="MentalStateNonCritical"]/thinkRoot/subNodes/li[1]</xpath>
+    <order>Prepend</order>
+    <value>
+      <li Class="ThinkNode_ConditionalMentalState">
+        <state>AGM_DivineTrance</state>
+        <subNodes>
+          <li Class="ActualGodMode.JobGiver_DrawDivineSign" />
+          <li Class="JobGiver_WanderColony" />
+        </subNodes>
+      </li>
+    </value>
+  </Operation>
+
+</Patch>
