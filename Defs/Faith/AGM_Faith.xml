@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+  <NeedDef>
+    <defName>AGM_Faith</defName>
+    <needClass>ActualGodMode.Need_Faith</needClass>
+    <label>faith</label>
+    <description>Belief in the god. Faithful colonists generate more Divine Power when they pray.\n\nFaith fades very slowly on its own. It grows through worship.</description>
+    <colonistsOnly>true</colonistsOnly>
+    <minIntelligence>Humanlike</minIntelligence>
+    <fallPerDay>0.02</fallPerDay>
+    <listPriority>45</listPriority>
+    <major>false</major>
+  </NeedDef>
+
+</Defs>

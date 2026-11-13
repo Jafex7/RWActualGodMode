@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+  <TimeAssignmentDef>
+    <defName>AGM_Worship</defName>
+    <label>worship</label>
+    <color>(205,160,55)</color>
+    <allowRest>false</allowRest>
+    <allowJoy>false</allowJoy>
+  </TimeAssignmentDef>
+
+  <JobDef>
+    <defName>AGM_PrayAtShrine</defName>
+    <driverClass>ActualGodMode.JobDriver_PrayAtShrine</driverClass>
+    <reportString>praying at TargetB.</reportString>
+    <joyDuration>4000</joyDuration>
+    <joyKind>AGM_Worship</joyKind>
+    <isCrawlingIfDowned>false</isCrawlingIfDowned>
+  </JobDef>
+
+  <JoyKindDef>
+    <defName>AGM_Worship</defName>
+    <label>worship</label>
+    <needsThing>true</needsThing>
+  </JoyKindDef>
+
+  <JoyGiverDef>
+    <defName>AGM_PrayAtShrine</defName>
+    <giverClass>ActualGodMode.JoyGiver_PrayAtShrine</giverClass>
+    <baseChance>1.5</baseChance>
+    <jobDef>AGM_PrayAtShrine</jobDef>
+    <joyKind>AGM_Worship</joyKind>
+  </JoyGiverDef>
+
+</Defs>

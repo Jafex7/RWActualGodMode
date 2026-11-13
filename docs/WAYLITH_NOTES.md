@@ -26,8 +26,9 @@ Re-check these sources before relying on anything here; 1.7 docs are still evolv
 - Reference (Private=false) from the game root folder: `Assembly-CSharp.dll`,
   `UnityStubs.dll`, `Waylith.dll`, possibly `RimWorld.dll`.
 - No Unity DLL references; `using UnityEngine;` still works (stubs).
-- Harmony **3.0**: NuGet `Lib.Harmony` `3.0.0-rc.5` with `ExcludeAssets="runtime"`
-  (the Harmony mod `brrainz.harmony` ships `1.7/Assemblies/0Harmony.dll` 3.0.0).
+- Harmony **3.0**: NuGet `Lib.Harmony` `3.0.0-rc.3` with `ExcludeAssets="runtime"`,
+  matching what the Harmony mod (`brrainz.harmony` v3.0.1) actually runs
+  (log: "Harmony library v3.0.0.0-rc.3").
   Harmony 3 enforces `__instance` / `__result` types, and `PatchAll()` without
   an argument is obsolete: use `PatchAll(typeof(X).Assembly)`.
 - IDE: VS2026 or Rider 2026+ (older ones don't support .NET 10). CLI: .NET 10 SDK.
@@ -47,6 +48,17 @@ Re-check these sources before relying on anything here; 1.7 docs are still evolv
   Harmony patches.
 - Log: `%USERPROFILE%\AppData\LocalLow\Ludeon Studios\RimWorld by Ludeon Studios\Logs\Player.log`
 - Jobs: `Waylith.Jobs` / `WaylithJobRuntime` replace Unity Jobs/Burst.
+
+## Automated load test
+- `-mod=` only loads mods from the game's **local** `Mods` folder; Workshop mods
+  (like Harmony) are ignored ("is not in the local Mods folder, ignoring").
+- Instead, use an isolated save-data folder with its own mod list:
+  `RimWorld.exe -Headless "-savedatafolder=<dir>"` with `<dir>/Config/ModsConfig.xml`
+  listing `brrainz.harmony`, Core, DLCs, `jafex.actualgodmode`. The player's real
+  config and saves are untouched.
+- The log still goes to the normal `Player.log` (overwriting the player's last log).
+- Headless doesn't exit by itself; kill it after load. Load errors (XML, patches,
+  DefOf) appear within ~10 s after "[Actual God Mode] Loaded."
 
 ## Local reference source
 Decompiled with `ilspycmd` into `_reference/decompiled/` (Assembly-CSharp,

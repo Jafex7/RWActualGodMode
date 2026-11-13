@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Patch>
+
+  <!-- Colonists on the Worship schedule block pray at the shrine.
+       Added next to vanilla's meditation job giver, in every priority sorter that has it. -->
+  <Operation Class="PatchOperationAdd">
+    <xpath>Defs/ThinkTreeDef//li[@Class="JobGiver_Meditate"]/..</xpath>
+    <value>
+      <li Class="ActualGodMode.JobGiver_Worship" />
+    </value>
+  </Operation>
+
+</Patch>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+  <DesignationCategoryDef>
+    <defName>AGM_Divine</defName>
+    <label>divine</label>
+    <order>245</order>
+    <specialDesignatorClasses>
+      <li>Designator_Cancel</li>
+      <li>Designator_Deconstruct</li>
+    </specialDesignatorClasses>
+  </DesignationCategoryDef>
+
+  <ThingDef ParentName="BuildingBase">
+    <defName>AGM_Shrine</defName>
+    <label>shrine</label>
+    <description>The heart of your colony's faith. Colonists pray in the spots around it, turning their belief into Divine Power. Those who pray together pray stronger.\n\nOnly one shrine can exist per map.</description>
+    <thingClass>Building</thingClass>
+    <!-- Placeholder art: vanilla column, tinted gold -->
+    <graphicData>
+      <texPath>Things/Building/Furniture/Column</texPath>
+      <graphicClass>Graphic_Single</graphicClass>
+      <color>(235,205,120)</color>
+    </graphicData>
+    <altitudeLayer>Building</altitudeLayer>
+    <passability>Impassable</passability>
+    <fillPercent>0.5</fillPercent>
+    <rotatable>false</rotatable>
+    <size>(1,1)</size>
+    <stuffCategories>
+      <li>Stony</li>
+    </stuffCategories>
+    <costStuffCount>75</costStuffCount>
+    <statBases>
+      <MaxHitPoints>300</MaxHitPoints>
+      <WorkToBuild>3000</WorkToBuild>
+      <Beauty>10</Beauty>
+      <Flammability>0</Flammability>
+    </statBases>
+    <terrainAffordanceNeeded>Medium</terrainAffordanceNeeded>
+    <designationCategory>AGM_Divine</designationCategory>
+    <canOverlapZones>false</canOverlapZones>
+    <placeWorkers>
+      <li>ActualGodMode.PlaceWorker_OneShrinePerMap</li>
+    </placeWorkers>
+    <comps>
+      <li Class="ActualGodMode.CompProperties_Shrine" />
+    </comps>
+  </ThingDef>
+
+</Defs>
