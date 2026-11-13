@@ -23,8 +23,11 @@ Read before changing things:
 - **M6a** alignment: value + bands + drift + deed ledger; Lightning (real weather strike; deed depends on target:
   enemy / helpless / follower / justice / punishment / prisoner / visitor); good god = gratitude + patience; evil god =
   fear-faith; "cowed" after punishment; deliverance prayer; alignment-tinted cursor/trail/particles.
-  Self-tested; awaiting in-game test.
-- Next: **M6b** the Hand (grab / carry / place, costs, lift capacity).
+  Verified in-game.
+- **M6b** the Hand: grab (click or hold-still on a pawn/item) / carry / set down; capacity by believers,
+  pickup + per-hour costs by mass, drop outside influence or out of power, tuck into bed (+ good deed for a downed
+  person). `GodHand` MapComponent holds the thing. Self-tested; awaiting in-game test.
+- Next: see the roadmap in DESIGN.md (v2: factions/awe, throwing, …).
 
 ## Commands
 - Build: `dotnet build Source/ActualGodMode/ActualGodMode.csproj -c Release` (outputs to `1.7/Assemblies/`).
@@ -47,7 +50,7 @@ Read before changing things:
 | `Source/…/Shrine/` | `CompShrine` (prayer spots, slots, group bonus, power rate), `ShrineUtility` + one-per-map PlaceWorker, `InfluenceUtility` |
 | `Source/…/Worship/` | `JobDriver_PrayAtShrine`, job/joy givers, `WorshipUtility.TryMakePrayJob` |
 | `Source/…/Miracles/` | `MiracleDef` + `MiracleLevel`, `MiracleRequirement` (+ `Req_*`), `MiracleWorker` (+ subclasses), `MiracleTracker` (unlocks), `MiracleUtility` (CanCast/TryCast/witnesses), `Designator_Miracle`, `MainTabWindow_Miracles` |
-| `Source/…/HandOfGod/` | `HandOfGodMode` (state: toggle/hold, strokes, recognition, charged miracle, casting, label), `HandOfGodCursor` (RGBA cursor via Waylith `HardwareCursor`) |
+| `Source/…/HandOfGod/` | `HandOfGodMode` (state: toggle/hold, strokes, recognition, charged miracle, casting, label, grab-vs-stroke input), `HandOfGodCursor` (RGBA cursor via Waylith `HardwareCursor`), `GodHand` (MapComponent + IThingHolder: held thing, capacity, costs, place/tuck, game-over guard patch), `HandTuningDef` (`AGM_HandTuning.xml`) |
 | `Source/…/Gestures/` | `GestureDef` (+ template/stroke/custom), `PointCloudRecognizer` ($P), `GestureLibrary` (default vs player gestures, threshold, matching), `Window_BookOfGestures`, `Dialog_RecordGesture` |
 | `Source/…/Patches/` | Harmony patches: Worship schedule block, power readout, Hand of God input (`MapInterface.HandleMapClicks` / `HandleLowPriorityInput`) |
 | `Source/…/Dev/` | Debug actions (`AGM_DebugActions`, `AGM_AwakeningDebug`), `AGM_TestScenarios` (shared setups), `AGM_SelfTest` (runs only with `-agmselftest`; phases: worship → sync tests → awakening) |
@@ -111,3 +114,6 @@ Read before changing things:
   and type-check the instance inside the patch.
 - The log is `%USERPROFILE%\AppData\LocalLow\Ludeon Studios\RimWorld by Ludeon Studios\Logs\Player.log`.
 - Vanilla already has a `Pray` job/joy giver (private room prayer); ours is `AGM_PrayAtShrine`.
+- A thing held by a `MapComponent` that implements `IThingHolder` counts as on the map (`Map.GetChildHolders`
+  includes such components), but vanilla's game-over check only looks at *spawned* colonists: `Patch_GameOverWhileHeld`.
+- `ThingOwner.TryAdd` doesn't despawn: `DeSpawn()` a pawn (or `SplitOff` an item) first. `TryDrop` respawns pawns too.

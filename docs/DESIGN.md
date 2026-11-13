@@ -250,6 +250,35 @@ click a thing = grab, drag from empty ground = gesture, release = put down.
 - *Later*: **throwing** pawns and items (flying-pawn / projectile, damage by mass
   and speed, cost by force imparted).
 
+### Hand v1 as built (M6b)
+- **Input** (Hand of God mode, nothing charged): press on a pawn or item and
+  - **hold still** ~0.25 s → grabbed, **drag**, release to set down;
+  - **click** (no movement) → grabbed, carried until the next click (left or right);
+  - **move** more than 12 px before that → it's a gesture stroke, as before (so signs
+    can start over stockpiles). A press while a multi-stroke sign is pending never grabs.
+  - While something is held the mode stays on (even if the hold key is released) and
+    no signs are drawn.
+- **Grabbable**: any spawned pawn (colonist, prisoner, animal, enemy, visitor) and any
+  haulable item (incl. corpses, minified furniture). Not buildings, plants, filth.
+- **Capacity** = 35 kg + 15 kg per living believer (3 believers = 80 kg; a human with
+  gear is ~61 kg). Pawn mass = body + gear/inventory. A stack too heavy to lift whole is
+  lifted in part (as many as fit).
+- **Costs** (power): items 0.5 + 0.02/kg to pick up, 0.05/kg per in-game hour held;
+  pawns 3 + 0.03/kg to pick up, 0.15/kg per hour held (a colonist ≈ 4.8 to lift and
+  ≈ 9/h, i.e. ~0.15 per real second at normal speed). Power running out sets it down.
+- **Influence**: only things inside it can be grabbed; moving the cursor outside drops
+  the thing at the last cell inside.
+- **Beds**: a pawn set down on a bed they can use is tucked in. Carrying a downed,
+  non-hostile person to a bed = +1 alignment, not if they were taken from a bed, and at
+  most once per person per day (in-memory guard).
+- The held pawn keeps ticking (hunger, bleeding) and still counts as on the map; the
+  game doesn't end while the last colonist is in the hand. A thing in the hand when
+  saving is set down on load.
+- **Not yet / tabled**: reactions of the lifted (fear, awe, witnessing as a miracle for
+  conversion?), enemies struggling or resisting, dropping from height (damage), hostile
+  pawns dropped among colonists as a tactic (fine for now, cost balances it), lifting
+  several things at once, a hand sound.
+
 ## 7. Impressiveness & Factions
 - Other factions have an **Awe** value toward the god, raised when their pawns
   (visitors, traders, caravans, raiders, prisoners) witness miracles. Good deeds
@@ -318,7 +347,7 @@ patches, Zealot / Sceptic, prayer requests (needs-driven + incidents).
 Awakening storyline, Shrine research, Chosen People scenario, Temple room role +
 tiers + holy furniture, Offering Bowl, Pylon.
 
-### M6 — Alignment & Hand
+### M6 — Alignment & Hand (M6a ✔, M6b self-tested, pending in-game test)
 Alignment value + deeds + drift, alignment-tinted cursor, Hand moving (grab/carry/
 place) with costs and lift capacity.
 
@@ -370,3 +399,10 @@ See conversation log; resolved items get moved into the sections above.
   in a short time; variety (the god values different kinds of gifts, repeats are
   worth less).
 - Assets: see `docs/ASSETS.md` for the catalog of placeholders to replace.
+
+## M6b notes (balance pass)
+- Hand costs are guesses: check that carrying a colonist across the base feels cheap
+  enough to use for rescues but not free; items might be too cheap to matter (a whole
+  steel stack costs ~1 power), which is intended ("helping haul").
+- Capacity 35 + 15/believer means a lone believer can't lift a human (50 kg); needs 2.
+  Big animals (thrumbo, elephant) need many believers, by design.

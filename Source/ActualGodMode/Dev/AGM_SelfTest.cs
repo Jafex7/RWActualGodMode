@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
 using UnityEngine;
@@ -373,6 +373,14 @@ namespace ActualGodMode
             {
                 Check(false, "alignment tests threw: " + e);
             }
+            try
+            {
+                RunHandTests();
+            }
+            catch (System.Exception e)
+            {
+                Check(false, "hand tests threw: " + e);
+            }
             Complete();
         }
 
@@ -432,6 +440,7 @@ namespace ActualGodMode
             // Evil god: witnessing wrath strengthens faith out of fear
             alignment.DebugSet(-40f);
             Teleport(a, shrine.Position + new IntVec3(4, 0, 0), map);
+            a.Faith().CurLevel = 0.5f; // room to grow
             float faithBefore = a.Faith().CurLevel;
             dp.Add(dp.MaxPower);
             MiracleUtility.TryCast(lightning, 0, shrine.Position + new IntVec3(-4, 0, 3), map);
@@ -449,6 +458,100 @@ namespace ActualGodMode
                 raider.Destroy();
             }
             Log.Message(Tag + "  deeds ledger:\n" + alignment.Deeds.TooltipSection("AGM_Alignment_LedgerHeader", asPercent: false));
+        }
+
+        /// <summary>M6b: the Hand lifts, carries and sets down; capacity, costs, influence, bed deed, game-over guard.</summary>
+        private void RunHandTests()
+        {
+            Log.Message(Tag + "Hand phase");
+            Map map = shrine.Map;
+            GodHand hand = GodHand.On(map);
+            DivinePower dp = DivinePower.Instance;
+            AlignmentTracker alignment = AlignmentTracker.Instance;
+            HandTuningDef t = HandTuningDef.Get;
+            Check(hand != null, "every map has the god's hand");
+            float capacity = GodHand.Capacity;
+            Check(Mathf.Approximately(capacity, t.baseLiftKg + t.liftPerBelieverKg * BelieverTracker.Instance.LivingCount) && capacity > 60f,
+                $"lift capacity grows with believers ({capacity:F0} kg, {BelieverTracker.Instance.LivingCount} believers)");
+
+            // Items: a light stack is lifted whole, carried (costing power over time), and set down.
+            IntVec3 near = CellFinder.RandomClosewalkCellNear(shrine.Position + new IntVec3(3, 0, 0), map, 2);
+            Thing steel = ThingMaker.MakeThing(ThingDefOf.Steel);
+            steel.stackCount = 20;
+            GenPlace.TryPlaceThing(steel, near, map, ThingPlaceMode.Direct, out steel);
+            dp.DebugSet(dp.MaxPower);
+            float before = dp.Power;
+            Thing under = GodHand.GrabbableAt(steel.Position, map);
+            Check(under == steel || under is Pawn, $"the hand finds the steel under the cursor (or a pawn standing on it: {under.ToStringSafe()})");
+            AcceptanceReport canGrab = hand.CanGrab(steel);
+            Check(canGrab.Accepted && hand.TryGrab(steel, drag: false), "the hand lifts a stack of steel " + canGrab.Reason);
+            Check(hand.Holding && !steel.Spawned && dp.Power < before, $"lifted steel leaves the map and costs power ({before - dp.Power:F2})");
+            if (!hand.Holding)
+            {
+                return;
+            }
+            float beforeHold = dp.Power;
+            hand.ChargeHold(GenDate.TicksPerHour);
+            Check(dp.Power < beforeHold, $"holding costs power per hour ({beforeHold - dp.Power:F2}/h for {GodHand.MassOf(hand.Held):F0} kg)");
+            IntVec3 dest = CellFinder.RandomClosewalkCellNear(shrine.Position + new IntVec3(-3, 0, 2), map, 2);
+            hand.MoveTo(dest);
+            Check(hand.Place(dest) && !hand.Holding && steel.Spawned && steel.Position.InHorDistOf(dest, 2f), "the hand sets the steel down where it points");
+
+            // A stack heavier than the hand can lift is taken in part.
+            ThingDef heavyDef = DefDatabase<ThingDef>.AllDefs.FirstOrDefault(d => d.category == ThingCategory.Item && d.EverHaulable
+                && d.stackLimit > 1 && !d.MadeFromStuff && d.GetStatValueAbstract(StatDefOf.Mass) * d.stackLimit > capacity * 1.2f);
+            if (heavyDef != null)
+            {
+                Thing heavy = ThingMaker.MakeThing(heavyDef);
+                heavy.stackCount = heavyDef.stackLimit;
+                GenPlace.TryPlaceThing(heavy, near, map, ThingPlaceMode.Near, out heavy);
+                int liftable = GodHand.LiftableCount(heavy);
+                int total = heavy.stackCount;
+                Log.Message(Tag + $"  {heavyDef.defName} unit mass {GodHand.UnitMass(heavy):F2} kg; can lift {liftable} of {total}");
+                hand.TryGrab(heavy, drag: true);
+                Check(hand.Holding && hand.Held.stackCount == liftable && heavy.Spawned && heavy.stackCount == total - liftable,
+                    "a too-heavy stack is lifted in part, the rest stays");
+                hand.Place(near);
+            }
+
+            // Leaving the influence drops what is held, at the edge.
+            Thing silver = GenSpawn.Spawn(ThingDefOf.Silver, near, map);
+            hand.TryGrab(silver, drag: false);
+            IntVec3 far = map.AllCells.FirstOrDefault(c => !InfluenceUtility.InInfluence(c, map) && c.Standable(map));
+            if (far.IsValid)
+            {
+                hand.MoveTo(far);
+                Check(!hand.Holding && silver.Spawned && InfluenceUtility.InInfluence(silver.Position, map), "moving out of the god's reach drops the held thing inside it");
+            }
+            hand.Place(near);
+
+            // Out of power: the held thing is set down.
+            hand.TryGrab(silver, drag: false);
+            dp.DebugSet(0f);
+            hand.ChargeHold(60);
+            Check(!hand.Holding && silver.Spawned, "running out of power sets the held thing down");
+
+            // A downed colonist carried to a bed: tucked in, and a small good deed. The game doesn't end while they're lifted.
+            Pawn colonist = map.mapPawns.FreeColonistsSpawned.First(p => !p.Dead && !p.Downed);
+            Teleport(colonist, shrine.Position + new IntVec3(2, 0, 3), map);
+            Building_Bed bed = AGM_TestScenarios.SetUpHandTest(map); // downs the first standing colonist
+            Check(colonist.Downed, "the hand test setup downs a colonist (anesthetic)");
+            Log.Message(Tag + $"  colonist mass {GodHand.MassOf(colonist):F0} kg");
+            dp.DebugSet(dp.MaxPower);
+            alignment.DebugSet(0f);
+            Check(hand.TryGrab(colonist, drag: true) && !colonist.Spawned, "the hand lifts a colonist");
+            Check(map.mapPawns.FreeColonists.Contains(colonist), "a lifted colonist still counts as on the map");
+            Find.GameEnder.CheckOrUpdateGameOver();
+            Check(!Find.GameEnder.gameEnding, "the game doesn't end while a colonist is in the hand");
+            hand.MapComponentTick(); // the held pawn ticks inside the hand
+            hand.MoveTo(bed.Position);
+            hand.Place(bed.Position);
+            Check(colonist.Spawned && colonist.InBed() && colonist.CurrentBed() == bed, "a downed colonist set down on a bed is tucked in");
+            Check(alignment.Value > 0f, $"carrying a downed colonist to bed is a good deed ({alignment.Value:F1})");
+            hand.TryGrab(colonist, drag: false);
+            hand.Place(bed.Position);
+            Check(Mathf.Approximately(alignment.Value, t.carryToBedDeed), "moving them again from the bed earns nothing more");
+            colonist.health.RemoveHediff(colonist.health.hediffSet.GetFirstHediffOfDef(HediffDefOf.Anesthetic));
         }
 
         private static void Teleport(Pawn p, IntVec3 c, Map map)

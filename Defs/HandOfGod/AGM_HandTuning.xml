@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+  <!-- The Hand: grab / carry / place. "How much are you affecting the world?" -->
+  <ActualGodMode.HandTuningDef>
+    <defName>AGM_HandTuning</defName>
+    <!-- Lift capacity (kg): a human is ~60 kg with gear -->
+    <baseLiftKg>35</baseLiftKg>
+    <liftPerBelieverKg>15</liftPerBelieverKg>
+
+    <!-- Power to pick up -->
+    <itemPickupCost>0.5</itemPickupCost>
+    <itemPickupCostPerKg>0.02</itemPickupCostPerKg>
+    <pawnPickupCost>3</pawnPickupCost>
+    <pawnPickupCostPerKg>0.03</pawnPickupCostPerKg>
+
+    <!-- Power per kg per in-game hour held (one hour is ~40 s at normal speed) -->
+    <itemHoldCostPerKgPerHour>0.05</itemHoldCostPerKgPerHour>
+    <pawnHoldCostPerKgPerHour>0.15</pawnHoldCostPerKgPerHour>
+
+    <grabHoldSeconds>0.25</grabHoldSeconds>
+    <dragThresholdPixels>12</dragThresholdPixels>
+
+    <carryToBedDeed>1</carryToBedDeed>
+    <carryToBedCooldownHours>24</carryToBedCooldownHours>
+  </ActualGodMode.HandTuningDef>
+
+</Defs>

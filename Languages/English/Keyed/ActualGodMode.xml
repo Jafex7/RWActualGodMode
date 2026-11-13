@@ -52,6 +52,7 @@
   <AGM_Deed_SmitePrisoner>struck prisoner {0}</AGM_Deed_SmitePrisoner>
   <AGM_Deed_SmiteVisitor>struck visitor {0}</AGM_Deed_SmiteVisitor>
   <AGM_Deed_SmiteAnimal>struck the colony's {0}</AGM_Deed_SmiteAnimal>
+  <AGM_Deed_CarriedToBed>carried {0} to bed</AGM_Deed_CarriedToBed>
   <AGM_Cause_FearedWrath>feared the god's wrath</AGM_Cause_FearedWrath>
   <AGM_Lightning_ThickRoof>Lightning can't reach under a mountain.</AGM_Lightning_ThickRoof>
   <AGM_Req_Event_Raid>The colony has survived a raid</AGM_Req_Event_Raid>
@@ -171,8 +172,19 @@
 
   <!-- Hand of God mode -->
   <AGM_HoG_Active>Hand of God</AGM_HoG_Active>
-  <AGM_HoG_HintToggled>Left-drag to draw · right-click or {0} to leave</AGM_HoG_HintToggled>
-  <AGM_HoG_HintHeld>Left-drag to draw · release the key to leave</AGM_HoG_HintHeld>
+  <AGM_HoG_HintToggled>Left-drag to draw · click or hold on something to lift it · right-click or {0} to leave</AGM_HoG_HintToggled>
+  <AGM_HoG_HintHeld>Left-drag to draw · click or hold on something to lift it · release the key to leave</AGM_HoG_HintHeld>
+  <AGM_HoG_HintHolding>Click (or release, if dragging) to set it down · leaving the god's reach drops it</AGM_HoG_HintHolding>
+
+  <!-- The Hand -->
+  <AGM_Hand_GrabLine>Lift {0}</AGM_Hand_GrabLine>
+  <AGM_Hand_LiftLine>{0} kg of {1} kg · costs {2}</AGM_Hand_LiftLine>
+  <AGM_Hand_TooHeavyShort>Too heavy: {0} kg (you can lift {1} kg)</AGM_Hand_TooHeavyShort>
+  <AGM_Hand_HoldingLine>{0} kg of {1} kg · {2} power per hour</AGM_Hand_HoldingLine>
+  <AGM_Hand_TooHeavy>{0} is too heavy for the god's hand: {1} kg, and it can lift {2} kg. More believers make it stronger.</AGM_Hand_TooHeavy>
+  <AGM_Hand_OutOfInfluence>That is beyond the god's reach.</AGM_Hand_OutOfInfluence>
+  <AGM_Hand_Slipped>{0} slipped from the god's hand at the edge of its reach.</AGM_Hand_Slipped>
+  <AGM_Hand_NoPower>The god's power ran out: {0} was set down.</AGM_Hand_NoPower>
   <AGM_HoG_HintCharged>Left-click to cast · {0} / {1} change level · right-click to cancel</AGM_HoG_HintCharged>
   <AGM_HoG_Toggle>Hand of God mode</AGM_HoG_Toggle>
 

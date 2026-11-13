@@ -52,6 +52,11 @@ namespace ActualGodMode
         private static MiracleDef charged;
         private static int chargedLevel;
 
+        // Hand: a press on a grabbable thing becomes a grab unless the mouse moves (then it's a stroke).
+        private static Thing pressTarget;
+        private static Vector2 pressPos;
+        private static float pressTime;
+
         private static bool cursorApplied;
         private static int glowFrame;
 
@@ -59,7 +64,9 @@ namespace ActualGodMode
 
         public static bool Active =>
             Find.CurrentMap != null && WorldRendererUtility.DrawingMap
-            && (Toggled || charged != null || AGM_KeyBindingDefOf.AGM_HoldHandOfGod.IsDown);
+            && (Toggled || charged != null || AGM_KeyBindingDefOf.AGM_HoldHandOfGod.IsDown || Hand?.Holding == true);
+
+        private static GodHand Hand => GodHand.On(Find.CurrentMap);
 
         private static bool HasPendingGesture => strokes.Count > 0 && !drawingStroke;
 
@@ -75,6 +82,7 @@ namespace ActualGodMode
             {
                 CancelCharge();
                 ClearStrokes();
+                Hand?.Place(UI.MouseCell());
             }
             (Toggled ? SoundDefOf.Tick_High : SoundDefOf.Tick_Low).PlayOneShotOnCamera();
         }
@@ -83,6 +91,12 @@ namespace ActualGodMode
         public static void ProcessMapInput()
         {
             Event e = Event.current;
+            GodHand hand = Hand;
+            if (hand != null && hand.Holding)
+            {
+                ProcessHoldingInput(e, hand);
+                return;
+            }
             switch (e.type)
             {
                 case EventType.MouseDown when e.button == 0:
@@ -92,6 +106,10 @@ namespace ActualGodMode
                     }
                     else
                     {
+                        // On a thing (and not mid-sign): maybe a grab. Moving away makes it a stroke.
+                        pressTarget = strokes.Count == 0 ? GodHand.GrabbableAt(UI.MouseCell(), Find.CurrentMap) : null;
+                        pressPos = e.mousePosition;
+                        pressTime = Time.realtimeSinceStartup;
                         drawingStroke = true;
                         strokes.Add(new List<Vector2> { e.mousePosition });
                     }
@@ -99,6 +117,10 @@ namespace ActualGodMode
                     break;
 
                 case EventType.MouseDrag when e.button == 0 && drawingStroke:
+                    if (pressTarget != null && (e.mousePosition - pressPos).magnitude > HandTuningDef.Get.dragThresholdPixels)
+                    {
+                        pressTarget = null;
+                    }
                     List<Vector2> current = strokes[strokes.Count - 1];
                     if ((e.mousePosition - current[current.Count - 1]).sqrMagnitude >= MinPointSpacing * MinPointSpacing)
                     {
@@ -108,6 +130,16 @@ namespace ActualGodMode
                     break;
 
                 case EventType.MouseUp when e.button == 0 && drawingStroke:
+                    if (pressTarget != null)
+                    {
+                        // A click on a thing: pick it up and carry it until the next click.
+                        Thing target = pressTarget;
+                        pressTarget = null;
+                        ClearStrokes();
+                        hand?.TryGrab(target, drag: false);
+                        e.Use();
+                        break;
+                    }
                     drawingStroke = false;
                     lastStrokeEndTime = Time.realtimeSinceStartup;
                     e.Use();
@@ -129,6 +161,44 @@ namespace ActualGodMode
                     }
                     e.Use();
                     break;
+            }
+        }
+
+        /// <summary>While something is in the hand: release (drag) or click (carry) sets it down.</summary>
+        private static void ProcessHoldingInput(Event e, GodHand hand)
+        {
+            switch (e.type)
+            {
+                case EventType.MouseDown when e.button == 0 || e.button == 1:
+                    hand.Place(UI.MouseCell());
+                    e.Use();
+                    break;
+
+                case EventType.MouseUp when e.button == 0 && hand.dragging:
+                    hand.Place(UI.MouseCell());
+                    e.Use();
+                    break;
+
+                case EventType.MouseDrag when e.button == 0:
+                    e.Use();
+                    break;
+            }
+        }
+
+        /// <summary>Held still on a thing long enough: grab it and drag (release to place).</summary>
+        private static void CheckHoldToGrab()
+        {
+            if (pressTarget == null || !drawingStroke)
+            {
+                pressTarget = null;
+                return;
+            }
+            if (Time.realtimeSinceStartup - pressTime >= HandTuningDef.Get.grabHoldSeconds)
+            {
+                Thing target = pressTarget;
+                pressTarget = null;
+                ClearStrokes();
+                Hand?.TryGrab(target, drag: true);
             }
         }
 
@@ -253,6 +323,13 @@ namespace ActualGodMode
             }
 
             Map map = Find.CurrentMap;
+            CheckHoldToGrab();
+            GodHand hand = Hand;
+            if (hand != null && hand.Holding)
+            {
+                hand.MoveTo(UI.MouseCell());
+                InfluenceUtility.DrawInfluence(map);
+            }
             if (charged != null)
             {
                 InfluenceUtility.DrawInfluence(map);
@@ -323,6 +400,10 @@ namespace ActualGodMode
             {
                 DrawChargedReadout();
             }
+            else if (Active)
+            {
+                DrawHandReadout();
+            }
 
             if (Active)
             {
@@ -331,7 +412,9 @@ namespace ActualGodMode
                 {
                     Widgets.Label(rect, "AGM_HoG_Active".Translate());
                 }
-                string hint = charged != null
+                string hint = Hand?.Holding == true
+                    ? "AGM_HoG_HintHolding".Translate()
+                    : charged != null
                     ? "AGM_HoG_HintCharged".Translate(KeyBindingDefOf.Designator_RotateLeft.MainKeyLabel, KeyBindingDefOf.Designator_RotateRight.MainKeyLabel)
                     : Toggled
                         ? "AGM_HoG_HintToggled".Translate(AGM_KeyBindingDefOf.AGM_ToggleHandOfGod.MainKeyLabel)
@@ -356,6 +439,57 @@ namespace ActualGodMode
                 Widgets.Label(new Rect(icon.xMax + 6f, icon.y - 2f, 240f, 22f), charged.LevelLabel(chargedLevel));
                 Widgets.Label(new Rect(icon.xMax + 6f, icon.y + 16f, 240f, 22f),
                     "AGM_MiracleCost".Translate(level.cost.ToString("F0"), power.ToString("F0")));
+            }
+        }
+
+        /// <summary>Next to the cursor: what's held (mass, upkeep), or what's under it and whether it can be lifted.</summary>
+        private static void DrawHandReadout()
+        {
+            GodHand hand = Hand;
+            if (hand == null)
+            {
+                return;
+            }
+            Thing thing = hand.Holding ? hand.Held : (strokes.Count == 0 ? GodHand.GrabbableAt(UI.MouseCell(), Find.CurrentMap) : null);
+            if (thing == null)
+            {
+                return;
+            }
+            float capacity = GodHand.Capacity;
+            string line1, line2;
+            Color color = Color.white;
+            if (hand.Holding)
+            {
+                float mass = GodHand.MassOf(thing);
+                line1 = thing.LabelCap;
+                line2 = "AGM_Hand_HoldingLine".Translate(mass.ToString("F0"), capacity.ToString("F0"), GodHand.HoldCostPerHour(thing, mass).ToString("F1"));
+            }
+            else
+            {
+                int count = GodHand.LiftableCount(thing);
+                float mass = thing is Pawn ? GodHand.UnitMass(thing) : GodHand.UnitMass(thing) * Mathf.Max(count, 1);
+                line1 = "AGM_Hand_GrabLine".Translate(thing.LabelShort);
+                if (count <= 0)
+                {
+                    color = ColorLibrary.RedReadable;
+                    line2 = "AGM_Hand_TooHeavyShort".Translate(GodHand.UnitMass(thing).ToString("F0"), capacity.ToString("F0"));
+                }
+                else
+                {
+                    float cost = GodHand.PickupCost(thing, mass);
+                    if (!InfluenceUtility.InInfluence(thing.Position, thing.Map) || !DivinePower.Instance.CanAfford(cost))
+                    {
+                        color = ColorLibrary.RedReadable;
+                    }
+                    string partial = count < thing.stackCount ? " (" + count + "/" + thing.stackCount + ")" : "";
+                    line2 = "AGM_Hand_LiftLine".Translate(mass.ToString("F0"), capacity.ToString("F0"), cost.ToString("F1")) + partial;
+                }
+            }
+            Vector2 mouse = Event.current.mousePosition;
+            using (new TextBlock(GameFont.Small, TextAnchor.UpperLeft, color))
+            {
+                Widgets.Label(new Rect(mouse.x + 24f, mouse.y + 12f, 360f, 22f), line1);
+                Widgets.Label(new Rect(mouse.x + 24f, mouse.y + 30f, 360f, 22f), line2);
             }
         }
 

@@ -31,6 +31,9 @@ namespace ActualGodMode
 
         public bool IsBeliever(Pawn pawn) => pawn != null && believers.Contains(pawn);
 
+        /// <summary>Living believers anywhere (they lend the Hand its strength).</summary>
+        public int LivingCount => believers.Count(p => p != null && !p.Dead && !p.Destroyed);
+
         public IEnumerable<Pawn> NonBelieverColonists(Map map) =>
             map.mapPawns.FreeColonistsSpawned.Where(p => !IsBeliever(p) && p.RaceProps.Humanlike);
 

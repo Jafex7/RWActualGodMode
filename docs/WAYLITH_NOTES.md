@@ -89,6 +89,9 @@ Re-run after game updates:
 - Hand of God mode owns map input by prefixing `MapInterface.HandleMapClicks` and
   `HandleLowPriorityInput` (verified in-game: selection/designators paused, UI and camera fine).
 - `\` (Backslash) opens a dev menu in dev mode; `=` (Equals) is unused by vanilla.
+- Drawing an unspawned thing/pawn every frame with `Thing.DrawNowAt` from `MapComponentUpdate`
+  works (same path vanilla uses for carried things); `PawnRenderer` recomputes its pre-render
+  results every frame, so the pawn follows the cursor. (Self-tested headless; visuals to confirm in-game.)
 - Other mods (e.g. Multiplayer) log "probably needs a StaticConstructorOnStartup
   attribute" warnings at startup; those aren't ours.
 

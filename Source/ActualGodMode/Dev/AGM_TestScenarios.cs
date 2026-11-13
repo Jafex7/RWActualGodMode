@@ -209,5 +209,41 @@ namespace ActualGodMode
                 p.needs.food.CurLevelPercentage = 0.1f;
             }
         }
+
+        /// <summary>
+        /// The Hand: a light stack, a stack too heavy to lift whole, a bed, and a downed
+        /// colonist (anesthetic) near the shrine. Fills divine power.
+        /// </summary>
+        public static Building_Bed SetUpHandTest(Map map)
+        {
+            Thing shrine = SetUpGodColony(map);
+            IntVec3 center = shrine.Position;
+            Thing steel = ThingMaker.MakeThing(ThingDefOf.Steel);
+            steel.stackCount = 40;
+            GenPlace.TryPlaceThing(steel, center + new IntVec3(3, 0, 0), map, ThingPlaceMode.Near);
+            ThingDef heavyDef = DefDatabase<ThingDef>.AllDefs.FirstOrDefault(d => d.category == ThingCategory.Item && d.EverHaulable
+                && d.stackLimit > 1 && !d.MadeFromStuff && d.GetStatValueAbstract(StatDefOf.Mass) * d.stackLimit > GodHand.Capacity * 1.2f);
+            if (heavyDef != null)
+            {
+                Thing heavy = ThingMaker.MakeThing(heavyDef);
+                heavy.stackCount = heavyDef.stackLimit;
+                GenPlace.TryPlaceThing(heavy, center + new IntVec3(-3, 0, 0), map, ThingPlaceMode.Near);
+            }
+            var bed = (Building_Bed)GenSpawn.Spawn(ThingMaker.MakeThing(ThingDefOf.Bed, ThingDefOf.WoodLog),
+                CellFinder.RandomClosewalkCellNear(center + new IntVec3(0, 0, -4), map, 3), map);
+            bed.SetFaction(Faction.OfPlayer);
+            Pawn downed = map.mapPawns.FreeColonistsSpawned.FirstOrDefault(p => !p.Dead && !p.Downed);
+            downed?.health.AddHediff(HediffDefOf.Anesthetic);
+            DivinePower.Instance.DebugSet(DivinePower.Instance.MaxPower);
+            return bed;
+        }
+
+        [DebugAction(Category, "Set up hand test (items, bed, downed colonist)", allowedGameStates = AllowedGameStates.PlayingOnMap, displayPriority = 92)]
+        private static void SetUpHandTestAction()
+        {
+            SetUpHandTest(Find.CurrentMap);
+            Messages.Message($"Hand test ready: lift capacity {GodHand.Capacity:F0} kg. A colonist is under anesthetic: carry them to the bed.",
+                MessageTypeDefOf.NeutralEvent, false);
+        }
     }
 }
