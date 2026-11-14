@@ -8,8 +8,8 @@ namespace ActualGodMode
     {
         private const string Category = "Actual God Mode";
 
-        [DebugAction(Category, "Divine power +50", allowedGameStates = AllowedGameStates.Playing)]
-        private static void AddPower() => DivinePower.Instance?.Add(50f);
+        [DebugAction(Category, "Divine power: fill to max", allowedGameStates = AllowedGameStates.Playing)]
+        private static void FillPower() => DivinePower.Instance?.DebugSet(DivinePower.Instance.MaxPower);
 
         [DebugAction(Category, "Divine power = 0", allowedGameStates = AllowedGameStates.Playing)]
         private static void ClearPower() => DivinePower.Instance?.DebugSet(0f);
