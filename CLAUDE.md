@@ -41,7 +41,8 @@ Read before changing things:
   rank); Heal is poured on one pawn, Lightning holds bolts. Hand: starts items-only at 40 kg; Strength, Light touch,
   Lift living things, Lift enemies. Influence: Long reach, Pylon strength, Heralds (living pylons, gizmo).
   Verified in-game. Playtest polish: greyed Buy buttons say what to unlock, shrine build buttons for
-  temple things, map tooltips hidden while the hand is out, Lightning is a divine bolt (no fire, 3x on enemies).
+  temple things, map tooltips hidden while the hand is out, Lightning is a pinpoint divine smite (no fire; 50 in
+  5 hits + lightning shock downs an unarmored enemy; 10% death chance; EMP on mechs; own people only get a 10 sting).
   Polish self-tested; awaiting in-game test.
 - Next: see the roadmap in DESIGN.md (v2: factions/awe, throwing, …).
 

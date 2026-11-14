@@ -229,8 +229,17 @@ namespace ActualGodMode
                 heavy.stackCount = heavyDef.stackLimit;
                 GenPlace.TryPlaceThing(heavy, center + new IntVec3(-3, 0, 0), map, ThingPlaceMode.Near);
             }
-            var bed = (Building_Bed)GenSpawn.Spawn(ThingMaker.MakeThing(ThingDefOf.Bed, ThingDefOf.WoodLog),
-                CellFinder.RandomClosewalkCellNear(center + new IntVec3(0, 0, -4), map, 3), map);
+            // The bed is two cells long: its whole footprint must be clear, or spawning it would wipe what's
+            // there (it once landed on the shrine itself).
+            IntVec3 bedCell = GenRadial.RadialCellsAround(center + new IntVec3(0, 0, -5), 4f, true).Where(c =>
+                GenAdj.OccupiedRect(c, Rot4.North, ThingDefOf.Bed.size).Cells.All(x => x.InBounds(map) && x.Standable(map)
+                    && x.GetEdifice(map) == null && x.GetFirstPawn(map) == null && x.GetFirstItem(map) == null))
+                .DefaultIfEmpty(IntVec3.Invalid).First();
+            if (!bedCell.IsValid)
+            {
+                bedCell = CellFinder.RandomClosewalkCellNear(center + new IntVec3(0, 0, -6), map, 3);
+            }
+            var bed = (Building_Bed)GenSpawn.Spawn(ThingMaker.MakeThing(ThingDefOf.Bed, ThingDefOf.WoodLog), bedCell, map, Rot4.North);
             bed.SetFaction(Faction.OfPlayer);
             Pawn downed = map.mapPawns.FreeColonistsSpawned.FirstOrDefault(p => !p.Dead && !p.Downed);
             downed?.health.AddHediff(HediffDefOf.Anesthetic);

@@ -490,26 +490,88 @@ namespace ActualGodMode
                 Check(PrayerRequestWorker_Hunted.Threat(a) != null, "an enemy nearby can make a believer pray for deliverance");
                 Check(WrathJudgement.Classify(raider) == WrathJudgement.Target.Enemy, "an armed enemy counts as a just target");
 
-                // The bolt sets no fires and burns enemies three times as hard.
+                // The bolt: pinpoint, no fire; downs an unarmored baseliner; a neighbour is untouched.
                 var bolt = (MiracleWorker_Lightning)lightning.Worker;
-                Check(Mathf.Abs(bolt.DamageTo(raider) - 3f * bolt.DamageTo(a)) < 0.01f && bolt.DamageTo(a) > 0f,
-                    $"lightning hits enemies 3x as hard ({bolt.DamageTo(raider):F0} vs {bolt.DamageTo(a):F0})");
+                Check(bolt.DamageTo(raider) / bolt.ResistFactor(raider) >= 49.9f && bolt.DamageTo(a) <= 10.01f,
+                    $"a bolt smites an enemy hard and only stings your own ({bolt.DamageTo(raider):F0} vs {bolt.DamageTo(a):F0})");
+                raider.apparel?.DestroyAll();
+                raider.story?.traits?.allTraits.Clear();
+                raider.health.hediffSet.DirtyCache();
+                Teleport(raider, shrine.Position + new IntVec3(-5, 0, 5), map);
                 IntVec3 strikeAt = raider.Position;
-                Teleport(a, shrine.Position + new IntVec3(6, 0, 6), map);
-                if ((strikeAt - a.Position).LengthHorizontal < 4f)
-                {
-                    Teleport(a, shrine.Position + new IntVec3(-6, 0, -6), map);
-                }
+                Teleport(a, strikeAt + IntVec3.East, map); // right next to the target, as in melee
+                float aHealth = a.health.summaryHealth.SummaryHealthPercent;
                 int FiresNear() => map.listerThings.ThingsOfDef(ThingDefOf.Fire).Count(f => (f.Position - strikeAt).LengthHorizontal < 4f);
                 int firesBefore = FiresNear();
-                float hpBefore = raider.health.summaryHealth.SummaryHealthPercent;
                 dp.Add(dp.MaxPower);
                 MiracleUtility.TryCast(lightning, strikeAt, map);
-                Check(raider.Dead || raider.health.summaryHealth.SummaryHealthPercent < hpBefore, "the bolt wounds the enemy");
-                Check(FiresNear() == firesBefore && !raider.HasAttachment(ThingDefOf.Fire), "the bolt starts no fires");
-                if (!raider.Destroyed)
+                Log.Message(Tag + $"  a random raider (any genes), stripped, after one bolt: downed {raider.Downed} (pain {raider.health.hediffSet.PainTotal:P0}, dead: {raider.Dead}, healthScale {raider.HealthScale:F2}, injuries: {string.Join(", ", raider.health.hediffSet.hediffs.OfType<Hediff_Injury>().Select(h => h.Part?.Label + " " + h.Severity.ToString("F1")))})");
+                Check(Mathf.Abs(a.health.summaryHealth.SummaryHealthPercent - aHealth) < 0.001f, "the bolt is pinpoint: the colonist next to it is untouched");
+
+                // Sample: more unarmored enemies (all should go down), and some in marine armor (logged).
+                string SmiteSample(bool armored, out int downed)
                 {
-                    raider.Destroy();
+                    downed = 0;
+                    var pains = new List<string>();
+                    for (int i = 0; i < 6; i++)
+                    {
+                        Pawn e = PawnGenerator.GeneratePawn(new PawnGenerationRequest(PawnKindDefOf.Villager, enemy, forceBaselinerChance: 1f, allowAddictions: false));
+                        e.story?.traits?.allTraits.Clear();
+                        GenSpawn.Spawn(e, shrine.Position + new IntVec3(-5, 0, 5), map);
+                        e.apparel?.DestroyAll();
+                        if (armored)
+                        {
+                            foreach (string name in new[] { "Apparel_PowerArmor", "Apparel_PowerArmorHelmet" })
+                            {
+                                ThingDef ad = DefDatabase<ThingDef>.GetNamedSilentFail(name);
+                                if (ad != null)
+                                {
+                                    e.apparel.Wear((Apparel)ThingMaker.MakeThing(ad, GenStuff.DefaultStuffFor(ad)));
+                                }
+                            }
+                        }
+                        e.health.hediffSet.DirtyCache();
+                        dp.Add(dp.MaxPower);
+                        MiracleUtility.TryCast(lightning, e.Position, map);
+                        if (e.Downed || e.Dead)
+                        {
+                            downed++;
+                        }
+                        pains.Add(e.Dead ? "dead" : e.health.hediffSet.PainTotal.ToString("P0"));
+                        RemoveTestPawn(e);
+                    }
+                    return string.Join(" ", pains);
+                }
+                string bare = SmiteSample(false, out int bareDowned);
+                Check(bareDowned == 6, $"bolts down unarmored enemies ({bareDowned}/6; pain: {bare})");
+                string armoredPains = SmiteSample(true, out int armoredDowned);
+                Log.Message(Tag + $"  marine armor: {armoredDowned}/6 downed by one bolt (pain: {armoredPains})");
+                Check(FiresNear() == firesBefore && !raider.HasAttachment(ThingDefOf.Fire), "the bolt starts no fires");
+                RemoveTestPawn(raider);
+
+                // Own colonist: a sting on the torso that never scars.
+                HealInjuries(a);
+                dp.Add(dp.MaxPower);
+                MiracleUtility.TryCast(lightning, a.Position, map);
+                List<Hediff_Injury> stings = a.health.hediffSet.hediffs.OfType<Hediff_Injury>().ToList();
+                Check(!a.Downed && !a.Dead && stings.Count > 0 && stings.Sum(h => h.Severity) <= 15f
+                    && stings.All(h => h.Part == a.RaceProps.body.corePart && h.TryGetComp<HediffComp_GetsPermanent>()?.permanentDamageThreshold >= 9999f),
+                    $"your own colonist only gets a torso sting that won't scar ({stings.Sum(h => h.Severity):F1})");
+                HealInjuries(a);
+
+                // A mech: burned and EMP-stunned.
+                if (Faction.OfMechanoids != null)
+                {
+                    PawnKindDef mechKind = DefDatabase<PawnKindDef>.GetNamedSilentFail("Mech_Lancer");
+                    if (mechKind != null)
+                    {
+                        Pawn mech = PawnGenerator.GeneratePawn(mechKind, Faction.OfMechanoids);
+                        GenSpawn.Spawn(mech, shrine.Position + new IntVec3(-5, 0, 5), map);
+                        dp.Add(dp.MaxPower);
+                        MiracleUtility.TryCast(lightning, mech.Position, map);
+                        Check(mech.Dead || mech.stances.stunner.Stunned, "a bolt EMP-stuns a mech");
+                        RemoveTestPawn(mech);
+                    }
                 }
             }
             Log.Message(Tag + "  deeds ledger:\n" + alignment.Deeds.TooltipSection("AGM_Alignment_LedgerHeader", asPercent: false));
@@ -649,7 +711,7 @@ namespace ActualGodMode
             dp.DebugSet(dp.MaxPower);
             alignment.DebugSet(0f);
             AcceptanceReport canLift = hand.CanGrab(colonist);
-            Check(hand.TryGrab(colonist, drag: true) && !colonist.Spawned, $"the hand lifts a colonist {canLift.Reason} (holding {hand.Held.ToStringSafe()}, power {DivinePower.Instance.Power:F0}, in influence {InfluenceUtility.InInfluence(colonist.PositionHeld, map)})");
+            Check(hand.TryGrab(colonist, drag: true) && !colonist.Spawned, $"the hand lifts a colonist {canLift.Reason} (holding {hand.Held.ToStringSafe()}, power {DivinePower.Instance.Power:F0}, in influence {InfluenceUtility.InInfluence(colonist.PositionHeld, map)}, at {colonist.PositionHeld} shrine {shrine.Position} spawned {shrine.Spawned} shrines {map.listerThings.ThingsOfDef(AGM_DefOf.AGM_Shrine).Count}, outside {InfluenceUtility.DistanceOutside(colonist.PositionHeld, map):F1}, reach {InfluenceUtility.InReach(colonist.PositionHeld, map)})");
             Check(colonist.needs.mood.thoughts.memories.GetFirstMemoryOfDef(AGM_HandDefOf.AGM_LiftedStartled) != null,
                 "a person lifted by a neutral god is startled (flavor thought)");
             Check(map.mapPawns.FreeColonists.Contains(colonist), "a lifted colonist still counts as on the map");
@@ -733,13 +795,16 @@ namespace ActualGodMode
             }
             Plant SpawnTree(IntVec3 around)
             {
-                IntVec3 c = GenRadial.RadialCellsAround(around, 6f, true).FirstOrDefault(x => x.InBounds(map) && x.Standable(map)
-                    && x.GetPlant(map) == null && x.GetEdifice(map) == null && map.fertilityGrid.FertilityAt(x) > 0.5f
-                    && InfluenceUtility.InInfluence(x, map) && x.GetFirstPawn(map) == null && x.GetFirstItem(map) == null);
+                // (Grass or bushes there are cleared; a cell is never "default" (0,0,0) when none fits.)
+                IntVec3 c = GenRadial.RadialCellsAround(around, 8f, true).Where(x => x.InBounds(map) && x.Standable(map)
+                    && (x.GetPlant(map) == null || !x.GetPlant(map).def.plant.IsTree) && x.GetEdifice(map) == null
+                    && map.fertilityGrid.FertilityAt(x) > 0.5f && InfluenceUtility.InInfluence(x, map)
+                    && x.GetFirstPawn(map) == null && x.GetFirstItem(map) == null).DefaultIfEmpty(IntVec3.Invalid).First();
                 if (!c.IsValid)
                 {
                     return null;
                 }
+                c.GetPlant(map)?.Destroy();
                 var tree = (Plant)GenSpawn.Spawn(ThingDef.Named("Plant_TreeOak"), c, map);
                 tree.Growth = 1f;
                 return tree;
@@ -761,7 +826,7 @@ namespace ActualGodMode
             hand.Place(oak.Position, order: true);
             bool designated = map.designationManager.DesignationOn(oak, DesignationDefOf.CutPlant) != null;
             bool cutting = (worker.CurJobDef?.defName ?? "").StartsWith("CutPlant") || worker.jobs.jobQueue.Any(q => q.job.def.defName.StartsWith("CutPlant"));
-            Check(designated && cutting, $"a woodcutter set down on a tree marks it and starts cutting (designated {designated}, job {worker.CurJobDef?.defName})");
+            Check(designated && cutting, $"a woodcutter set down on a tree marks it and starts cutting (designated {designated}, job {worker.CurJobDef?.defName}, takes orders {HandWorkOrder.CanTakeOrders(worker)}, mental {worker.MentalStateDef?.defName}, downed {worker.Downed}, drafted {worker.Drafted}, spawned {worker.Spawned}, pain {worker.health.hediffSet.PainTotal:P0}, reach {worker.CanReach(oak, Verse.AI.PathEndMode.Touch, Danger.Deadly)}, at {worker.Position} tree {oak.Position})");
 
             // Not assigned: a warning, and the tree is left unmarked.
             Plant oak2 = SpawnTree(shrine.Position + new IntVec3(-4, 0, -3));
@@ -777,6 +842,27 @@ namespace ActualGodMode
             }
             worker.jobs.StopAll();
             oak.Destroy();
+        }
+
+        /// <summary>Removes a test pawn, alive or dead (with its corpse).</summary>
+        private static void RemoveTestPawn(Pawn p)
+        {
+            if (p.Dead)
+            {
+                p.Corpse?.Destroy();
+            }
+            if (!p.Destroyed)
+            {
+                p.Destroy();
+            }
+        }
+
+        private static void HealInjuries(Pawn p)
+        {
+            foreach (Hediff_Injury injury in p.health.hediffSet.hediffs.OfType<Hediff_Injury>().ToList())
+            {
+                p.health.RemoveHediff(injury);
+            }
         }
 
         private static void Teleport(Pawn p, IntVec3 c, Map map)

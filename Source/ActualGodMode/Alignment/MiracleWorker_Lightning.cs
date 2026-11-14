@@ -9,8 +9,8 @@ using Verse.Sound;
 namespace ActualGodMode
 {
     /// <summary>
-    /// Smite: a bolt from the sky (flash, bolt, thunder) that burns everyone in its radius, without
-    /// setting fires. Enemies take a multiple of the damage (<see cref="LightningExtension"/>).
+    /// Smite: a pinpoint bolt from the sky (flash, bolt, thunder) onto one pawn, without
+    /// setting fires: a smite that downs an unarmored person; the colony's own only get a sting.
     /// What it means depends on who's standing there: see <see cref="WrathJudgement"/>.
     /// A charge holds <c>amount</c> bolts, one per click (each judged on its own).
     /// </summary>
@@ -18,9 +18,124 @@ namespace ActualGodMode
     {
         private LightningExtension Props => def.GetModExtension<LightningExtension>() ?? LightningExtension.Default;
 
-        /// <summary>The burn a bolt deals to this pawn (enemies of the colony take more).</summary>
-        public float DamageTo(Pawn p) =>
-            Props.damage * (p.HostileTo(Faction.OfPlayer) ? Props.enemyDamageFactor : 1f);
+        /// <summary>The colony's own (colonists, slaves, animals, prisoners): a stinging punishment, not a smite.</summary>
+        public static bool IsOwn(Pawn p) => p.Faction == Faction.OfPlayer || p.IsPrisonerOfColony;
+
+        /// <summary>
+        /// The damage a bolt deals this pawn, before armor: the full smite, or the light punishment for
+        /// the colony's own; fire resistance (genes, hediffs) takes part of it off.
+        /// </summary>
+        public float DamageTo(Pawn p) => (IsOwn(p) ? Props.ownDamage : Props.damage) * ResistFactor(p);
+
+        /// <summary>1 normally; down to <c>fireResistedFactor</c> for a pawn immune to fire.</summary>
+        public float ResistFactor(Pawn p)
+        {
+            float worst = 1f;
+            foreach (DamageDef fire in new[] { DamageDefOf.Flame, DamageDefOf.Burn })
+            {
+                var probe = new DamageInfo(fire, 1f);
+                float f = p.health.FactorForDamage(probe);
+                if (ModsConfig.BiotechActive && p.genes != null)
+                {
+                    f *= p.genes.FactorForDamage(probe);
+                }
+                worst = Mathf.Min(worst, f);
+            }
+            return Mathf.Lerp(Props.fireResistedFactor, 1f, Mathf.Clamp01(worst));
+        }
+
+        /// <summary>
+        /// Pinpoint: the one pawn drawn closest to the cell's centre (within <c>targetReach</c>, so a pawn
+        /// walking between cells can still be hit), or nobody.
+        /// </summary>
+        public Pawn TargetAt(IntVec3 cell, Map map)
+        {
+            Vector3 center = cell.ToVector3Shifted();
+            Pawn best = null;
+            float bestDist = Props.targetReach;
+            foreach (IntVec3 c in GenAdj.CellsAdjacent8Way(new TargetInfo(cell, map)).Append(cell))
+            {
+                if (!c.InBounds(map))
+                {
+                    continue;
+                }
+                foreach (Thing t in c.GetThingList(map))
+                {
+                    if (t is Pawn p && !p.Dead)
+                    {
+                        Vector3 d = p.DrawPos - center;
+                        float dist = new Vector2(d.x, d.z).magnitude;
+                        if (dist <= bestDist)
+                        {
+                            best = p;
+                            bestDist = dist;
+                        }
+                    }
+                }
+            }
+            return best;
+        }
+
+        /// <summary>
+        /// The bolt's damage, in several hits on the outer body (never straight into the brain or heart).
+        /// The colony's own take one light hit on the torso that never scars. Mechs are also hit by an EMP.
+        /// </summary>
+        public void Smite(Pawn p)
+        {
+            LightningExtension props = Props;
+            DamageDef damageDef = props.damageDef ?? DamageDefOf.Burn;
+            float total = DamageTo(p);
+            if (IsOwn(p))
+            {
+                var before = new HashSet<Hediff>(p.health.hediffSet.hediffs);
+                var dinfo = new DamageInfo(damageDef, total, props.armorPenetration, hitPart: p.RaceProps.body.corePart);
+                p.TakeDamage(dinfo);
+                foreach (Hediff h in p.health.hediffSet.hediffs)
+                {
+                    HediffComp_GetsPermanent permanent = before.Contains(h) ? null : h.TryGetComp<HediffComp_GetsPermanent>();
+                    if (permanent != null)
+                    {
+                        permanent.isPermanentInt = false;
+                        permanent.permanentDamageThreshold = 9999f;
+                    }
+                }
+            }
+            else
+            {
+                int hits = Mathf.Max(1, props.hits);
+                float dealt = 0f;
+                // Vanilla may kill a non-colony pawn the moment damage downs them (often 50%+): a smite
+                // is meant to bring them down, not finish them, so it uses its own (low) chance.
+                float vanillaDeathChance = p.health.overrideDeathOnDownedChance;
+                if (props.deathOnDownedChance >= 0f && !p.RaceProps.IsMechanoid)
+                {
+                    p.health.overrideDeathOnDownedChance = props.deathOnDownedChance;
+                }
+                try
+                {
+                    for (int i = 0; i < hits && !p.Dead; i++)
+                    {
+                        var dinfo = new DamageInfo(damageDef, total / hits, props.armorPenetration);
+                        dinfo.SetBodyRegion(BodyPartHeight.Undefined, BodyPartDepth.Outside);
+                        dealt += p.TakeDamage(dinfo).totalDamageDealt;
+                    }
+                }
+                finally
+                {
+                    p.health.overrideDeathOnDownedChance = vanillaDeathChance;
+                }
+                // The shock: pain on top of the burns, as strong as the share of the bolt that got through.
+                if (!p.Dead && p.RaceProps.IsFlesh && props.damage > 0f && dealt > 0f)
+                {
+                    Hediff shock = p.health.GetOrAddHediff(AGM_AlignmentDefOf.AGM_LightningShock);
+                    shock.Severity = Mathf.Max(shock.Severity, Mathf.Clamp01(dealt / props.damage));
+                }
+            }
+            if (!p.Dead && p.RaceProps.IsMechanoid && props.empDamage > 0f)
+            {
+                p.TakeDamage(new DamageInfo(DamageDefOf.EMP, props.empDamage));
+            }
+        }
 
         public override AcceptanceReport CanCastAt(IntVec3 cell, Map map, MiracleStats stats)
         {
@@ -34,8 +149,12 @@ namespace ActualGodMode
 
         public override void Cast(IntVec3 cell, Map map, MiracleStats stats)
         {
-            float radius = stats.radius > 0f ? stats.radius : 1.9f;
-            List<Pawn> targets = GenRadial.RadialDistinctThingsAround(cell, map, radius, useCenter: true).OfType<Pawn>().ToList();
+            Pawn target = TargetAt(cell, map);
+            var targets = new List<Pawn>();
+            if (target != null)
+            {
+                targets.Add(target);
+            }
             bool punished = false;
             foreach (Pawn p in targets)
             {
@@ -45,14 +164,10 @@ namespace ActualGodMode
                 }
             }
 
-            map.weatherManager.eventHandler.AddEvent(new WeatherEvent_DivineBolt(map, cell));
-            DamageDef damageDef = Props.damageDef ?? DamageDefOf.Burn;
-            foreach (Pawn p in targets)
+            map.weatherManager.eventHandler.AddEvent(new WeatherEvent_DivineBolt(map, target?.Position ?? cell));
+            if (target != null && target.Spawned && !target.Dead)
             {
-                if (p.Spawned && !p.Dead)
-                {
-                    p.TakeDamage(new DamageInfo(damageDef, DamageTo(p), Props.armorPenetration));
-                }
+                Smite(target);
             }
 
             WrathJudgement.AffectWitnesses(cell, map, targets, punished);
@@ -66,7 +181,15 @@ namespace ActualGodMode
 
         public override void DrawPreview(IntVec3 cell, Map map, MiracleStats stats)
         {
-            GenDraw.DrawRadiusRing(cell, stats.radius > 0f ? stats.radius : 1.9f);
+            Pawn target = TargetAt(cell, map);
+            if (target != null)
+            {
+                GenDraw.DrawTargetHighlight(target);
+            }
+            else
+            {
+                GenDraw.DrawFieldEdges(new List<IntVec3> { cell });
+            }
         }
     }
 
@@ -75,9 +198,20 @@ namespace ActualGodMode
     {
         public static readonly LightningExtension Default = new LightningExtension();
 
-        public float damage = 10f;
-        public float enemyDamageFactor = 3f;
-        public float armorPenetration = -1f;
+        /// <summary>Total damage to anyone not the colony's own, split into <c>hits</c> on the outer body.</summary>
+        public float damage = 50f;
+        public int hits = 5;
+        /// <summary>The colony's own: one light hit on the torso, never a scar.</summary>
+        public float ownDamage = 10f;
+        public float armorPenetration = 0.2f;
+        /// <summary>Damage factor for a fire-immune pawn (partly fire-resistant pawns fall in between).</summary>
+        public float fireResistedFactor = 0.5f;
+        /// <summary>EMP damage added on mechanoids (stuns them).</summary>
+        public float empDamage = 50f;
+        /// <summary>Chance a non-colony person downed by the bolt dies on the spot (-1 = vanilla's, often 50%+).</summary>
+        public float deathOnDownedChance = 0.1f;
+        /// <summary>How far from the cell's centre (in cells) a pawn can be drawn and still be the target.</summary>
+        public float targetReach = 0.9f;
         public DamageDef damageDef;
     }
 
@@ -128,6 +262,7 @@ namespace ActualGodMode
     {
         public static ThoughtDef AGM_FearedWrath;
         public static HediffDef AGM_WontBeNext;
+        public static HediffDef AGM_LightningShock;
         public static MiracleDef AGM_Miracle_Lightning;
 
         static AGM_AlignmentDefOf()

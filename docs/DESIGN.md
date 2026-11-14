@@ -476,11 +476,26 @@ abilities instead of giving them all at once.
 - **Decided: Lightning gets bolts** ("a gun with N bullets"): a charge holds N bolts, each click
   fires one, the charge stays until empty or right-click. Base 1 bolt for 20; ranks e.g. 2 at 18
   each, 3 at 16 each. Each bolt is judged on its own (deed, witnesses, punishment).
-  **Decided (user, after playtest): a divine bolt, no fire.** Vanilla lightning's flame
-  explosion hurt little and its fires were a nuisance in melee range. Now each pawn in the
-  radius takes a burn (10), enemies of the colony 3x (30); no fires, same look and sound
-  (`WeatherEvent_DivineBolt`, numbers in the `LightningExtension` on the miracle def). Tune
-  after playtest.
+  **Decided (user, after playtest): a pinpoint divine smite, no fire.** Vanilla lightning's
+  flame explosion hurt little and its fires/AOE were a nuisance in melee range. Now:
+  - **Pinpoint**: one pawn, the one drawn closest to the clicked cell (reach 0.9 cell, so a
+    walking pawn can be hit). Neighbours in melee are untouched. Same flash, bolt and thunder
+    (`WeatherEvent_DivineBolt`); no fires.
+  - **Smite (anyone not the colony's own)**: 50 damage of `AGM_Smite` (electrical burns, Heat
+    armor category, AP 0.2) in 5 hits on the outer body (never straight into brain/heart), plus
+    a **lightning shock** hediff (pain +0.1..+0.4 by the share of damage that got through,
+    fades in ~6 h). Why: RimWorld has no HP pool; pawns go down from pain (shock at 80% for a
+    baseliner), and burns alone landed unevenly (47-78% pain: small parts cap damage, random
+    parts). With the shock an unarmored baseliner goes down every time (self-test 6/6, pain
+    ~100%); marine armor usually still goes down (5-6/6, pain 68-100%). Fire immunity halves
+    it; reduced-pain genes, painkillers and pain-immune pawns resist (by design).
+  - **Not a kill button**: vanilla kills a non-colony pawn downed by damage 50%+ of the time;
+    the smite uses its own 10% (`deathOnDownedChance`). Observed ~14% deaths (that plus the odd
+    destroyed head/neck).
+  - **Mechs**: also take an EMP (50), which stuns them.
+  - **The colony's own** (colonists, slaves, animals, prisoners): a 10-damage sting on the
+    torso that never scars: punishment, snapping out of a break, fear; not maiming.
+  Numbers in the `LightningExtension` on the miracle def. Tune after playtest.
 - **Decided: Hand branch.** The starting Hand lifts **items only**. Tracks: **Strength** (lift
   capacity), **Light touch** (cheaper pickup / holding), **Lift living things** (colonists,
   animals, friendly people), **Lift enemies** (needs Lift living things). **Believers no longer

@@ -36,14 +36,13 @@
   <ActualGodMode.MiracleDef>
     <defName>AGM_Miracle_Lightning</defName>
     <label>lightning</label>
-    <description>Lightning falls from the sky onto the chosen spot, searing everyone it touches. It sets no fires, and it strikes the colony's enemies hardest. What it means depends on who is standing there: smiting attackers is just, striking down the helpless or your own people is not.</description>
+    <description>Lightning falls from the sky onto one person: a divine smite that leaves an unarmored enemy on the ground, and stuns machines. Armor and fire resistance soften it. Your own people only feel a sting, enough to shock them out of a break. It sets no fires. What it means depends on who is standing there: smiting attackers is just, striking down the helpless or your own people is not.</description>
     <workerClass>ActualGodMode.MiracleWorker_Lightning</workerClass>
     <gesture>AGM_Gesture_Bolt</gesture>
     <iconThing>ChunkSlagSteel</iconThing>
     <witnessFaithGain>0.02</witnessFaithGain>
     <order>40</order>
     <cost>20</cost>
-    <radius>1.9</radius>
     <amount>1</amount>
     <unitLabel>bolts</unitLabel>
     <!-- A charge holds `amount` bolts, one per click (ranks add bolts). -->
@@ -51,12 +50,22 @@
       <perClick>true</perClick>
     </channel>
     <modExtensions>
-      <!-- Burn damage per bolt to each pawn in the radius; enemies of the colony take it times
-           enemyDamageFactor. No fire. First guesses (balance pass). -->
+      <!-- Pinpoint: one pawn. `damage` is split into `hits` on the outer body (pain from 50 burn
+           points ~94%: past a baseliner's 80% pain shock). The colony's own (colonists, slaves,
+           animals, prisoners) take `ownDamage` once on the torso, never scarring. Heat armor rolls
+           against each hit (minus armorPenetration); fire immunity takes it to fireResistedFactor.
+           Mechs also take an EMP. No fire. First guesses (balance pass). -->
       <li Class="ActualGodMode.LightningExtension">
-        <damage>10</damage>
-        <enemyDamageFactor>3</enemyDamageFactor>
-        <damageDef>Burn</damageDef>
+        <damage>50</damage>
+        <hits>5</hits>
+        <ownDamage>10</ownDamage>
+        <armorPenetration>0.2</armorPenetration>
+        <fireResistedFactor>0.5</fireResistedFactor>
+        <empDamage>50</empDamage>
+        <!-- vanilla kills a downed raider 50%+ of the time; a smite downs, rarely kills (-1 = vanilla) -->
+        <deathOnDownedChance>0.1</deathOnDownedChance>
+        <targetReach>0.9</targetReach>
+        <damageDef>AGM_Smite</damageDef>
       </li>
     </modExtensions>
     <requirements>
@@ -66,6 +75,23 @@
       </li>
     </requirements>
   </ActualGodMode.MiracleDef>
+
+  <!-- The bolt's damage: electrical burns, resisted by heat armor (not fire: no ignition). -->
+  <DamageDef>
+    <defName>AGM_Smite</defName>
+    <label>divine lightning</label>
+    <workerClass>DamageWorker_AddInjury</workerClass>
+    <externalViolence>true</externalViolence>
+    <hasForcefulImpact>false</hasForcefulImpact>
+    <makesBlood>false</makesBlood>
+    <deathMessage>{0} has been struck down by divine lightning.</deathMessage>
+    <hediff>ElectricalBurn</hediff>
+    <armorCategory>Heat</armorCategory>
+    <defaultDamage>10</defaultDamage>
+    <defaultArmorPenetration>0.2</defaultArmorPenetration>
+    <combatLogRules>Damage_Flame</combatLogRules>
+    <canUseDeflectMetalEffect>false</canUseDeflectMetalEffect>
+  </DamageDef>
 
   <!-- Lightning: a jagged bolt, several zigzags from top to bottom (or bottom to top).
        Kept free of a single central bar so it isn't confused with Heal's cross. -->
@@ -122,6 +148,30 @@
           <MentalBreakThreshold>-0.05</MentalBreakThreshold>
         </statOffsets>
       </li>
+    </stages>
+  </HediffDef>
+
+  <!-- The smite's shock: extra pain on top of the burns, so a bolt reliably downs an unarmored
+       person (pain shock). Severity = the share of the bolt's damage that got through armor and
+       fire resistance; fades in about 6 hours. Painkillers and pain-immune pawns shrug it off. -->
+  <HediffDef>
+    <defName>AGM_LightningShock</defName>
+    <label>lightning shock</label>
+    <description>Struck by divine lightning. Every nerve still burns with it.</description>
+    <hediffClass>HediffWithComps</hediffClass>
+    <defaultLabelColor>(0.95, 0.85, 0.4)</defaultLabelColor>
+    <isBad>true</isBad>
+    <maxSeverity>1</maxSeverity>
+    <comps>
+      <li Class="HediffCompProperties_SeverityPerDay">
+        <severityPerDay>-4</severityPerDay>
+      </li>
+    </comps>
+    <stages>
+      <li><minSeverity>0</minSeverity><painOffset>0.1</painOffset></li>
+      <li><minSeverity>0.25</minSeverity><painOffset>0.2</painOffset></li>
+      <li><minSeverity>0.5</minSeverity><painOffset>0.3</painOffset></li>
+      <li><minSeverity>0.75</minSeverity><painOffset>0.4</painOffset></li>
     </stages>
   </HediffDef>
 
