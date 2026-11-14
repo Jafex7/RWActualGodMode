@@ -478,7 +478,13 @@ abilities instead of giving them all at once.
   each, 3 at 16 each. Each bolt is judged on its own (deed, witnesses, punishment).
   Balance note: a direct hit does little (vanilla lightning's light fire explosion); consider a
   stronger divine bolt.
-- Still to design: the Hand and Influence branches' contents, rank costs (paid from the pool).
+- **Decided: Hand branch.** The starting Hand lifts **items only**. Tracks: **Strength** (lift
+  capacity), **Light touch** (cheaper pickup / holding), **Lift living things** (colonists,
+  animals, friendly people), **Lift enemies** (needs Lift living things). **Believers no longer
+  add capacity** (user: a colony may have 10-20 colonists; believers already speed up power
+  gathering, that's enough). Proposed capacity: base 40 kg (a full stack of most items),
+  Strength 70 (a person with gear) → 120 → 250 (big animals). Fixes "capacity grows too fast".
+- Still to design: the Influence branch's contents, rank costs (paid from the pool).
 - **Decided (user): upgrades replace miracle levels** (levels are removed from all miracles).
   Each miracle is a single miracle with straight upgrades to its own traits, bought in the
   progression: e.g. Water's economy (cost per tile), maximum tiles per cast, maybe pour speed;
