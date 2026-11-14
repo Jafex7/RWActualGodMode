@@ -8,8 +8,9 @@ using Verse;
 namespace ActualGodMode
 {
     /// <summary>
-    /// Bottom-bar "Miracles" tab: pick a miracle to put it in the god's hand, exactly as if its
-    /// gesture had been drawn (an accessibility path: same casting, same pouring, no gestures needed).
+    /// Bottom-bar "Miracles" tab. The Miracles page: pick a miracle to put it in the god's hand,
+    /// exactly as if its gesture had been drawn (an accessibility path: same casting, same pouring,
+    /// no gestures needed). The Powers page: the god's progression (<see cref="PowersPage"/>).
     /// </summary>
     public class MainTabWindow_Miracles : MainTabWindow
     {
@@ -17,12 +18,16 @@ namespace ActualGodMode
         private const float IconSize = 32f;
         private const float CastButtonWidth = 110f;
         private const float HeaderHeight = 30f;
+        private const float MaxPowersHeight = 560f;
+
+        private static bool showPowers;
 
         private static List<MiracleDef> Miracles =>
             DefDatabase<MiracleDef>.AllDefsListForReading.OrderBy(d => d.order).ToList();
 
         public override Vector2 RequestedTabSize =>
-            new Vector2(520f, HeaderHeight + Miracles.Count * RowHeight + Margin * 2f);
+            new Vector2(600f, HeaderHeight + TabDrawer.TabHeight + 8f + Mathf.Max(Miracles.Count * RowHeight,
+                Mathf.Min(PowersPage.ContentHeight, MaxPowersHeight)) + Margin * 2f);
 
         public override MainTabWindowAnchor Anchor => MainTabWindowAnchor.Left;
 
@@ -51,10 +56,26 @@ namespace ActualGodMode
                 Find.WindowStack.Add(new Window_BookOfGestures());
             }
 
-            float y = inRect.y + HeaderHeight;
+            Rect page = new Rect(inRect.x, inRect.y + HeaderHeight + TabDrawer.TabHeight + 4f, inRect.width,
+                inRect.height - HeaderHeight - TabDrawer.TabHeight - 4f);
+            var tabs = new List<TabRecord>
+            {
+                new TabRecord("AGM_Tab_Miracles".Translate(), () => showPowers = false, () => !showPowers),
+                new TabRecord("AGM_Tab_Powers".Translate(), () => showPowers = true, () => showPowers),
+            };
+            Widgets.DrawMenuSection(page);
+            TabDrawer.DrawTabs(page, tabs);
+            page = page.ContractedBy(6f);
+            if (showPowers)
+            {
+                PowersPage.Draw(page);
+                return;
+            }
+
+            float y = page.y;
             foreach (MiracleDef def in Miracles)
             {
-                Rect row = new Rect(inRect.x, y, inRect.width, RowHeight);
+                Rect row = new Rect(page.x, y, page.width, RowHeight);
                 Widgets.DrawHighlightIfMouseover(row);
                 TooltipHandler.TipRegion(row, def.description);
 

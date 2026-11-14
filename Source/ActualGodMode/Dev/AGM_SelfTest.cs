@@ -190,6 +190,15 @@ namespace ActualGodMode
 
             try
             {
+                RunProgressionTests();
+            }
+            catch (System.Exception e)
+            {
+                Check(false, "progression tests threw: " + e);
+            }
+
+            try
+            {
                 RunFaithTests();
             }
             catch (System.Exception e)
@@ -702,6 +711,46 @@ namespace ActualGodMode
             p.jobs?.StopAll();
             p.Position = dest;
             p.Notify_Teleported();
+        }
+
+        /// <summary>God progression: buying ranks of a power track, miracle stats, the cap gate, prerequisites.</summary>
+        private void RunProgressionTests()
+        {
+            DivinePower dp = DivinePower.Instance;
+            GodProgression prog = GodProgression.Instance;
+            MiracleDef water = DefDatabase<MiracleDef>.GetNamed("AGM_Miracle_Water");
+            PowerTrackDef track = DefDatabase<PowerTrackDef>.GetNamed("AGM_Track_Water");
+            Log.Message(Tag + "Progression phase");
+            float powerBefore = dp.Power;
+
+            Check(prog != null && PowerTrackDef.ForMiracle(water) == track && water.Stats.amount == 9 && Mathf.Approximately(water.Stats.cost, 5f),
+                $"water starts at its XML numbers ({water.Stats.amount} tiles for {water.Stats.cost})");
+            float unitBefore = MiracleChannel.BaseUnitCost(water);
+
+            dp.DebugSet(dp.MaxPower);
+            float before = dp.Power;
+            Check(prog.TryBuy(track) && prog.RankOf(track) == 1, "bought water rank 1");
+            Check(water.Stats.amount == 14 && Mathf.Approximately(water.Stats.cost, 6.5f) && Mathf.Approximately(before - dp.Power, track.ranks[0].price),
+                $"water rank 1: {water.Stats.amount} tiles for {water.Stats.cost}, paid {before - dp.Power:F0}");
+            Check(MiracleChannel.BaseUnitCost(water) < unitBefore, $"a rank lowers the price per tile ({unitBefore:F2} -> {MiracleChannel.BaseUnitCost(water):F2})");
+
+            var req = new Req_PowerRank { track = track, rank = 2 };
+            Check(!req.IsMet(), "a rank-2 prerequisite isn't met at rank 1");
+
+            prog.DebugSetRank(track, 2);
+            Check(req.IsMet(), "a rank-2 prerequisite is met at rank 2");
+            dp.DebugSet(dp.MaxPower);
+            AcceptanceReport r = prog.CanBuy(track);
+            float price3 = track.ranks[2].price;
+            Check(price3 > dp.MaxPower ? !r.Accepted : r.Accepted,
+                $"rank 3 (price {price3}) is {(price3 > dp.MaxPower ? "refused" : "allowed")} with a pool cap of {dp.MaxPower}: {r.Reason}");
+
+            prog.DebugSetRank(track, track.MaxRank);
+            Check(!prog.CanBuy(track).Accepted && water.Stats.amount == track.ranks[track.MaxRank - 1].amount, "a maxed track can't be bought and uses its last rank");
+
+            prog.DebugSetRank(track, 0);
+            Check(water.Stats.amount == 9, "back at rank 0, water uses its XML numbers again");
+            dp.DebugSet(powerBefore);
         }
 
         private void RunMiracleTests()

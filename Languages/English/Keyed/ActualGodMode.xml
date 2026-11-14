@@ -208,6 +208,25 @@
   <AGM_HoG_HintCharged>Left-click to cast · right-click to cancel</AGM_HoG_HintCharged>
   <AGM_HoG_HintPour>Hold left-click to pour · release to pause · right-click to cancel</AGM_HoG_HintPour>
   <AGM_MiracleCastButton>Cast ({0})</AGM_MiracleCastButton>
+
+  <!-- God progression (Powers page) -->
+  <AGM_Tab_Miracles>Miracles</AGM_Tab_Miracles>
+  <AGM_Tab_Powers>Powers</AGM_Tab_Powers>
+  <AGM_Branch_Miracles>Miracles</AGM_Branch_Miracles>
+  <AGM_Branch_Hand>Hand</AGM_Branch_Hand>
+  <AGM_Branch_Influence>Influence</AGM_Branch_Influence>
+  <AGM_Power_Buy>Buy ({0})</AGM_Power_Buy>
+  <AGM_Power_Maxed>All ranks</AGM_Power_Maxed>
+  <AGM_Power_Locked>Not available yet.</AGM_Power_Locked>
+  <AGM_Power_OverCap>Costs {0} power, more than your pool can hold ({1}). A greater temple raises it.</AGM_Power_OverCap>
+  <AGM_Power_Owned>Yours.</AGM_Power_Owned>
+  <AGM_Power_EffectNext>Now: {0}  →  next: {1}</AGM_Power_EffectNext>
+  <AGM_Power_EffectMaxed>{0}</AGM_Power_EffectMaxed>
+  <AGM_Power_MiracleEffect>{0} {1} for {2} ({3} each)</AGM_Power_MiracleEffect>
+  <AGM_Power_ConfirmBuy>Spend {0} power on {1}, rank {2}?</AGM_Power_ConfirmBuy>
+  <AGM_Power_Bought>{0}: rank {1}.</AGM_Power_Bought>
+  <AGM_Power_Requires>Requires:</AGM_Power_Requires>
+  <AGM_Req_PowerRank>{0}, rank {1}</AGM_Req_PowerRank>
   <AGM_HoG_Toggle>Hand of God mode</AGM_HoG_Toggle>
 
   <!-- Gestures -->

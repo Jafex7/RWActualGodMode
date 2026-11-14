@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+  <!-- God progression, Miracles branch: one track per miracle. Each rank sets the miracle's new
+       charge (amount) and its cost; the price per unit falls. A charge is paid per unit, so a rank
+       is never a downside. Prices sit under the power caps (100 base, 150 / 250 / 400 by temple
+       tier), so deeper ranks wait for a greater temple. Numbers are first guesses (balance pass). -->
+
+  <ActualGodMode.PowerTrackDef>
+    <defName>AGM_Track_Water</defName>
+    <label>water</label>
+    <description>The rain falls wider and costs less for each tile.</description>
+    <branch>Miracles</branch>
+    <order>10</order>
+    <miracle>AGM_Miracle_Water</miracle>
+    <ranks>
+      <li><price>50</price><amount>14</amount><cost>6.5</cost></li>
+      <li><price>120</price><amount>20</amount><cost>8</cost></li>
+      <li><price>220</price><amount>30</amount><cost>10</cost></li>
+    </ranks>
+  </ActualGodMode.PowerTrackDef>
+
+  <ActualGodMode.PowerTrackDef>
+    <defName>AGM_Track_Food</defName>
+    <label>food</label>
+    <description>More blessed crops fall from each blessing, each for less.</description>
+    <branch>Miracles</branch>
+    <order>20</order>
+    <miracle>AGM_Miracle_Food</miracle>
+    <ranks>
+      <li><price>60</price><amount>30</amount><cost>12</cost></li>
+      <li><price>130</price><amount>45</amount><cost>15</cost></li>
+      <li><price>220</price><amount>60</amount><cost>18</cost></li>
+    </ranks>
+  </ActualGodMode.PowerTrackDef>
+
+  <ActualGodMode.PowerTrackDef>
+    <defName>AGM_Track_Wood</defName>
+    <label>wood</label>
+    <description>More logs fall from each blessing, each for less.</description>
+    <branch>Miracles</branch>
+    <order>30</order>
+    <miracle>AGM_Miracle_Wood</miracle>
+    <ranks>
+      <li><price>50</price><amount>40</amount><cost>6.5</cost></li>
+      <li><price>120</price><amount>60</amount><cost>8</cost></li>
+      <li><price>220</price><amount>90</amount><cost>10</cost></li>
+    </ranks>
+  </ActualGodMode.PowerTrackDef>
+
+</Defs>

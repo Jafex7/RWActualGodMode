@@ -27,6 +27,7 @@
     <order>10</order>
     <cost>5</cost>
     <amount>9</amount>
+    <unitLabel>tiles</unitLabel>
     <!-- One tile at a time, no time limit; a tile counts once. -->
     <channel>
       <perTile>true</perTile>
@@ -44,6 +45,7 @@
     <order>20</order>
     <cost>10</cost>
     <amount>20</amount>
+    <unitLabel>crops</unitLabel>
     <!-- 20 crops = 1 nutrition, one at a time over 3 s of holding: eaten raw a quick fix, cooked two simple meals. -->
     <channel>
       <pourSeconds>3</pourSeconds>
@@ -86,6 +88,7 @@
     <cost>5</cost>
     <thingDef>WoodLog</thingDef>
     <amount>25</amount>
+    <unitLabel>logs</unitLabel>
     <!-- One log at a time; the full amount takes 3 s of holding. -->
     <channel>
       <pourSeconds>3</pourSeconds>

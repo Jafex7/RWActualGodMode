@@ -57,6 +57,17 @@ namespace ActualGodMode
         public override string Description => descriptionKey.Translate();
     }
 
+    /// <summary>The god has bought at least this rank of a power track (god progression prerequisites).</summary>
+    public class Req_PowerRank : MiracleRequirement
+    {
+        public PowerTrackDef track;
+        public int rank = 1;
+
+        public override bool IsMet() => GodProgression.Rank(track) >= rank;
+
+        public override string Description => "AGM_Req_PowerRank".Translate(track.LabelCap, rank);
+    }
+
     /// <summary>The god has received at least this much power in total.</summary>
     public class Req_LifetimePower : MiracleRequirement
     {

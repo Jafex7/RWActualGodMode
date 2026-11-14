@@ -26,6 +26,25 @@ namespace ActualGodMode
         [DebugAction(Category, "Unlock all miracles", allowedGameStates = AllowedGameStates.Playing)]
         private static void UnlockAllMiracles() => MiracleTracker.Instance?.DebugUnlockAll();
 
+        [DebugAction(Category, "Powers: all tracks +1 rank (free)", allowedGameStates = AllowedGameStates.Playing)]
+        private static void PowersRankUp() => SetAllRanks(1);
+
+        [DebugAction(Category, "Powers: reset all", allowedGameStates = AllowedGameStates.Playing)]
+        private static void PowersReset() => SetAllRanks(null);
+
+        private static void SetAllRanks(int? delta)
+        {
+            GodProgression prog = GodProgression.Instance;
+            if (prog == null)
+            {
+                return;
+            }
+            foreach (PowerTrackDef t in DefDatabase<PowerTrackDef>.AllDefsListForReading)
+            {
+                prog.DebugSetRank(t, delta.HasValue ? prog.RankOf(t) + delta.Value : 0);
+            }
+        }
+
         [DebugAction(Category, "Faith +20% (colonists)", allowedGameStates = AllowedGameStates.PlayingOnMap)]
         private static void FaithUp() => OffsetFaith(0.2f);
 

@@ -7,7 +7,8 @@ namespace ActualGodMode
 {
     /// <summary>
     /// A miracle the god can cast. One miracle, no levels: its numbers (cost, amount, radius...)
-    /// are read through <see cref="Stats"/>, where god-progression upgrades will apply later.
+    /// are read through <see cref="Stats"/>, which applies the rank bought in its
+    /// <see cref="PowerTrackDef"/> (god progression).
     /// It unlocks once its <see cref="requirements"/> are met.
     /// </summary>
     public class MiracleDef : Def
@@ -31,6 +32,9 @@ namespace ActualGodMode
         public int amount;
         public ThingDef thingDef;
 
+        /// <summary>What one unit of <c>amount</c> is called ("tiles", "logs"), for the Powers page.</summary>
+        public string unitLabel;
+
         /// <summary>What unlocks it; empty = available as soon as the god is revealed.</summary>
         public List<MiracleRequirement> requirements = new List<MiracleRequirement>();
 
@@ -48,6 +52,9 @@ namespace ActualGodMode
         [Unsaved(false)]
         private MiracleStats statsInt;
 
+        [Unsaved(false)]
+        private int statsVersion = -1;
+
         public MiracleWorker Worker
         {
             get
@@ -61,8 +68,43 @@ namespace ActualGodMode
             }
         }
 
-        /// <summary>The miracle's current numbers. For now the XML values; upgrades will modify them.</summary>
-        public MiracleStats Stats => statsInt ??= new MiracleStats { cost = cost, radius = radius, amount = amount, thingDef = thingDef };
+        /// <summary>The miracle's current numbers: the XML values, raised by the rank bought in its power track.</summary>
+        public MiracleStats Stats
+        {
+            get
+            {
+                if (statsInt == null || statsVersion != GodProgression.Version)
+                {
+                    statsInt = StatsAt(GodProgression.Rank(PowerTrackDef.ForMiracle(this)));
+                    statsVersion = GodProgression.Version;
+                }
+                return statsInt;
+            }
+        }
+
+        /// <summary>The numbers at a given rank of its power track (0 = the XML values).</summary>
+        public MiracleStats StatsAt(int rank)
+        {
+            var s = new MiracleStats { cost = cost, radius = radius, amount = amount, thingDef = thingDef };
+            PowerTrackDef track = PowerTrackDef.ForMiracle(this);
+            if (track != null && rank > 0)
+            {
+                PowerRank r = track.ranks[Mathf.Min(rank, track.MaxRank) - 1];
+                if (r.amount > 0)
+                {
+                    s.amount = r.amount;
+                }
+                if (r.cost > 0f)
+                {
+                    s.cost = r.cost;
+                }
+                if (r.radius > 0f)
+                {
+                    s.radius = r.radius;
+                }
+            }
+            return s;
+        }
 
         public Texture2D Icon
         {
@@ -104,7 +146,7 @@ namespace ActualGodMode
         }
     }
 
-    /// <summary>A miracle's effective numbers (base XML values, later raised by upgrades).</summary>
+    /// <summary>A miracle's effective numbers (base XML values, raised by its power track).</summary>
     public class MiracleStats
     {
         public float cost;
