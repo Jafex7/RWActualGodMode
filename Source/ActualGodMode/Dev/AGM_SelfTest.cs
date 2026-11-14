@@ -782,6 +782,7 @@ namespace ActualGodMode
                 DivinePower.Instance.DebugSet(DivinePower.Instance.MaxPower);
                 hand.TryGrab(worker, drag: false);
                 hand.MoveTo(on.Position);
+                Check(DropRuleOrder.ShowsPreview(worker) && !worker.Spawned, "a held colonist gets the drop-rule preview by the cursor");
                 preview = DropRuleOrder.Preview(worker, on.Position, map, out string problem) + (problem != null ? " / " + problem : "");
                 hand.Place(on.Position, order: true);
                 JobDef job = worker.CurJob?.playerForced == true ? worker.CurJobDef : null;

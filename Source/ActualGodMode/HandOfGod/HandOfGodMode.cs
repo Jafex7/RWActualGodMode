@@ -563,7 +563,7 @@ namespace ActualGodMode
                     y += 18f;
                 }
                 // What the drop rule will have them do here (a colonist, not on a bed, not into danger).
-                else if (held.IsColonistPlayerControlled && hand.LastCell == UI.MouseCell()
+                else if (DropRuleOrder.ShowsPreview(held) && hand.LastCell == UI.MouseCell()
                     && hand.LastCell.GetFirstThing<Building_Bed>(Find.CurrentMap) == null)
                 {
                     string intent = DropRuleOrder.Preview(held, hand.LastCell, Find.CurrentMap, out string problem);

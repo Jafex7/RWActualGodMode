@@ -82,6 +82,13 @@ namespace ActualGodMode
         }
 
         /// <summary>
+        /// Whether a held pawn gets the drop-rule preview: a colonist in their right mind. (Not
+        /// IsColonistPlayerControlled: that needs the pawn on the map, and a held pawn isn't.)
+        /// </summary>
+        public static bool ShowsPreview(Pawn held) =>
+            held != null && held.IsColonist && held.MentalStateDef == null && !held.Downed && held.workSettings != null;
+
+        /// <summary>
         /// Next to the cursor while holding a colonist: what the rule will do here ("Will wear: parka"),
         /// and a reason in <paramref name="warning"/> when it can already be told it won't work.
         /// </summary>
