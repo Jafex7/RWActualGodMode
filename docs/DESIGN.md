@@ -307,9 +307,9 @@ click a thing = grab, drag from empty ground = gesture, release = put down.
     via the vanilla goodwill & history-event system rather than our own). The cursor
     warning says "This will anger their faction" before the drop. Raiders are fair game.
 - **Later (user ideas, M6b feedback)**:
-  - Drop interactions with a **choice** (food: eat vs haul; corpse: butcher vs bury…):
-    maybe a menu later; for now only work-giver jobs, which don't need one.
-  - **Drop rules** (user idea, planned): an in-game settings window with a category
+  - ~~Drop interactions with a **choice** menu~~: **discarded (user)**, too complicated;
+    drop rules cover it (one action per category).
+  - **Drop rules** (user idea, **built**): an in-game settings window with a category
     tree like the storage filter (apparel, weapons, food, corpses, raw resources…, plus
     non-item kinds: workbenches, blueprints/frames, trees, crops, filth, growing zones,
     animals). Each category gets **one** action from the ones that make sense for it
@@ -325,9 +325,22 @@ click a thing = grab, drag from empty ground = gesture, release = put down.
       spawned, and a held pawn isn't, so the preview shows the rule's intent plus the
       checks that don't need the map (work type assigned/disabled), and the drop does the
       rest (warning if it still fails).
-    - Settings stored per save (game component) or globally (mod settings): TBD.
+    - **Decided (user): per save** (`DropRules` game component).
+    - **Built**: `DropCategoryDef` tree in `Defs/HandOfGod/AGM_DropCategories.xml`: items
+      (apparel, weapons, food, drugs, corpses), buildings (workbenches, blueprints & frames),
+      plants (trees), filth, people, animals, bare ground. Actions: do the work there (the
+      default everywhere, = behaviour without rules), haul (hauling work only), wear, equip,
+      eat/take, just set down. Unset categories inherit their parent's action when it
+      applies. What they're set on: the top thing on the cell, else filth, else the ground.
+      Window: Divine tab > "Drop rules" (`Window_DropRules`). Cursor preview "Will wear:
+      parka" plus a red reason when it already can't work (hauling disabled, can't wear…).
+      Wear/equip/eat make vanilla's right-click checks (`DropRuleOrder`); a persona weapon
+      asks first.
+    - Not built: butcher / bury (vanilla has no direct order for them; "haul" takes a corpse
+      to its best storage, e.g. a grave). Biotech mechanitor bandwidth confirm on wear and
+      Ideology drug-precept checks on eat are skipped (rare; noted).
   - **Enemies struggle**: cost much more to lift, or locked until a milestone.
-  - Lifting several things at once.
+  - ~~Lifting several things at once~~: **discarded (user)**, too complicated.
 
 ## 7. Impressiveness & Factions
 - Other factions have an **Awe** value toward the god, raised when their pawns

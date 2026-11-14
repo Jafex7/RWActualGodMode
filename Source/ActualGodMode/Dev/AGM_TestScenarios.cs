@@ -247,6 +247,49 @@ namespace ActualGodMode
             return bed;
         }
 
+        /// <summary>Things to drop colonists on (drop rules): a parka, a rifle, a meal, steel, near the shrine.</summary>
+        public class DropRulesTestSet
+        {
+            public Thing parka, rifle, meal, steel;
+        }
+
+        public static DropRulesTestSet SetUpDropRulesTest(Map map)
+        {
+            Thing shrine = SetUpGodColony(map);
+            IntVec3 center = shrine.Position;
+            var used = new HashSet<IntVec3>();
+            Thing Put(ThingDef def, ThingDef stuff, IntVec3 around)
+            {
+                // (Grass is fine: the item lies on top, and drop rules look at the top thing.)
+                IntVec3 cell = GenRadial.RadialCellsAround(center + around, 7f, true).Where(c => c.InBounds(map) && c.Standable(map)
+                        && !used.Contains(c) && c.GetEdifice(map) == null && c.GetFirstItem(map) == null && c.GetFirstPawn(map) == null
+                        && (c.GetPlant(map) == null || !c.GetPlant(map).def.plant.IsTree) && c.GetFirstThing<Filth>(map) == null
+                        && InfluenceUtility.InInfluence(c, map))
+                    .DefaultIfEmpty(IntVec3.Invalid).First();
+                if (!cell.IsValid)
+                {
+                    return null;
+                }
+                used.Add(cell);
+                return GenSpawn.Spawn(ThingMaker.MakeThing(def, stuff), cell, map);
+            }
+            return new DropRulesTestSet
+            {
+                parka = Put(ThingDef.Named("Apparel_Parka"), ThingDefOf.Cloth, new IntVec3(-4, 0, -3)),
+                rifle = Put(ThingDef.Named("Gun_BoltActionRifle"), null, new IntVec3(-4, 0, 3)),
+                meal = Put(ThingDefOf.MealSimple, null, new IntVec3(4, 0, 4)),
+                steel = Put(ThingDefOf.Steel, null, new IntVec3(5, 0, 0)),
+            };
+        }
+
+        [DebugAction(Category, "Set up drop rules test (parka, rifle, meal, steel)", allowedGameStates = AllowedGameStates.PlayingOnMap, displayPriority = 91)]
+        private static void SetUpDropRulesTestAction()
+        {
+            SetUpDropRulesTest(Find.CurrentMap);
+            Messages.Message("Drop rules test ready: a parka, a rifle, a meal and steel near the shrine. Set rules in Divine > Drop rules, then drop a colonist on them.",
+                MessageTypeDefOf.NeutralEvent, false);
+        }
+
         [DebugAction(Category, "Set up hand test (items, bed, downed colonist)", allowedGameStates = AllowedGameStates.PlayingOnMap, displayPriority = 92)]
         private static void SetUpHandTestAction()
         {

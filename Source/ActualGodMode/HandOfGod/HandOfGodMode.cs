@@ -551,13 +551,36 @@ namespace ActualGodMode
             }
             if (hand.Holding && thing is Pawn held && hand.LastCell.IsValid)
             {
+                float y = mouse.y + 48f;
                 GodHand.DropDanger danger = GodHand.DangerAt(hand.LastCell, Find.CurrentMap, held, out int hostiles);
                 if (danger != GodHand.DropDanger.None)
                 {
                     string warning = danger == GodHand.DropDanger.Fire ? "AGM_Hand_Danger_Fire".Translate() : "AGM_Hand_Danger_Hostiles".Translate(hostiles);
                     using (new TextBlock(GameFont.Small, TextAnchor.UpperLeft, ColorLibrary.RedReadable))
                     {
-                        Widgets.Label(new Rect(mouse.x + 24f, mouse.y + 48f, 360f, 22f), warning);
+                        Widgets.Label(new Rect(mouse.x + 24f, y, 360f, 22f), warning);
+                    }
+                    y += 18f;
+                }
+                // What the drop rule will have them do here (a colonist, not on a bed, not into danger).
+                else if (held.IsColonistPlayerControlled && hand.LastCell == UI.MouseCell()
+                    && hand.LastCell.GetFirstThing<Building_Bed>(Find.CurrentMap) == null)
+                {
+                    string intent = DropRuleOrder.Preview(held, hand.LastCell, Find.CurrentMap, out string problem);
+                    if (intent != null)
+                    {
+                        using (new TextBlock(GameFont.Small, TextAnchor.UpperLeft, HandOfGodCursor.TrailColor))
+                        {
+                            Widgets.Label(new Rect(mouse.x + 24f, y, 420f, 22f), intent);
+                        }
+                        y += 18f;
+                    }
+                    if (problem != null)
+                    {
+                        using (new TextBlock(GameFont.Small, TextAnchor.UpperLeft, ColorLibrary.RedReadable))
+                        {
+                            Widgets.Label(new Rect(mouse.x + 24f, y, 420f, 22f), problem);
+                        }
                     }
                 }
             }

@@ -60,13 +60,31 @@ namespace ActualGodMode
                     result = rest;
                 }
             }
+            return Order(pawn, result, cell);
+        }
+
+        /// <summary>
+        /// Only work of the given types on this one thing (a drop rule like "haul"): start it, or say why not.
+        /// </summary>
+        public static Result OrderWorkOn(Pawn pawn, Thing thing, System.Predicate<WorkTypeDef> workTypes)
+        {
+            if (!CanTakeOrders(pawn) || thing == null || !thing.Spawned)
+            {
+                return default;
+            }
+            Result result = Find(pawn, new List<LocalTargetInfo> { thing }, workTypes);
+            return Order(pawn, result, thing.Position);
+        }
+
+        private static Result Order(Pawn pawn, Result result, IntVec3 cell)
+        {
             if (result.job != null)
             {
                 result.job.workGiverDef = result.giver.def;
                 result.ordered = pawn.jobs.TryTakeOrderedJobPrioritizedWork(result.job, result.giver, cell);
                 if (result.ordered && result.giver.def.forceFleck != null)
                 {
-                    FleckMaker.Static(cell, map, result.giver.def.forceFleck);
+                    FleckMaker.Static(cell, pawn.Map, result.giver.def.forceFleck);
                 }
             }
             return result;
@@ -76,14 +94,17 @@ namespace ActualGodMode
         /// The first assigned work with a job here; else a reason built from unassigned work that would fit.
         /// <paramref name="mainThings"/>: buildings, blueprints, plants, items, pawns; otherwise filth and the cell.
         /// </summary>
-        public static Result Find(Pawn pawn, IntVec3 cell, bool mainThings)
+        public static Result Find(Pawn pawn, IntVec3 cell, bool mainThings) => Find(pawn, Targets(pawn, cell, mainThings), null);
+
+        /// <summary>As above, on these targets, optionally only work of some types.</summary>
+        private static Result Find(Pawn pawn, List<LocalTargetInfo> targets, System.Predicate<WorkTypeDef> workTypes)
         {
-            List<LocalTargetInfo> targets = Targets(pawn, cell, mainThings);
             foreach (LocalTargetInfo target in targets)
             {
                 foreach (WorkGiver wg in pawn.workSettings.WorkGiversInOrderNormal)
                 {
-                    if (wg is WorkGiver_Scanner scanner && TryJob(pawn, scanner, target, out Job job) && Allowed(pawn, scanner, target) == null)
+                    if (wg is WorkGiver_Scanner scanner && (workTypes == null || workTypes(scanner.def.workType))
+                        && TryJob(pawn, scanner, target, out Job job) && Allowed(pawn, scanner, target) == null)
                     {
                         return new Result
                         {
@@ -102,6 +123,10 @@ namespace ActualGodMode
             {
                 foreach (WorkTypeDef wt in DefDatabase<WorkTypeDef>.AllDefsListForReading)
                 {
+                    if (workTypes != null && !workTypes(wt))
+                    {
+                        continue;
+                    }
                     foreach (WorkGiverDef def in wt.workGiversByPriority)
                     {
                         if (def.Worker is WorkGiver_Scanner scanner && TryJob(pawn, scanner, target, out Job job))

@@ -517,7 +517,7 @@ namespace ActualGodMode
                     {
                         Pawn e = PawnGenerator.GeneratePawn(new PawnGenerationRequest(PawnKindDefOf.Villager, enemy, forceBaselinerChance: 1f, allowAddictions: false));
                         e.story?.traits?.allTraits.Clear();
-                        GenSpawn.Spawn(e, shrine.Position + new IntVec3(-5, 0, 5), map);
+                        GenSpawn.Spawn(e, GenRadial.RadialCellsAround(shrine.Position + new IntVec3(-5, 0, 5), 4f, true).First(c => c.InBounds(map) && c.Standable(map) && c.GetFirstPawn(map) == null), map);
                         e.apparel?.DestroyAll();
                         if (armored)
                         {
@@ -542,6 +542,7 @@ namespace ActualGodMode
                     }
                     return string.Join(" ", pains);
                 }
+                Teleport(a, shrine.Position + new IntVec3(6, 0, -6), map); // nobody else where the samples stand
                 string bare = SmiteSample(false, out int bareDowned);
                 Check(bareDowned == 6, $"bolts down unarmored enemies ({bareDowned}/6; pain: {bare})");
                 string armoredPains = SmiteSample(true, out int armoredDowned);
@@ -728,7 +729,108 @@ namespace ActualGodMode
             colonist.health.RemoveHediff(colonist.health.hediffSet.GetFirstHediffOfDef(HediffDefOf.Anesthetic));
 
             RunHandWorkOrderTests(map, hand, colonist);
+            RunDropRuleTests(map, hand);
             RunDangerDropTests(map, hand, colonist);
+        }
+
+        /// <summary>Drop rules: categories, inheritance, and each action (wear, equip, eat, haul, just set down).</summary>
+        private void RunDropRuleTests(Map map, GodHand hand)
+        {
+            Log.Message(Tag + "  drop rules");
+            DropRules rules = DropRules.Instance;
+            Check(rules != null, "drop rules exist in the game");
+            if (rules == null)
+            {
+                return;
+            }
+            rules.ResetAll();
+            AGM_TestScenarios.DropRulesTestSet set = AGM_TestScenarios.SetUpDropRulesTest(map);
+            if (set.parka == null || set.rifle == null || set.meal == null || set.steel == null)
+            {
+                Log.Message(Tag + "  (no room for the drop rules test things: skipping)");
+                return;
+            }
+            DropCategoryDef Cat(string name) => DefDatabase<DropCategoryDef>.GetNamed(name);
+            Check(DropCategoryDef.For(set.parka) == Cat("AGM_Drop_Apparel") && DropCategoryDef.For(set.rifle) == Cat("AGM_Drop_Weapons")
+                && DropCategoryDef.For(set.meal) == Cat("AGM_Drop_Food") && DropCategoryDef.For(set.steel) == Cat("AGM_Drop_Items")
+                && DropCategoryDef.For(shrine) == Cat("AGM_Drop_Buildings") && DropCategoryDef.ForCell(shrine.Position, map) == Cat("AGM_Drop_Ground"),
+                "drop categories: parka = apparel, rifle = weapons, meal = food, steel = items, shrine = buildings, else ground");
+            Check(DefDatabase<DropCategoryDef>.AllDefsListForReading.All(c => rules.Effective(c) == DropAction.Work),
+                "by default every drop does the work there (as without rules)");
+            rules.Set(Cat("AGM_Drop_Items"), DropAction.Haul);
+            rules.Set(Cat("AGM_Drop_Buildings"), DropAction.Ignore);
+            Check(rules.Effective(Cat("AGM_Drop_Apparel")) == DropAction.Haul && rules.Effective(Cat("AGM_Drop_Workbenches")) == DropAction.Ignore
+                && rules.Explicit(Cat("AGM_Drop_Apparel")) == null, "a category with nothing set takes its parent's action");
+            rules.Set(Cat("AGM_Drop_Apparel"), DropAction.Wear);
+            Check(rules.Effective(Cat("AGM_Drop_Apparel")) == DropAction.Wear && rules.Effective(Cat("AGM_Drop_Food")) == DropAction.Haul,
+                "a category's own action wins over its parent's");
+            rules.Set(Cat("AGM_Drop_Filth"), DropAction.Wear);
+            Check(rules.Effective(Cat("AGM_Drop_Filth")) == DropAction.Work, "an action that makes no sense for a category can't be set");
+            rules.ResetAll();
+
+            Pawn worker = map.mapPawns.FreeColonistsSpawned.FirstOrDefault(p => !p.Dead && !p.Downed && !p.InMentalState
+                && !p.WorkTagIsDisabled(WorkTags.Violent) && !p.WorkTagIsDisabled(WorkTags.Shooting) && !p.WorkTypeIsDisabled(WorkTypeDefOf.Hauling)
+                && HandWorkOrder.CanTakeOrders(p) && GodHand.MassOf(p) <= GodHand.Capacity);
+            if (worker == null)
+            {
+                Log.Message(Tag + "  (no colonist to drop for the drop rules: skipping the actions)");
+                return;
+            }
+            JobDef DropOn(Thing on, out string preview)
+            {
+                worker.jobs.StopAll();
+                DivinePower.Instance.DebugSet(DivinePower.Instance.MaxPower);
+                hand.TryGrab(worker, drag: false);
+                hand.MoveTo(on.Position);
+                preview = DropRuleOrder.Preview(worker, on.Position, map, out string problem) + (problem != null ? " / " + problem : "");
+                hand.Place(on.Position, order: true);
+                JobDef job = worker.CurJob?.playerForced == true ? worker.CurJobDef : null;
+                worker.jobs.StopAll();
+                return job;
+            }
+
+            rules.Set(Cat("AGM_Drop_Apparel"), DropAction.Wear);
+            JobDef wear = DropOn(set.parka, out string wearPreview);
+            Check(wear == JobDefOf.Wear && wearPreview.IndexOf(set.parka.def.label, System.StringComparison.OrdinalIgnoreCase) >= 0, $"apparel rule 'wear': set down on a parka, they put it on ({wear?.defName}; '{wearPreview}')");
+
+            rules.Set(Cat("AGM_Drop_Weapons"), DropAction.Equip);
+            JobDef equip = DropOn(set.rifle, out string equipPreview);
+            // Standing on it, the equip job finishes at once: the rifle is in their hands.
+            Check(equip == JobDefOf.Equip || worker.equipment?.Primary == set.rifle, $"weapons rule 'equip': set down on a rifle, they pick it up ({equip?.defName}; '{equipPreview}')");
+
+            rules.Set(Cat("AGM_Drop_Food"), DropAction.Eat);
+            JobDef eat = DropOn(set.meal, out string eatPreview);
+            Check(eat == JobDefOf.Ingest, $"food rule 'eat': set down on a meal, they eat it ({eat?.defName}; '{eatPreview}')");
+
+            rules.Set(Cat("AGM_Drop_Items"), DropAction.Ignore);
+            JobDef ignored = DropOn(set.steel, out string ignorePreview);
+            Check(ignored == null && ignorePreview.StartsWith("AGM_Drop_Will_Ignore".Translate()),
+                $"items rule 'just set down': set down on steel, nothing ordered ({ignored?.defName}; '{ignorePreview}')");
+
+            // Haul: needs somewhere to haul to.
+            rules.Set(Cat("AGM_Drop_Items"), DropAction.Haul);
+            worker.workSettings.EnableAndInitialize();
+            worker.workSettings.SetPriority(WorkTypeDefOf.Hauling, 1);
+            var zone = new Zone_Stockpile(StorageSettingsPreset.DefaultStockpile, map.zoneManager);
+            map.zoneManager.RegisterZone(zone);
+            foreach (IntVec3 c in GenRadial.RadialCellsAround(shrine.Position + new IntVec3(0, 0, 6), 2f, true)
+                .Where(c => c.InBounds(map) && c.Standable(map) && c.GetEdifice(map) == null && map.zoneManager.ZoneAt(c) == null))
+            {
+                zone.AddCell(c);
+            }
+            JobDef haul = DropOn(set.steel, out string haulPreview);
+            Check(haul == JobDefOf.HaulToCell || haul?.defName.StartsWith("Haul") == true,
+                $"items rule 'haul': set down on steel, they haul it to storage ({haul?.defName}; '{haulPreview}')");
+            zone.Delete();
+
+            rules.ResetAll();
+            foreach (Thing t in new[] { set.parka, set.rifle, set.meal, set.steel })
+            {
+                if (t != null && !t.Destroyed)
+                {
+                    t.Destroy();
+                }
+            }
         }
 
         /// <summary>Dropping someone into fire / among enemies is judged like a strike.</summary>
@@ -1354,8 +1456,10 @@ namespace ActualGodMode
             }
             float left = MiracleWorker_Heal.HealableInjuries(pawn).Sum(h => h.Severity);
             float paid = powerBefore - dp.Power;
-            bool early = toHeal < hc.Budget;
-            Check(hc.finished && (early ? left < 0.01f && hc.units < hc.Budget : hc.units == hc.Budget)
+            // Clearly less to mend than the charge: it stops early. (Close to the charge, a unit can mend a
+            // little less than its share on the last scraps, so either outcome is fine there.)
+            bool early = toHeal < hc.Budget - 1f;
+            Check(hc.finished && (left < 0.01f || hc.units == hc.Budget) && (!early || hc.units < hc.Budget)
                 && Mathf.Abs(paid - hc.units * MiracleChannel.BaseUnitCost(heal)) < 0.01f,
                 $"poured heal mended {toHeal - left:F1} of {toHeal:F1} in {hc.units}/{hc.Budget} units, paying only those ({paid:F1})");
 

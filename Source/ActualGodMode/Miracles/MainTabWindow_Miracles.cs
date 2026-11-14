@@ -26,7 +26,7 @@ namespace ActualGodMode
             DefDatabase<MiracleDef>.AllDefsListForReading.OrderBy(d => d.order).ToList();
 
         public override Vector2 RequestedTabSize =>
-            new Vector2(600f, HeaderHeight + TabDrawer.TabHeight + 8f + Mathf.Max(Miracles.Count * RowHeight,
+            new Vector2(680f, HeaderHeight + TabDrawer.TabHeight + 8f + Mathf.Max(Miracles.Count * RowHeight,
                 Mathf.Min(PowersPage.ContentHeight, MaxPowersHeight)) + Margin * 2f);
 
         public override MainTabWindowAnchor Anchor => MainTabWindowAnchor.Left;
@@ -55,6 +55,12 @@ namespace ActualGodMode
             {
                 Find.WindowStack.Add(new Window_BookOfGestures());
             }
+            Rect rulesButton = new Rect(bookButton.x - 110f - 6f, inRect.y, 110f, HeaderHeight - 4f);
+            if (Widgets.ButtonText(rulesButton, "AGM_DropRules".Translate()))
+            {
+                Find.WindowStack.Add(new Window_DropRules());
+            }
+            TooltipHandler.TipRegion(rulesButton, "AGM_DropRules_Intro".Translate());
 
             Rect page = new Rect(inRect.x, inRect.y + HeaderHeight + TabDrawer.TabHeight + 4f, inRect.width,
                 inRect.height - HeaderHeight - TabDrawer.TabHeight - 4f);

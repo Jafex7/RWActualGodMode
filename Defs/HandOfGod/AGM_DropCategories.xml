@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+  <!-- Drop rules: what a colonist set down by the god's hand does with what's under them.
+       A tree like the storage filter; each category lists the actions that make sense for it.
+       The player's choice is saved per game (DropRules); a category with nothing set takes its
+       parent's action. Defaults are Work (the first assigned work there, as without rules).
+       What they're set on: the top thing on the cell, else filth, else the ground. -->
+
+  <!-- ===== Items ===== -->
+  <ActualGodMode.DropCategoryDef>
+    <defName>AGM_Drop_Items</defName>
+    <label>items</label>
+    <description>Anything that can be carried: resources, food, apparel, weapons, corpses...</description>
+    <order>10</order>
+    <workerClass>ActualGodMode.DropCategoryWorker_Item</workerClass>
+    <actions><li>Work</li><li>Haul</li><li>Ignore</li></actions>
+  </ActualGodMode.DropCategoryDef>
+
+  <ActualGodMode.DropCategoryDef>
+    <defName>AGM_Drop_Apparel</defName>
+    <label>apparel</label>
+    <parent>AGM_Drop_Items</parent>
+    <order>10</order>
+    <workerClass>ActualGodMode.DropCategoryWorker_Item</workerClass>
+    <thingCategories><li>Apparel</li></thingCategories>
+    <actions><li>Wear</li><li>Work</li><li>Haul</li><li>Ignore</li></actions>
+  </ActualGodMode.DropCategoryDef>
+
+  <ActualGodMode.DropCategoryDef>
+    <defName>AGM_Drop_Weapons</defName>
+    <label>weapons</label>
+    <parent>AGM_Drop_Items</parent>
+    <order>20</order>
+    <workerClass>ActualGodMode.DropCategoryWorker_Item</workerClass>
+    <thingCategories><li>Weapons</li></thingCategories>
+    <actions><li>Equip</li><li>Work</li><li>Haul</li><li>Ignore</li></actions>
+  </ActualGodMode.DropCategoryDef>
+
+  <ActualGodMode.DropCategoryDef>
+    <defName>AGM_Drop_Food</defName>
+    <label>food</label>
+    <description>Meals, raw food, animal products.</description>
+    <parent>AGM_Drop_Items</parent>
+    <order>30</order>
+    <workerClass>ActualGodMode.DropCategoryWorker_Item</workerClass>
+    <thingCategories><li>Foods</li></thingCategories>
+    <actions><li>Eat</li><li>Work</li><li>Haul</li><li>Ignore</li></actions>
+  </ActualGodMode.DropCategoryDef>
+
+  <ActualGodMode.DropCategoryDef>
+    <defName>AGM_Drop_Drugs</defName>
+    <label>drugs</label>
+    <parent>AGM_Drop_Items</parent>
+    <order>40</order>
+    <workerClass>ActualGodMode.DropCategoryWorker_Item</workerClass>
+    <thingCategories><li>Drugs</li></thingCategories>
+    <actions><li>Eat</li><li>Work</li><li>Haul</li><li>Ignore</li></actions>
+  </ActualGodMode.DropCategoryDef>
+
+  <ActualGodMode.DropCategoryDef>
+    <defName>AGM_Drop_Corpses</defName>
+    <label>corpses</label>
+    <description>Haul takes them to the best storage for them, such as a grave or a dump.</description>
+    <parent>AGM_Drop_Items</parent>
+    <order>50</order>
+    <workerClass>ActualGodMode.DropCategoryWorker_Item</workerClass>
+    <thingCategories><li>Corpses</li></thingCategories>
+    <actions><li>Work</li><li>Haul</li><li>Ignore</li></actions>
+  </ActualGodMode.DropCategoryDef>
+
+  <!-- ===== Buildings ===== -->
+  <ActualGodMode.DropCategoryDef>
+    <defName>AGM_Drop_Buildings</defName>
+    <label>buildings</label>
+    <description>Work on a building: repair it, refuel it, and the like.</description>
+    <order>20</order>
+    <workerClass>ActualGodMode.DropCategoryWorker_Building</workerClass>
+    <actions><li>Work</li><li>Ignore</li></actions>
+  </ActualGodMode.DropCategoryDef>
+
+  <ActualGodMode.DropCategoryDef>
+    <defName>AGM_Drop_Workbenches</defName>
+    <label>workbenches</label>
+    <description>Work on the bench's bills.</description>
+    <parent>AGM_Drop_Buildings</parent>
+    <order>10</order>
+    <workerClass>ActualGodMode.DropCategoryWorker_Workbench</workerClass>
+    <actions><li>Work</li><li>Ignore</li></actions>
+  </ActualGodMode.DropCategoryDef>
+
+  <ActualGodMode.DropCategoryDef>
+    <defName>AGM_Drop_Construction</defName>
+    <label>blueprints and frames</label>
+    <description>Build it (or bring it materials).</description>
+    <parent>AGM_Drop_Buildings</parent>
+    <order>20</order>
+    <workerClass>ActualGodMode.DropCategoryWorker_Construction</workerClass>
+    <actions><li>Work</li><li>Ignore</li></actions>
+  </ActualGodMode.DropCategoryDef>
+
+  <!-- ===== Plants ===== -->
+  <ActualGodMode.DropCategoryDef>
+    <defName>AGM_Drop_Plants</defName>
+    <label>plants</label>
+    <description>Crops and bushes: harvest them, or cut them if marked.</description>
+    <order>30</order>
+    <workerClass>ActualGodMode.DropCategoryWorker_Plant</workerClass>
+    <actions><li>Work</li><li>Ignore</li></actions>
+  </ActualGodMode.DropCategoryDef>
+
+  <ActualGodMode.DropCategoryDef>
+    <defName>AGM_Drop_Trees</defName>
+    <label>trees</label>
+    <description>A woodcutter set down on a tree marks it and chops it.</description>
+    <parent>AGM_Drop_Plants</parent>
+    <order>10</order>
+    <workerClass>ActualGodMode.DropCategoryWorker_Tree</workerClass>
+    <actions><li>Work</li><li>Ignore</li></actions>
+  </ActualGodMode.DropCategoryDef>
+
+  <!-- ===== Others ===== -->
+  <ActualGodMode.DropCategoryDef>
+    <defName>AGM_Drop_Filth</defName>
+    <label>filth</label>
+    <description>Clean it.</description>
+    <order>40</order>
+    <workerClass>ActualGodMode.DropCategoryWorker_Filth</workerClass>
+    <actions><li>Work</li><li>Ignore</li></actions>
+  </ActualGodMode.DropCategoryDef>
+
+  <ActualGodMode.DropCategoryDef>
+    <defName>AGM_Drop_People</defName>
+    <label>people</label>
+    <description>Work on a person: tend them, rescue them, feed them...</description>
+    <order>50</order>
+    <workerClass>ActualGodMode.DropCategoryWorker_Person</workerClass>
+    <actions><li>Work</li><li>Ignore</li></actions>
+  </ActualGodMode.DropCategoryDef>
+
+  <ActualGodMode.DropCategoryDef>
+    <defName>AGM_Drop_Animals</defName>
+    <label>animals</label>
+    <description>Work with an animal: tame, train, milk, shear, tend...</description>
+    <order>60</order>
+    <workerClass>ActualGodMode.DropCategoryWorker_Animal</workerClass>
+    <actions><li>Work</li><li>Ignore</li></actions>
+  </ActualGodMode.DropCategoryDef>
+
+  <ActualGodMode.DropCategoryDef>
+    <defName>AGM_Drop_Ground</defName>
+    <label>bare ground</label>
+    <description>Nothing else there: sow a growing zone, and the like.</description>
+    <order>70</order>
+    <workerClass>ActualGodMode.DropCategoryWorker_Ground</workerClass>
+    <actions><li>Work</li><li>Ignore</li></actions>
+  </ActualGodMode.DropCategoryDef>
+
+</Defs>

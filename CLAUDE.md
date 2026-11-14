@@ -44,6 +44,9 @@ Read before changing things:
   temple things, map tooltips hidden while the hand is out, Lightning is a pinpoint divine smite (no fire; 50 in
   5 hits + lightning shock downs an unarmored enemy; 10% death chance; EMP on mechs; own people only get a 10 sting).
   Polish verified in-game.
+- **Drop rules** (Divine tab > Drop rules): per-save rules for what a colonist set down by the hand does with
+  what's under them (`DropCategoryDef` tree, actions work / haul / wear / equip / eat / just set down, inherited
+  down the tree; cursor preview). Self-tested; awaiting in-game test.
 - Next: see the roadmap in DESIGN.md (v2: factions/awe, throwing, …).
 
 ## Commands
@@ -68,7 +71,7 @@ Read before changing things:
 | `Source/…/Worship/` | `JobDriver_PrayAtShrine`, job/joy givers, `WorshipUtility.TryMakePrayJob` |
 | `Source/…/Miracles/` | `MiracleDef` (+ `MiracleStats`, `MiracleChannelProps`), `MiracleRequirement` (+ `Req_*`), `MiracleWorker` (+ subclasses, `ChannelUnit`), `MiracleChannel` (poured charge), `MiracleTracker` (unlocks, events, blessed food), `MiracleUtility` (CanCast/TryCast/witnesses), `MiracleCostLabel`, `MainTabWindow_Miracles` (charges the hand via `HandOfGodMode.Charge`) |
 | `Source/…/Progression/` | `PowerTrackDef` (+ `PowerRank`, `PowerBranch`), `GodProgression` (ranks bought, `Value`/`Has`/`Rank`, cap gate), `PowersPage` (UI), `HeraldTracker` (+ anoint gizmo patch), `AGM_ProgressionDefOf` |
-| `Source/…/HandOfGod/` | `HandOfGodMode` (state: toggle/hold, strokes, recognition, charged miracle, casting, label, grab-vs-stroke input), `HandOfGodCursor` (RGBA cursor via Waylith `HardwareCursor`), `GodHand` (MapComponent + IThingHolder: held thing, capacity, costs, place/tuck, game-over guard patch), `HandTuningDef` (`AGM_HandTuning.xml`), `HandWorkOrder` (set a colonist down on work → prioritized job, like vanilla's right-click) |
+| `Source/…/HandOfGod/` | `HandOfGodMode` (state: toggle/hold, strokes, recognition, charged miracle, casting, label, grab-vs-stroke input), `HandOfGodCursor` (RGBA cursor via Waylith `HardwareCursor`), `GodHand` (MapComponent + IThingHolder: held thing, capacity, costs, place/tuck, game-over guard patch), `HandTuningDef` (`AGM_HandTuning.xml`), `HandWorkOrder` (set a colonist down on work → prioritized job, like vanilla's right-click), drop rules: `DropCategoryDef` (+ `DropAction`, category workers), `DropRules` (per-save choices), `DropRuleOrder` (plan / execute / preview), `Window_DropRules` |
 | `Source/…/Gestures/` | `GestureDef` (+ template/stroke/custom), `PointCloudRecognizer` ($P), `GestureLibrary` (default vs player gestures, threshold, matching), `Window_BookOfGestures`, `Dialog_RecordGesture` |
 | `Source/…/Patches/` | Harmony patches: Worship schedule block, power readout, Hand of God input (`MapInterface.HandleMapClicks` / `HandleLowPriorityInput`), hover tooltips hidden while the hand is out |
 | `Source/…/Dev/` | Debug actions (`AGM_DebugActions`, `AGM_AwakeningDebug`), `AGM_TestScenarios` (shared setups), `AGM_SelfTest` (runs only with `-agmselftest`; phases: worship → sync tests → awakening) |
@@ -103,6 +106,10 @@ Read before changing things:
   `effectKey` string, or have one rank as an ability). Prerequisites: `Req_PowerRank`. Code reads it through
   `GodProgression.Value(track)` / `Has(track)` (add the def to `AGM_ProgressionDefOf`). Keep prices under the cap
   of the temple tier meant to unlock them. Debug actions: "Powers: all tracks +1 rank" / "Powers: reset all".
+- **Add a drop rule category**: a `ActualGodMode.DropCategoryDef` in `Defs/HandOfGod/AGM_DropCategories.xml` (parent,
+  order, `actions`, a `DropCategoryWorker` subclass or `thingCategories` for items). New actions: add to `DropAction`,
+  handle in `DropRuleOrder.Execute`/`Preview`, add `AGM_Drop_Action_*` and `AGM_Drop_Will_*` strings, and a check in
+  `AGM_SelfTest.RunDropRuleTests` (setup: `AGM_TestScenarios.SetUpDropRulesTest`).
 - **Add a gesture**: `ActualGodMode.GestureDef` in `Defs/Gestures/` (points in a 0–1 box, **y down**), reference it from
   the miracle's `<gesture>`. Rerun the self-test: it simulates drawings of every gesture and logs the closest wrong
   match. If two signs get close, change a shape rather than the threshold (`GestureLibrary.BaseThreshold`, calibrated).

@@ -385,10 +385,10 @@ namespace ActualGodMode
             return true;
         }
 
-        /// <summary>Set down on work: start it, or say why they can't.</summary>
+        /// <summary>Set down on something: act on the drop rule for it (work, haul, wear...), or say why they can't.</summary>
         private void OrderWork(Pawn pawn, IntVec3 cell)
         {
-            HandWorkOrder.Result r = HandWorkOrder.OrderWork(pawn, cell);
+            HandWorkOrder.Result r = DropRuleOrder.Execute(pawn, cell);
             if (r.text.NullOrEmpty())
             {
                 return;

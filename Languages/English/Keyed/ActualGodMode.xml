@@ -232,6 +232,24 @@ Heralds: {2} of {3}.</AGM_Herald_AnointDesc>
   <AGM_MiracleCastButton>Cast ({0})</AGM_MiracleCastButton>
 
   <!-- God progression (Powers page) -->
+  <AGM_DropRules>Drop rules</AGM_DropRules>
+  <AGM_DropRules_Intro>What a colonist set down by the god's hand does with what's under them. Pick one action per kind of thing; a kind with nothing set does the same as the one above it.</AGM_DropRules_Intro>
+  <AGM_DropRules_Reset>Reset all</AGM_DropRules_Reset>
+  <AGM_DropRules_Inherited>{0} (same as above)</AGM_DropRules_Inherited>
+  <AGM_DropRules_SameAs>Same as {0} ({1})</AGM_DropRules_SameAs>
+  <AGM_Drop_Action_Work>Do the work there</AGM_Drop_Action_Work>
+  <AGM_Drop_Action_Haul>Haul it</AGM_Drop_Action_Haul>
+  <AGM_Drop_Action_Wear>Wear it</AGM_Drop_Action_Wear>
+  <AGM_Drop_Action_Equip>Equip it</AGM_Drop_Action_Equip>
+  <AGM_Drop_Action_Eat>Eat or take it</AGM_Drop_Action_Eat>
+  <AGM_Drop_Action_Ignore>Just set down</AGM_Drop_Action_Ignore>
+  <AGM_Drop_TheGround>the ground</AGM_Drop_TheGround>
+  <AGM_Drop_Will_Work>Will work on: {0}</AGM_Drop_Will_Work>
+  <AGM_Drop_Will_Haul>Will haul: {0}</AGM_Drop_Will_Haul>
+  <AGM_Drop_Will_Wear>Will wear: {0}</AGM_Drop_Will_Wear>
+  <AGM_Drop_Will_Equip>Will equip: {0}</AGM_Drop_Will_Equip>
+  <AGM_Drop_Will_Eat>Will eat: {0}</AGM_Drop_Will_Eat>
+  <AGM_Drop_Will_Ignore>Will just be set down</AGM_Drop_Will_Ignore>
   <AGM_Tab_Miracles>Miracles</AGM_Tab_Miracles>
   <AGM_Tab_Powers>Powers</AGM_Tab_Powers>
   <AGM_Branch_Miracles>Miracles</AGM_Branch_Miracles>
