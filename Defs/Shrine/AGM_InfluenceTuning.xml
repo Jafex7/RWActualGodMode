@@ -11,6 +11,12 @@
     <costGrowthCells>2.5</costGrowthCells>
     <!-- Lift capacity x e^(-d / this): 1 cell 72%, 3 cells 37%, 6 cells 14% -->
     <liftFalloffCells>3</liftFalloffCells>
+    <!-- (The Long reach power track scales all three of these.) -->
+
+    <!-- Heralds (living pylons, Influence power track): a small circle that moves with them,
+         big enough that a lightning bolt (r1.9) at its edge lands ~3 cells from them. -->
+    <heraldRadius>4.9</heraldRadius>
+    <heraldMinFaith>0.9</heraldMinFaith>
   </ActualGodMode.InfluenceTuningDef>
 
 </Defs>

@@ -215,6 +215,15 @@ namespace ActualGodMode
                 Check(false, "temple tests threw: " + e);
             }
 
+            try
+            {
+                RunInfluenceTrackTests();
+            }
+            catch (System.Exception e)
+            {
+                Check(false, "influence track tests threw: " + e);
+            }
+
             StartAwakeningPhase();
         }
 
@@ -718,7 +727,9 @@ namespace ActualGodMode
             worker.workSettings.EnableAndInitialize();
             worker.workSettings.SetPriority(WorkTypeDefOf.PlantCutting, 1);
             DivinePower.Instance.DebugSet(DivinePower.Instance.MaxPower);
-            hand.TryGrab(worker, drag: false);
+            GodProgression.Instance.DebugSetRank(AGM_ProgressionDefOf.AGM_Track_Strength, 2); // anyone with gear
+            AcceptanceReport grab = hand.CanGrab(worker);
+            Check(hand.TryGrab(worker, drag: false), $"the hand lifts the woodcutter ({GodHand.MassOf(worker):F0} kg) {grab.Reason}");
             hand.MoveTo(oak.Position);
             hand.Place(oak.Position, order: true);
             bool designated = map.designationManager.DesignationOn(oak, DesignationDefOf.CutPlant) != null;
@@ -747,6 +758,84 @@ namespace ActualGodMode
             p.jobs?.StopAll();
             p.Position = dest;
             p.Notify_Teleported();
+        }
+
+        /// <summary>Influence branch: Long reach, Pylon strength, Heralds (living pylons).</summary>
+        private void RunInfluenceTrackTests()
+        {
+            Log.Message(Tag + "Influence tracks phase");
+            Map map = shrine.Map;
+            GodProgression prog = GodProgression.Instance;
+
+            // Long reach: a cell just past the base reach comes within reach, and costs less near the edge.
+            float baseReach = InfluenceUtility.MaxReachOutside;
+            IntVec3 pastReach = map.AllCells.FirstOrFallback(c => !c.Fogged(map) && InfluenceUtility.DistanceOutside(c, map) > baseReach + 0.2f
+                && InfluenceUtility.DistanceOutside(c, map) < baseReach + 1.2f, IntVec3.Invalid);
+            IntVec3 justOut = map.AllCells.FirstOrFallback(c => Mathf.Abs(InfluenceUtility.DistanceOutside(c, map) - 3f) < 0.3f, IntVec3.Invalid);
+            if (pastReach.IsValid && justOut.IsValid)
+            {
+                float cost0 = InfluenceUtility.CostFactor(justOut, map);
+                float lift0 = InfluenceUtility.LiftFactor(justOut, map);
+                prog.DebugSetRank(AGM_ProgressionDefOf.AGM_Track_LongReach, 1);
+                Check(InfluenceUtility.InReach(pastReach, map) && InfluenceUtility.CostFactor(justOut, map) < cost0 && InfluenceUtility.LiftFactor(justOut, map) > lift0,
+                    $"long reach stretches the soft border (reach {baseReach} -> {InfluenceUtility.MaxReachOutside}, 3 cells out: cost x{cost0:F2} -> x{InfluenceUtility.CostFactor(justOut, map):F2})");
+                prog.DebugSetRank(AGM_ProgressionDefOf.AGM_Track_LongReach, 0);
+                Check(!InfluenceUtility.InReach(pastReach, map), "without long reach that cell is out of reach again");
+            }
+
+            // Pylon strength: a wider radius.
+            ThingDef pylonDef = AGM_TempleDefOf.AGM_Pylon;
+            IntVec3 pylonSpot = GenRadial.RadialCellsAround(shrine.Position, 12f, false).FirstOrFallback(c => c.InBounds(map) && c.Standable(map)
+                && c.GetFirstItem(map) == null && c.GetFirstPawn(map) == null && c.GetEdifice(map) == null, IntVec3.Invalid);
+            Thing pylonThing = pylonSpot.IsValid
+                ? GenSpawn.Spawn(ThingMaker.MakeThing(pylonDef, pylonDef.MadeFromStuff ? GenStuff.DefaultStuffFor(pylonDef) : null), pylonSpot, map)
+                : null;
+            CompPylon pylon = pylonThing?.TryGetComp<CompPylon>();
+            Check(pylon != null, "a test pylon for pylon strength");
+            if (pylon != null)
+            {
+                float r0 = pylon.Radius;
+                prog.DebugSetRank(AGM_ProgressionDefOf.AGM_Track_PylonStrength, 3);
+                Check(Mathf.Approximately(pylon.Radius, r0 * 1.5f), $"pylon strength widens a pylon ({r0:F1} -> {pylon.Radius:F1})");
+                prog.DebugSetRank(AGM_ProgressionDefOf.AGM_Track_PylonStrength, 0);
+                pylonThing.Destroy();
+            }
+
+            // Heralds: a very faithful colonist carries a small circle of influence with them.
+            HeraldTracker heralds = HeraldTracker.Instance;
+            Pawn herald = map.mapPawns.FreeColonistsSpawned.FirstOrDefault(p => !p.Dead && !p.Downed && p.Faith() != null);
+            IntVec3 far = map.AllCells.FirstOrFallback(c => c.Standable(map) && !c.Fogged(map) && c.GetFirstPawn(map) == null
+                && InfluenceUtility.DistanceOutside(c, map) > 7f && InfluenceUtility.DistanceOutside(c, map) < 9f, IntVec3.Invalid);
+            if (heralds == null || herald == null || !far.IsValid)
+            {
+                Log.Message(Tag + "  (no believer or far cell for herald checks: skipping)");
+                return;
+            }
+            IntVec3 home = herald.Position;
+            herald.Faith().CurLevel = 0.95f;
+            Check(!heralds.CanAnoint(herald).Accepted, "no heralds before the power is bought: " + heralds.CanAnoint(herald).Reason);
+            prog.DebugSetRank(AGM_ProgressionDefOf.AGM_Track_Heralds, 1);
+            herald.jobs?.StopAll();
+            herald.Position = far;
+            herald.Notify_Teleported();
+            Check(!InfluenceUtility.InInfluence(herald.Position, map), "the herald's spot is outside the influence before anointing");
+            Check(heralds.Anoint(herald) && InfluenceUtility.InInfluence(herald.Position, map)
+                && InfluenceUtility.InInfluence(herald.Position + new IntVec3(4, 0, 0), map), "an anointed herald carries influence around them (radius ~4.9)");
+            Check(herald.GetGizmos().OfType<Command_Action>().Any(c => c.defaultLabel == "AGM_Herald_Dismiss".Translate().ToString()), "a herald has a dismiss command");
+            Pawn other = map.mapPawns.FreeColonistsSpawned.FirstOrDefault(p => p != herald && p.Faith() != null);
+            if (other != null)
+            {
+                other.Faith().CurLevel = 0.95f;
+                Check(!heralds.CanAnoint(other).Accepted, "only one herald at rank 1: " + heralds.CanAnoint(other).Reason);
+            }
+            herald.Faith().CurLevel = 0.5f;
+            Check(!InfluenceUtility.InInfluence(herald.Position, map), "a herald whose faith fell carries no influence");
+            herald.Faith().CurLevel = 0.95f;
+            Check(InfluenceUtility.InInfluence(herald.Position, map), "it comes back with their faith");
+            heralds.Dismiss(herald);
+            prog.DebugSetRank(AGM_ProgressionDefOf.AGM_Track_Heralds, 0);
+            herald.Position = home; // exactly where they were: later phases expect the colony as it was
+            herald.Notify_Teleported();
         }
 
         /// <summary>God progression: buying ranks of a power track, miracle stats, the cap gate, prerequisites.</summary>

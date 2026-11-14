@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+  <!-- God progression, Influence branch: how far the god's power stretches. (The temple's tiers
+       already give prayer slots and the power cap; this branch doesn't overlap them.)
+       Numbers are first guesses (balance pass). -->
+
+  <ActualGodMode.PowerTrackDef>
+    <defName>AGM_Track_LongReach</defName>
+    <label>long reach</label>
+    <description>The god's power fades more gently past the edge of influence: miracles and the hand cost less there, the hand stays stronger, and it reaches further out.</description>
+    <branch>Influence</branch>
+    <order>10</order>
+    <iconPath>Things/AGM/SignInDirt</iconPath>
+    <!-- Cells past the edge the god can still reach. The cost growth and the hand's falloff
+         stretch by the same ratio (AGM_InfluenceTuning). Base = maxReachOutside. -->
+    <baseValue>10</baseValue>
+    <valueFormat>0.#</valueFormat>
+    <effectKey>AGM_Power_LongReach_Effect</effectKey>
+    <ranks>
+      <li><price>60</price><value>11.5</value></li>
+      <li><price>130</price><value>12.5</value></li>
+      <li><price>220</price><value>14</value></li>
+    </ranks>
+  </ActualGodMode.PowerTrackDef>
+
+  <ActualGodMode.PowerTrackDef>
+    <defName>AGM_Track_PylonStrength</defName>
+    <label>pylon strength</label>
+    <description>Pylons carry the god's influence further, and their tending lasts longer.</description>
+    <branch>Influence</branch>
+    <order>20</order>
+    <iconPath>Things/AGM/Pylon</iconPath>
+    <baseValue>100</baseValue>
+    <effectKey>AGM_Power_PylonStrength_Effect</effectKey>
+    <ranks>
+      <li><price>60</price><value>115</value></li>
+      <li><price>130</price><value>130</value></li>
+      <li><price>220</price><value>150</value></li>
+    </ranks>
+  </ActualGodMode.PowerTrackDef>
+
+  <ActualGodMode.PowerTrackDef>
+    <defName>AGM_Track_Heralds</defName>
+    <label>heralds</label>
+    <description>A colonist of very great faith can be anointed as the god's herald: a living pylon. A small circle of influence moves with them, wherever they go, as long as their faith holds and they stand. Anoint them from their commands.</description>
+    <branch>Influence</branch>
+    <order>30</order>
+    <iconPath>Things/AGM/Idol</iconPath>
+    <baseValue>0</baseValue>
+    <effectKey>AGM_Power_Heralds_Effect</effectKey>
+    <ranks>
+      <li><price>350</price><value>1</value></li>
+      <li><price>380</price><value>2</value></li>
+      <li><price>400</price><value>3</value></li>
+    </ranks>
+    <requirements>
+      <li Class="ActualGodMode.Req_PowerRank">
+        <track>AGM_Track_PylonStrength</track>
+        <rank>1</rank>
+      </li>
+    </requirements>
+  </ActualGodMode.PowerTrackDef>
+
+</Defs>

@@ -41,11 +41,16 @@ namespace ActualGodMode
 
         public bool Active => tended > 0f;
 
+        /// <summary>Pylon strength (power track): wider radius, tending lasts longer (1 = base).</summary>
+        public static float StrengthFactor => GodProgression.Value(AGM_ProgressionDefOf.AGM_Track_PylonStrength) / 100f;
+
+        public float Radius => Props.influenceRadius * StrengthFactor;
+
         public bool NeedsTending => tended < Props.tendBelow;
 
         public override void CompTickRare()
         {
-            tended = Mathf.Max(0f, tended - 250f / (Props.tendingLastsDays * GenDate.TicksPerDay));
+            tended = Mathf.Max(0f, tended - 250f / (Props.tendingLastsDays * StrengthFactor * GenDate.TicksPerDay));
         }
 
         public void Tend() => tended = 1f;
@@ -68,7 +73,7 @@ namespace ActualGodMode
 
         public override void PostDrawExtraSelectionOverlays()
         {
-            GenDraw.DrawRadiusRing(parent.Position, Props.influenceRadius, Active ? InfluenceUtility.InfluenceColor : Color.gray);
+            GenDraw.DrawRadiusRing(parent.Position, Radius, Active ? InfluenceUtility.InfluenceColor : Color.gray);
         }
 
         public override string CompInspectStringExtra()
@@ -98,7 +103,7 @@ namespace ActualGodMode
                 return;
             }
             InfluenceUtility.DrawInfluence(map);
-            float radius = def.GetCompProperties<CompProperties_Pylon>()?.influenceRadius
+            float radius = def.GetCompProperties<CompProperties_Pylon>()?.influenceRadius * CompPylon.StrengthFactor
                 ?? def.GetCompProperties<CompProperties_Shrine>()?.influenceRadius
                 ?? 0f;
             if (radius > 0f)

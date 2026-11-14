@@ -202,6 +202,23 @@
   <AGM_Hand_CantLiftEnemies>The god's hand can't lift enemies yet (Powers: lift enemies).</AGM_Hand_CantLiftEnemies>
   <AGM_Power_Strength_Effect>lifts {0} kg</AGM_Power_Strength_Effect>
   <AGM_Power_LightTouch_Effect>lifting and holding cost {0}%</AGM_Power_LightTouch_Effect>
+  <AGM_Power_LongReach_Effect>reaches {0} cells past the edge</AGM_Power_LongReach_Effect>
+  <AGM_Power_PylonStrength_Effect>pylon radius and tending {0}%</AGM_Power_PylonStrength_Effect>
+  <AGM_Power_Heralds_Effect>{0} herald(s) at once</AGM_Power_Heralds_Effect>
+
+  <!-- Heralds (living pylons) -->
+  <AGM_Herald_Anoint>Anoint as herald</AGM_Herald_Anoint>
+  <AGM_Herald_AnointDesc>Make {0} the god's herald: a small circle of the god's influence will move with them wherever they go, as long as their faith stays at {1} or more and they stand.
+
+Heralds: {2} of {3}.</AGM_Herald_AnointDesc>
+  <AGM_Herald_Dismiss>Dismiss herald</AGM_Herald_Dismiss>
+  <AGM_Herald_DismissDesc>{0} is the god's herald. Dismiss them to free the place for someone else.</AGM_Herald_DismissDesc>
+  <AGM_Herald_On>They carry the god's influence now.</AGM_Herald_On>
+  <AGM_Herald_Off_Downed>The influence is gone while they're down.</AGM_Herald_Off_Downed>
+  <AGM_Herald_Off_Faith>The influence is gone until their faith is back at {0}.</AGM_Herald_Off_Faith>
+  <AGM_Herald_Off_Away>The influence is gone while they're away.</AGM_Herald_Off_Away>
+  <AGM_Herald_Full>The god already has {0} herald(s). Dismiss one, or gain more in the Powers page.</AGM_Herald_Full>
+  <AGM_Herald_NeedsFaith>{0}'s faith isn't strong enough (needs {1}).</AGM_Herald_NeedsFaith>
   <AGM_Hand_OutOfInfluence>That is beyond the god's reach.</AGM_Hand_OutOfInfluence>
   <AGM_Hand_Slipped>{0} slipped from the god's hand: its strength fades away from its influence.</AGM_Hand_Slipped>
   <AGM_Hand_NoPower>The god's power ran out: {0} was set down.</AGM_Hand_NoPower>

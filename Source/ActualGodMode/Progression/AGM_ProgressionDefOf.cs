@@ -10,6 +10,9 @@ namespace ActualGodMode
         public static PowerTrackDef AGM_Track_LightTouch;
         public static PowerTrackDef AGM_Track_LiftLiving;
         public static PowerTrackDef AGM_Track_LiftEnemies;
+        public static PowerTrackDef AGM_Track_LongReach;
+        public static PowerTrackDef AGM_Track_PylonStrength;
+        public static PowerTrackDef AGM_Track_Heralds;
 
         static AGM_ProgressionDefOf()
         {
