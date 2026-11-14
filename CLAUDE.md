@@ -43,7 +43,7 @@ Read before changing things:
   Verified in-game. Playtest polish: greyed Buy buttons say what to unlock, shrine build buttons for
   temple things, map tooltips hidden while the hand is out, Lightning is a pinpoint divine smite (no fire; 50 in
   5 hits + lightning shock downs an unarmored enemy; 10% death chance; EMP on mechs; own people only get a 10 sting).
-  Polish self-tested; awaiting in-game test.
+  Polish verified in-game.
 - Next: see the roadmap in DESIGN.md (v2: factions/awe, throwing, …).
 
 ## Commands
