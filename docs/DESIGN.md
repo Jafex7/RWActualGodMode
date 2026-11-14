@@ -457,8 +457,28 @@ e.g. cheaper miracles, more lift capacity, **the ability to lift living things**
 abilities instead of giving them all at once.
 - **Decided: upgrades are paid from the power pool** (a real trade-off: miracles now or
   upgrades later), not from lifetime points or automatic thresholds.
-- Still to design: the tree itself (branches Hand / Miracles / Influence?), costs,
-  prerequisites, where it lives (a tab beside Miracles?).
+- **Decided: three branches, Miracles / Hand / Influence**, each a set of *tracks* (a few ranks
+  each, rising cost) rather than a web of nodes. Prerequisites only for powers that open a new
+  ability (e.g. lift enemies needs lift living things), reusing `MiracleRequirement` so a track
+  can also wait on a colony event / temple tier. Proposed home: a second page in the Miracles
+  window ("Miracles | Powers").
+- **Decided: Miracles branch = one track per miracle.** Each rank raises the charge (`amount`)
+  and lowers the price per unit; the full charge costs a bit more, but since a charge is paid
+  per unit (cancel anytime) a rank is never a downside. Pour time stays ~3 s (bigger charge
+  pours faster). Each rank only needs a new amount + cost. Example numbers (balance later):
+  Water 9/5 → 14/6.5 → 20/8 → 30/10; Wood 25/5 → 40/6.5 → 60/8 → 90/10; Food 20/10 → 30/12 →
+  45/15 → 60/18.
+- **Decided: Heal becomes poured** (user: a dearer full charge after an upgrade mustn't stop a
+  poor god from saving someone). Hold over a wounded pawn: severity mends unit by unit, paid per
+  unit; stops when the charge is used, nothing is left to heal, or power runs out (what was
+  healed stays). Locked to the first pawn; moving off pauses. Ranks: more severity per charge,
+  cheaper per point.
+- **Decided: Lightning gets bolts** ("a gun with N bullets"): a charge holds N bolts, each click
+  fires one, the charge stays until empty or right-click. Base 1 bolt for 20; ranks e.g. 2 at 18
+  each, 3 at 16 each. Each bolt is judged on its own (deed, witnesses, punishment).
+  Balance note: a direct hit does little (vanilla lightning's light fire explosion); consider a
+  stronger divine bolt.
+- Still to design: the Hand and Influence branches' contents, rank costs (paid from the pool).
 - **Decided (user): upgrades replace miracle levels** (levels are removed from all miracles).
   Each miracle is a single miracle with straight upgrades to its own traits, bought in the
   progression: e.g. Water's economy (cost per tile), maximum tiles per cast, maybe pour speed;
