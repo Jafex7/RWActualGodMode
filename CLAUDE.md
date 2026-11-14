@@ -35,7 +35,7 @@ Read before changing things:
   are cast by holding the click (the charge = the miracle's amount, paid per unit; release pauses, right-click
   cancels). **Miracles have no levels** (numbers on the def, read via `MiracleDef.Stats` for future upgrades), and
   the Miracles tab charges the hand like a gesture (no designator). Blessed crops: don't stack with plain food,
-  cooking keeps the blessing. Self-tested; awaiting in-game test.
+  cooking keeps the blessing. Verified in-game.
 - Next: see the roadmap in DESIGN.md (v2: factions/awe, throwing, …).
 
 ## Commands
