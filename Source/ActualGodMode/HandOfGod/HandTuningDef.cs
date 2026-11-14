@@ -8,9 +8,7 @@ namespace ActualGodMode
     /// </summary>
     public class HandTuningDef : Def
     {
-        /// <summary>Lift capacity: base plus a share per living believer (kg).</summary>
-        public float baseLiftKg = 35f;
-        public float liftPerBelieverKg = 15f;
+        // Lift capacity comes from the Strength power track (Defs/Progression), lifting costs scale with Light touch.
 
         /// <summary>Power to pick up: flat plus per kg.</summary>
         public float itemPickupCost = 0.5f;

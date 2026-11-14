@@ -521,7 +521,13 @@ namespace ActualGodMode
                 int count = GodHand.LiftableCount(thing);
                 float mass = thing is Pawn ? GodHand.UnitMass(thing) : GodHand.UnitMass(thing) * Mathf.Max(count, 1);
                 line1 = "AGM_Hand_GrabLine".Translate(thing.LabelShort);
-                if (count <= 0)
+                AcceptanceReport kind = GodHand.CanLiftKind(thing);
+                if (!kind.Accepted)
+                {
+                    color = ColorLibrary.RedReadable;
+                    line2 = kind.Reason;
+                }
+                else if (count <= 0)
                 {
                     color = ColorLibrary.RedReadable;
                     line2 = "AGM_Hand_TooHeavyShort".Translate(GodHand.UnitMass(thing).ToString("F0"), capacity.ToString("F0"));

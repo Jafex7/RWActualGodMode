@@ -4,9 +4,8 @@
   <!-- The Hand: grab / carry / place. "How much are you affecting the world?" -->
   <ActualGodMode.HandTuningDef>
     <defName>AGM_HandTuning</defName>
-    <!-- Lift capacity (kg): a human is ~60 kg with gear -->
-    <baseLiftKg>35</baseLiftKg>
-    <liftPerBelieverKg>15</liftPerBelieverKg>
+    <!-- Lift capacity is the Strength power track (Defs/Progression/AGM_PowerTracks_Hand.xml);
+         costs below are scaled by the Light touch track. A human is ~60 kg with gear. -->
 
     <!-- Power to pick up -->
     <itemPickupCost>0.5</itemPickupCost>

@@ -197,7 +197,11 @@
   <AGM_Hand_LiftLine>{0} kg of {1} kg · costs {2}</AGM_Hand_LiftLine>
   <AGM_Hand_TooHeavyShort>Too heavy: {0} kg (you can lift {1} kg)</AGM_Hand_TooHeavyShort>
   <AGM_Hand_HoldingLine>{0} kg of {1} kg · {2} power per hour</AGM_Hand_HoldingLine>
-  <AGM_Hand_TooHeavy>{0} is too heavy for the god's hand: {1} kg, and it can lift {2} kg. More believers make it stronger.</AGM_Hand_TooHeavy>
+  <AGM_Hand_TooHeavy>{0} is too heavy for the god's hand: {1} kg, and it can lift {2} kg. Strength (Powers) makes it stronger.</AGM_Hand_TooHeavy>
+  <AGM_Hand_CantLiftLiving>The god's hand can't lift the living yet (Powers: lift living things).</AGM_Hand_CantLiftLiving>
+  <AGM_Hand_CantLiftEnemies>The god's hand can't lift enemies yet (Powers: lift enemies).</AGM_Hand_CantLiftEnemies>
+  <AGM_Power_Strength_Effect>lifts {0} kg</AGM_Power_Strength_Effect>
+  <AGM_Power_LightTouch_Effect>lifting and holding cost {0}%</AGM_Power_LightTouch_Effect>
   <AGM_Hand_OutOfInfluence>That is beyond the god's reach.</AGM_Hand_OutOfInfluence>
   <AGM_Hand_Slipped>{0} slipped from the god's hand: its strength fades away from its influence.</AGM_Hand_Slipped>
   <AGM_Hand_NoPower>The god's power ran out: {0} was set down.</AGM_Hand_NoPower>

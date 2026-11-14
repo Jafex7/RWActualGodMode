@@ -495,9 +495,11 @@ namespace ActualGodMode
             AlignmentTracker alignment = AlignmentTracker.Instance;
             HandTuningDef t = HandTuningDef.Get;
             Check(hand != null, "every map has the god's hand");
+            GodProgression prog = GodProgression.Instance;
+            PowerTrackDef strength = AGM_ProgressionDefOf.AGM_Track_Strength;
             float capacity = GodHand.Capacity;
-            Check(Mathf.Approximately(capacity, t.baseLiftKg + t.liftPerBelieverKg * BelieverTracker.Instance.LivingCount) && capacity > 60f,
-                $"lift capacity grows with believers ({capacity:F0} kg, {BelieverTracker.Instance.LivingCount} believers)");
+            Check(prog.RankOf(strength) == 0 && Mathf.Approximately(capacity, strength.baseValue),
+                $"the starting hand lifts {strength.baseValue} kg, whatever the believers ({capacity:F0} kg, {BelieverTracker.Instance.LivingCount} believers)");
 
             // Items: a light stack is lifted whole, carried (costing power over time), and set down.
             IntVec3 near = CellFinder.RandomClosewalkCellNear(shrine.Position + new IntVec3(3, 0, 0), map, 2);
@@ -578,6 +580,23 @@ namespace ActualGodMode
             hand.ChargeHold(60);
             Check(!hand.Holding && silver.Spawned, "running out of power sets the held thing down");
 
+            // Light touch: a rank makes lifting cheaper.
+            float fullPrice = GodHand.PickupCost(silver, 10f);
+            prog.DebugSetRank(AGM_ProgressionDefOf.AGM_Track_LightTouch, 1);
+            Check(GodHand.PickupCost(silver, 10f) < fullPrice * 0.8f && GodHand.HoldCostPerHour(silver, 10f) < t.itemHoldCostPerKgPerHour * 10f,
+                $"light touch makes lifting and holding cheaper ({fullPrice:F2} -> {GodHand.PickupCost(silver, 10f):F2})");
+            prog.DebugSetRank(AGM_ProgressionDefOf.AGM_Track_LightTouch, 0);
+
+            // The starting hand can't lift the living; Strength + Lift living things can.
+            Pawn standing = map.mapPawns.FreeColonistsSpawned.First(p => !p.Dead && !p.Downed);
+            dp.DebugSet(dp.MaxPower);
+            Check(!hand.CanGrab(standing).Accepted && GodHand.GrabbableAt(standing.Position, map) is Pawn == (standing.Position.GetFirstItem(map) == null),
+                "the starting hand can't lift a colonist: " + hand.CanGrab(standing).Reason);
+            Check(!prog.CanBuy(AGM_ProgressionDefOf.AGM_Track_LiftLiving).Accepted, "lift living things needs Strength first");
+            Check(prog.TryBuy(strength) && GodHand.Capacity > 60f, $"strength rank 1 lifts a person ({GodHand.Capacity:F0} kg)");
+            dp.DebugSet(dp.MaxPower);
+            Check(prog.TryBuy(AGM_ProgressionDefOf.AGM_Track_LiftLiving) && hand.CanGrab(standing).Accepted, "after buying lift living things the hand can take a colonist");
+
             // A downed colonist carried to a bed: tucked in, and a small good deed. The game doesn't end while they're lifted.
             Pawn colonist = map.mapPawns.FreeColonistsSpawned.First(p => !p.Dead && !p.Downed);
             Teleport(colonist, shrine.Position + new IntVec3(2, 0, 3), map);
@@ -586,8 +605,7 @@ namespace ActualGodMode
             Log.Message(Tag + $"  colonist mass {GodHand.MassOf(colonist):F0} kg, capacity {GodHand.Capacity:F0} kg");
             if (GodHand.MassOf(colonist) > GodHand.Capacity)
             {
-                // Lightning in the alignment phase can kill a believer, shrinking the hand.
-                Log.Message(Tag + "  (too few living believers to lift a colonist: skipping the colonist checks)");
+                Log.Message(Tag + "  (colonist heavier than strength rank 1: skipping the colonist checks)");
                 colonist.health.RemoveHediff(colonist.health.hediffSet.GetFirstHediffOfDef(HediffDefOf.Anesthetic));
                 RunHandWorkOrderTests(map, hand, colonist);
                 return;
@@ -652,6 +670,8 @@ namespace ActualGodMode
             }
             Pawn raider = PawnGenerator.GeneratePawn(PawnKindDefOf.Villager, enemy);
             GenSpawn.Spawn(raider, CellFinder.RandomClosewalkCellNear(shrine.Position + new IntVec3(-3, 0, -3), map, 2), map);
+            Check(!hand.CanGrab(raider).Accepted, "lifting an enemy needs lift enemies: " + hand.CanGrab(raider).Reason);
+            GodProgression.Instance.DebugSetRank(AGM_ProgressionDefOf.AGM_Track_LiftEnemies, 1);
             if (GodHand.MassOf(raider) <= GodHand.Capacity)
             {
                 alignment.DebugSet(0f);
@@ -1141,6 +1161,7 @@ namespace ActualGodMode
             PowerTrackDef healTrack = DefDatabase<PowerTrackDef>.GetNamed("AGM_Track_Heal");
             GodProgression.Instance.DebugSetRank(healTrack, 3);
             dp.Add(100f);
+            pawn.TakeDamage(new DamageInfo(DamageDefOf.Cut, 5f));
             toHeal = MiracleWorker_Heal.HealableInjuries(pawn).Sum(h => h.Severity);
             powerBefore = dp.Power;
             hc = new MiracleChannel(heal, map);
@@ -1151,7 +1172,7 @@ namespace ActualGodMode
             }
             left = MiracleWorker_Heal.HealableInjuries(pawn).Sum(h => h.Severity);
             paid = powerBefore - dp.Power;
-            Check(hc.finished && left < 0.01f && hc.units < hc.Budget && Mathf.Abs(paid - hc.units * MiracleChannel.BaseUnitCost(heal)) < 0.01f,
+            Check(toHeal > 0f && hc.finished && left < 0.01f && hc.units < hc.Budget && Mathf.Abs(paid - hc.units * MiracleChannel.BaseUnitCost(heal)) < 0.01f,
                 $"a heal bigger than the wounds stops once they're mended ({toHeal:F1} severity, {hc.units}/{hc.Budget} units, paid {paid:F1})");
             GodProgression.Instance.DebugSetRank(healTrack, 0);
 

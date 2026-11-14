@@ -44,8 +44,11 @@ namespace ActualGodMode
 
         // ---- Rules -------------------------------------------------------------------------
 
-        /// <summary>How much the god can lift (kg): grows with believers.</summary>
-        public static float Capacity => T.baseLiftKg + T.liftPerBelieverKg * (BelieverTracker.Instance?.LivingCount ?? 0);
+        /// <summary>How much the god can lift (kg): the Strength power track (believers speed up power, not strength).</summary>
+        public static float Capacity => GodProgression.Value(AGM_ProgressionDefOf.AGM_Track_Strength);
+
+        /// <summary>Light touch: lifting and holding costs scale with this (1 = full price).</summary>
+        private static float TouchFactor => GodProgression.Value(AGM_ProgressionDefOf.AGM_Track_LightTouch) / 100f;
 
         /// <summary>Capacity at a cell: full inside the influence, fading fast past its edge.</summary>
         public static float CapacityAt(IntVec3 cell, Map map) => Capacity * InfluenceUtility.LiftFactor(cell, map);
@@ -62,21 +65,41 @@ namespace ActualGodMode
         /// <summary>Power to pick it up where it lies (dearer past the influence edge).</summary>
         public static float PickupCost(Thing t, float mass) =>
             (t is Pawn ? T.pawnPickupCost + T.pawnPickupCostPerKg * mass : T.itemPickupCost + T.itemPickupCostPerKg * mass)
-            * (t.Spawned ? InfluenceUtility.CostFactor(t.Position, t.Map) : 1f);
+            * TouchFactor * (t.Spawned ? InfluenceUtility.CostFactor(t.Position, t.Map) : 1f);
 
         /// <summary>Power per hour to hold it over this cell (dearer past the influence edge).</summary>
         public float HoldCostAt(Thing t, IntVec3 cell) =>
             HoldCostPerHour(t, MassOf(t)) * (cell.IsValid && cell.InBounds(map) ? InfluenceUtility.CostFactor(cell, map) : 1f);
 
         public static float HoldCostPerHour(Thing t, float mass) =>
-            (t is Pawn ? T.pawnHoldCostPerKgPerHour : T.itemHoldCostPerKgPerHour) * mass;
+            (t is Pawn ? T.pawnHoldCostPerKgPerHour : T.itemHoldCostPerKgPerHour) * mass * TouchFactor;
+
+        /// <summary>Items always; the living (Lift living things), and then enemies (Lift enemies), are bought powers.</summary>
+        public static AcceptanceReport CanLiftKind(Thing t)
+        {
+            if (t is Pawn p)
+            {
+                if (!GodProgression.Has(AGM_ProgressionDefOf.AGM_Track_LiftLiving))
+                {
+                    return "AGM_Hand_CantLiftLiving".Translate(p.LabelShort);
+                }
+                if (p.HostileTo(Faction.OfPlayer) && !GodProgression.Has(AGM_ProgressionDefOf.AGM_Track_LiftEnemies))
+                {
+                    return "AGM_Hand_CantLiftEnemies".Translate(p.LabelShort);
+                }
+            }
+            return true;
+        }
 
         /// <summary>Pawns and haulable items. No buildings, plants or filth.</summary>
         public static bool IsGrabbable(Thing t) =>
             t != null && t.Spawned && !t.Destroyed
             && (t is Pawn || (t.def.category == ThingCategory.Item && t.def.EverHaulable));
 
-        /// <summary>The thing the hand would take at this cell: a pawn first, else the top item.</summary>
+        /// <summary>
+        /// The thing the hand would take at this cell: a pawn it may lift first, else the top item, else a pawn
+        /// it may not lift yet (so the cursor can say why).
+        /// </summary>
         public static Thing GrabbableAt(IntVec3 cell, Map map)
         {
             if (!cell.InBounds(map))
@@ -84,21 +107,26 @@ namespace ActualGodMode
                 return null;
             }
             List<Thing> things = cell.GetThingList(map);
+            Thing notYet = null;
             for (int i = things.Count - 1; i >= 0; i--)
             {
                 if (things[i] is Pawn && IsGrabbable(things[i]))
                 {
-                    return things[i];
+                    if (CanLiftKind(things[i]).Accepted)
+                    {
+                        return things[i];
+                    }
+                    notYet ??= things[i];
                 }
             }
             for (int i = things.Count - 1; i >= 0; i--)
             {
-                if (IsGrabbable(things[i]))
+                if (!(things[i] is Pawn) && IsGrabbable(things[i]))
                 {
                     return things[i];
                 }
             }
-            return null;
+            return notYet;
         }
 
         /// <summary>How many of the thing the hand would take (a heavy stack is taken in part).</summary>
@@ -122,6 +150,11 @@ namespace ActualGodMode
             if (!InfluenceUtility.InReach(t.Position, t.Map))
             {
                 return "AGM_Hand_OutOfInfluence".Translate();
+            }
+            AcceptanceReport kind = CanLiftKind(t);
+            if (!kind.Accepted)
+            {
+                return kind;
             }
             int count = LiftableCount(t);
             if (count <= 0)

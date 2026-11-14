@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+  <!-- God progression, Hand branch. The starting hand lifts items only (40 kg: a full stack of
+       most things); believers don't add strength. Numbers are first guesses (balance pass). -->
+
+  <ActualGodMode.PowerTrackDef>
+    <defName>AGM_Track_Strength</defName>
+    <label>strength</label>
+    <description>How much the god's hand can lift. A person with their gear weighs about 60 kg; big animals far more.</description>
+    <branch>Hand</branch>
+    <order>10</order>
+    <iconThing>Steel</iconThing>
+    <baseValue>40</baseValue>
+    <effectKey>AGM_Power_Strength_Effect</effectKey>
+    <ranks>
+      <li><price>60</price><value>70</value></li>
+      <li><price>130</price><value>120</value></li>
+      <li><price>220</price><value>250</value></li>
+    </ranks>
+  </ActualGodMode.PowerTrackDef>
+
+  <ActualGodMode.PowerTrackDef>
+    <defName>AGM_Track_LightTouch</defName>
+    <label>light touch</label>
+    <description>Lifting and holding things costs the god less power.</description>
+    <branch>Hand</branch>
+    <order>20</order>
+    <iconThing>Silver</iconThing>
+    <baseValue>100</baseValue>
+    <effectKey>AGM_Power_LightTouch_Effect</effectKey>
+    <ranks>
+      <li><price>40</price><value>75</value></li>
+      <li><price>100</price><value>55</value></li>
+      <li><price>200</price><value>40</value></li>
+    </ranks>
+  </ActualGodMode.PowerTrackDef>
+
+  <ActualGodMode.PowerTrackDef>
+    <defName>AGM_Track_LiftLiving</defName>
+    <label>lift living things</label>
+    <description>The god's hand can lift colonists, animals and friendly people: carry the wounded to bed, or set a worker down where they're needed.</description>
+    <branch>Hand</branch>
+    <order>30</order>
+    <iconThing>Bed</iconThing>
+    <ranks>
+      <li><price>80</price></li>
+    </ranks>
+    <requirements>
+      <li Class="ActualGodMode.Req_PowerRank">
+        <track>AGM_Track_Strength</track>
+        <rank>1</rank>
+      </li>
+    </requirements>
+  </ActualGodMode.PowerTrackDef>
+
+  <ActualGodMode.PowerTrackDef>
+    <defName>AGM_Track_LiftEnemies</defName>
+    <label>lift enemies</label>
+    <description>The god's hand can seize those who stand against your people.</description>
+    <branch>Hand</branch>
+    <order>40</order>
+    <iconThing>MeleeWeapon_Knife</iconThing>
+    <ranks>
+      <li><price>350</price></li>
+    </ranks>
+    <requirements>
+      <li Class="ActualGodMode.Req_PowerRank">
+        <track>AGM_Track_LiftLiving</track>
+        <rank>1</rank>
+      </li>
+    </requirements>
+  </ActualGodMode.PowerTrackDef>
+
+</Defs>
