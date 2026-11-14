@@ -484,7 +484,18 @@ abilities instead of giving them all at once.
   add capacity** (user: a colony may have 10-20 colonists; believers already speed up power
   gathering, that's enough). Proposed capacity: base 40 kg (a full stack of most items),
   Strength 70 (a person with gear) → 120 → 250 (big animals). Fixes "capacity grows too fast".
-- Still to design: the Influence branch's contents, rank costs (paid from the pool).
+  Lift living things needs Strength rank 1 (useless below 70 kg).
+- **Decided: Influence branch** (how far the power stretches; doesn't overlap temple tiers):
+  - **Long reach**: gentler soft border (cost rises / Hand weakens more slowly past the edge),
+    hard limit 10 → ~14 cells.
+  - **Pylon strength**: wider pylon radius, tending needed less often.
+  - **Living pylons** (endgame, user idea): a very faithful pawn (faith ≥ ~90%), chosen with an
+    "Anoint as Herald" gizmo, carries a small influence circle that moves with them (caravans,
+    fights). Radius ~4.9 (pylon 7.9): a Lightning bolt (r1.9) at the circle's edge lands ~3 cells
+    from them, so aggressive miracles can be cast near them without hurting them; the soft
+    border applies past it. Off while their faith is below the bar, downed, captured or dead.
+    Ranks add one Herald each, up to 3.
+- Still to design: rank costs (paid from the pool), the Powers page UI.
 - **Decided (user): upgrades replace miracle levels** (levels are removed from all miracles).
   Each miracle is a single miracle with straight upgrades to its own traits, bought in the
   progression: e.g. Water's economy (cost per tile), maximum tiles per cast, maybe pour speed;
