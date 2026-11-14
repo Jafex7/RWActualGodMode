@@ -450,7 +450,7 @@ See conversation log; resolved items get moved into the sections above.
   worth less).
 - Assets: see `docs/ASSETS.md` for the catalog of placeholders to replace.
 
-## God progression (idea, M6b feedback)
+## God progression (built: Powers page)
 A "research" for the god's own powers: an ability tree where the player picks upgrades,
 e.g. cheaper miracles, more lift capacity, **the ability to lift living things**, then
 **to lift enemies**, etc. It would also be the natural place to gate the Hand's stronger
@@ -495,7 +495,23 @@ abilities instead of giving them all at once.
     from them, so aggressive miracles can be cast near them without hurting them; the soft
     border applies past it. Off while their faith is below the bar, downed, captured or dead.
     Ranks add one Herald each, up to 3.
-- Still to design: rank costs (paid from the pool), the Powers page UI.
+- **Decided: rank costs sit under the pool caps** (100 base, 150 / 250 / 400 by temple tier): a
+  rank can't cost more than the pool holds, so the temple gates the deeper ranks with no extra
+  rules. Rank 1 ~50-60, rank 2 ~120-130, rank 3 ~220, endgame (Lift enemies 350, Heralds
+  350/380/400) needs the top temple.
+- **Built**: `PowerTrackDef` (`Defs/Progression/`), `GodProgression` (ranks bought, saved),
+  Powers page (second tab of the Miracles window: branches, rank pips, "now → next", Buy with a
+  confirmation; greyed with the reason when locked, over the cap, or unaffordable).
+  Miracle tracks set amount + cost per rank (`MiracleDef.Stats`); Heal is poured (lockTarget)
+  and Lightning holds bolts (perClick). Hand: base 40 kg, Strength 70/120/250, Light touch
+  75/55/40%, Lift living things (after Strength 1), Lift enemies (350). Influence: Long reach
+  (10 → 11.5/12.5/14 cells; cost growth and hand falloff stretch with it), Pylon strength
+  (radius and tending 115/130/150%), Heralds (gizmo "Anoint as herald", faith ≥ 90%, r4.9,
+  1/2/3 at once, needs Pylon strength 1).
+- Known: existing saves lose colonist lifting until Strength 1 + Lift living things are bought
+  (by design: the starting hand lifts items only). Heralds have no mark on the pawn yet (the
+  ring shows in Hand of God mode). Balance: all prices and rank numbers are first guesses; we
+  haven't measured how fast a colony gathers power.
 - **Decided (user): upgrades replace miracle levels** (levels are removed from all miracles).
   Each miracle is a single miracle with straight upgrades to its own traits, bought in the
   progression: e.g. Water's economy (cost per tile), maximum tiles per cast, maybe pour speed;
@@ -556,13 +572,9 @@ Before release:
 - Run the dev-mode translation report to catch missing or unused keys.
 
 ## M6b notes (balance pass)
-- **Lift capacity grows too fast (user playtest)**: a Chosen People start had 3
-  believers at once, so 80 kg straight away, and hardly anything is heavier. Idea: scale
-  capacity with total prayer points gathered (lifetime power) as well as believers, or
-  make it a purchasable upgrade (see God progression). The user liked the trickle cost
-  while holding: keep it.
+- **Lift capacity grew too fast (user playtest)**: fixed by the Strength power track
+  (believers no longer add capacity). The user liked the trickle cost while holding: kept.
 - Hand costs are guesses: check that carrying a colonist across the base feels cheap
   enough to use for rescues but not free; items might be too cheap to matter (a whole
   steel stack costs ~1 power), which is intended ("helping haul").
-- Capacity 35 + 15/believer means a lone believer can't lift a human (50 kg); needs 2.
-  Big animals (thrumbo, elephant) need many believers, by design.
+- Big animals (thrumbo, elephant) need Strength rank 3 (250 kg), by design.

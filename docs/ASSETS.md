@@ -38,6 +38,8 @@ build material (stuff) tints them.
 | Lightning miracle icon | `ChunkSlagSteel` icon | placeholder | |
 | Lightning strike | vanilla `WeatherEvent_LightningStrike` (flash, bolt, thunder) | vanilla | Real weather lightning; fine to keep |
 | Offering bowl gizmo icon | the bowl's own UI icon | placeholder | |
+| Power track icons (Powers page) | miracle icons; `Steel`, `Silver`, `Bed`, `MeleeWeapon_Knife` icons; our `SignInDirt`, `Pylon`, `Idol` textures | placeholder | One icon per track; want proper ability icons |
+| Herald gizmo icon | the Pylon's UI icon | placeholder | Also: no mark on the herald pawn yet (only the ring in Hand of God mode) |
 | Whisper / preach speech symbol | `Things/Mote/SpeechSymbols/DeepTalk` | vanilla | Could get a custom symbol |
 | Miracle effects | flecks: LightningGlow, MicroSparks, WaterSplash, HealingCross; `Filth_Water` | vanilla | Later: proper miracle animations/effects |
 | UI sounds | `Tick_High`, `Tick_Low`, `Tick_Tiny`, `CancelMode` | vanilla | Later: miracle and Hand sounds |
