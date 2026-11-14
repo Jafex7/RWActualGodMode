@@ -25,6 +25,9 @@ namespace ActualGodMode
         /// <summary>Why pouring stopped (e.g. out of power), shown once by the caller.</summary>
         public string message;
 
+        /// <summary>With <see cref="MiracleChannelProps.lockTarget"/>: the pawn the charge went to first.</summary>
+        public Pawn target;
+
         private IntVec3 lastCell = IntVec3.Invalid;
         private float nextUnitTime;
         private readonly HashSet<IntVec3> done = new HashSet<IntVec3>();
@@ -62,6 +65,11 @@ namespace ActualGodMode
             holding = true;
             lastCell = cell;
             nextUnitTime = now;
+            if (Props.perClick)
+            {
+                TryUnit(cell); // one shot per click
+                holding = false;
+            }
         }
 
         public void Release()
@@ -71,7 +79,7 @@ namespace ActualGodMode
 
         public void Update(IntVec3 cell, float now)
         {
-            if (finished || !holding)
+            if (finished || !holding || Props.perClick)
             {
                 return;
             }
@@ -112,8 +120,27 @@ namespace ActualGodMode
             {
                 return; // tiles already watered don't count twice
             }
-            if (!c.InBounds(map) || c.Fogged(map) || !InfluenceUtility.InReach(c, map) || !def.Worker.CanCastAt(c, map, def.Stats).Accepted)
+            if (!c.InBounds(map) || c.Fogged(map) || !InfluenceUtility.InReach(c, map))
             {
+                return;
+            }
+            Pawn pawn = Props.lockTarget ? c.GetFirstPawn(map) : null;
+            if (Props.lockTarget && (pawn == null || (target != null && pawn != target)))
+            {
+                return; // off the pawn the charge is on: paused
+            }
+            AcceptanceReport valid = def.Worker.CanCastAt(c, map, def.Stats);
+            if (!valid.Accepted)
+            {
+                if (target != null)
+                {
+                    finished = true; // its pawn needs nothing more: the rest isn't used (or paid)
+                    message = valid.Reason;
+                }
+                else if (Props.perClick)
+                {
+                    message = valid.Reason;
+                }
                 return;
             }
             float cost = UnitCostAt(def, c, map);
@@ -130,6 +157,10 @@ namespace ActualGodMode
             DivinePower.Instance.TrySpend(cost);
             spent += cost;
             units++;
+            if (Props.lockTarget)
+            {
+                target = pawn;
+            }
             done.Add(c);
             if (units == 1)
             {

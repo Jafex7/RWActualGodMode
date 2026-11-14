@@ -159,12 +159,18 @@ namespace ActualGodMode
     /// A poured miracle (Hand of God mode, or picked from the Miracles tab): no click cast; the
     /// charge is the miracle's full effect (<c>amount</c>, in units of <see cref="countPerUnit"/>),
     /// paid per unit, poured while the click is held, over as many presses as needed. Right-click
-    /// cancels the rest. Per tile: one unit for each new cell the cursor crosses (water). Timed:
-    /// units at a steady rhythm, the full charge taking <see cref="pourSeconds"/> of holding.
+    /// cancels the rest. Per tile: one unit for each new cell the cursor crosses (water). Per click:
+    /// one unit each click, like shots (lightning bolts). Timed: units at a steady rhythm, the full
+    /// charge taking <see cref="pourSeconds"/> of holding (with <see cref="lockTarget"/>, all on the
+    /// first pawn touched, e.g. heal).
     /// </summary>
     public class MiracleChannelProps
     {
         public bool perTile;
+        public bool perClick;
+
+        /// <summary>The charge stays on the first pawn it touched; elsewhere it pauses. It ends early when that pawn no longer needs it.</summary>
+        public bool lockTarget;
 
         /// <summary>Timed: seconds of holding to pour the full charge.</summary>
         public float pourSeconds = 3f;

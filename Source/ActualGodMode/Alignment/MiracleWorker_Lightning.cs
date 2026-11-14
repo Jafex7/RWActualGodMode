@@ -9,6 +9,7 @@ namespace ActualGodMode
     /// <summary>
     /// Smite: a real weather lightning strike (flash, bolt, thunder, flame explosion r1.9).
     /// What it means depends on who's standing there: see <see cref="WrathJudgement"/>.
+    /// A charge holds <c>amount</c> bolts, one per click (each judged on its own).
     /// </summary>
     public class MiracleWorker_Lightning : MiracleWorker
     {
@@ -39,6 +40,12 @@ namespace ActualGodMode
             map.weatherManager.eventHandler.AddEvent(strike);
 
             WrathJudgement.AffectWitnesses(cell, map, targets, punished);
+        }
+
+        public override bool ChannelUnit(IntVec3 cell, Map map, MiracleStats stats, MiracleChannelProps channel, bool first)
+        {
+            Cast(cell, map, stats);
+            return true;
         }
 
         public override void DrawPreview(IntVec3 cell, Map map, MiracleStats stats)

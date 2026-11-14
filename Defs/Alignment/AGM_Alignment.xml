@@ -44,6 +44,12 @@
     <order>40</order>
     <cost>20</cost>
     <radius>1.9</radius>
+    <amount>1</amount>
+    <unitLabel>bolts</unitLabel>
+    <!-- A charge holds `amount` bolts, one per click (ranks add bolts). -->
+    <channel>
+      <perClick>true</perClick>
+    </channel>
     <requirements>
       <li Class="ActualGodMode.Req_EventOccurred">
         <eventKey>Raid</eventKey>

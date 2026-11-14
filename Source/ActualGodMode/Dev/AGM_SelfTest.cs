@@ -456,6 +456,22 @@ namespace ActualGodMode
             Check(a.Faith().CurLevel > faithBefore && a.needs.mood.thoughts.memories.GetFirstMemoryOfDef(AGM_AlignmentDefOf.AGM_FearedWrath) != null,
                 "under an evil god, witnessing wrath raises faith (fear) and weighs on mood");
 
+            // Bolts: with a rank in the lightning track a charge holds 2 bolts, one per click.
+            PowerTrackDef boltTrack = DefDatabase<PowerTrackDef>.GetNamed("AGM_Track_Lightning");
+            GodProgression.Instance.DebugSetRank(boltTrack, 1);
+            dp.Add(dp.MaxPower);
+            float boltPower = dp.Power;
+            var bolts = new MiracleChannel(lightning, map);
+            bolts.Press(shrine.Position + new IntVec3(-4, 0, 3), 0f);
+            bool oneLeft = bolts.units == 1 && !bolts.finished;
+            bolts.Update(shrine.Position + new IntVec3(-4, 0, 3), 1f); // holding doesn't fire again
+            bool heldOnce = bolts.units == 1;
+            bolts.Release();
+            bolts.Press(shrine.Position + new IntVec3(-4, 0, -3), 2f);
+            Check(oneLeft && heldOnce && bolts.finished && bolts.units == 2 && Mathf.Abs(boltPower - dp.Power - lightning.Stats.cost) < 0.01f,
+                $"a 2-bolt charge fires one bolt per click, then ends ({bolts.units} bolts, {boltPower - dp.Power:F0} power for {lightning.Stats.cost})");
+            GodProgression.Instance.DebugSetRank(boltTrack, 0);
+
             // Deliverance prayer: an enemy close by
             Faction enemy = Find.FactionManager.RandomEnemyFaction(allowNonHumanlike: false);
             if (enemy != null)
@@ -1092,6 +1108,52 @@ namespace ActualGodMode
             Check(r.Accepted && Mathf.Abs(healed - Mathf.Min(10f, severityBefore)) < 0.01f,
                 $"heal I mended {healed:F1} of {severityBefore:F1} severity (expected {Mathf.Min(10f, severityBefore):F1}) {r.Reason}");
             Check(!MiracleUtility.CanCast(heal, spot, map).Accepted, "heal refuses a cell with no one in it");
+
+            // Poured heal: stays on the first pawn, pauses elsewhere, stops (unpaid) once nothing is left to heal.
+            pawn.TakeDamage(new DamageInfo(DamageDefOf.Cut, 4f));
+            float toHeal = MiracleWorker_Heal.HealableInjuries(pawn).Sum(h => h.Severity);
+            float powerBefore = dp.Power;
+            var hc = new MiracleChannel(heal, map);
+            float now = 1000f;
+            hc.Press(pawn.Position, now);
+            for (; now < 1001f; now += 0.05f)
+            {
+                hc.Update(pawn.Position, now);
+            }
+            int unitsOnPawn = hc.units;
+            for (; now < 1002f; now += 0.05f)
+            {
+                hc.Update(spot, now);
+            }
+            Check(unitsOnPawn > 0 && hc.units == unitsOnPawn && hc.target == pawn, $"poured heal stays on its pawn and pauses elsewhere ({unitsOnPawn} units)");
+            for (; now < 1010f && !hc.finished; now += 0.05f)
+            {
+                hc.Update(pawn.Position, now);
+            }
+            float left = MiracleWorker_Heal.HealableInjuries(pawn).Sum(h => h.Severity);
+            float paid = powerBefore - dp.Power;
+            bool early = toHeal < hc.Budget;
+            Check(hc.finished && (early ? left < 0.01f && hc.units < hc.Budget : hc.units == hc.Budget)
+                && Mathf.Abs(paid - hc.units * MiracleChannel.BaseUnitCost(heal)) < 0.01f,
+                $"poured heal mended {toHeal - left:F1} of {toHeal:F1} in {hc.units}/{hc.Budget} units, paying only those ({paid:F1})");
+
+            // A bigger charge (heal rank 3) than the wounds: it stops when they're mended, the rest unpaid.
+            PowerTrackDef healTrack = DefDatabase<PowerTrackDef>.GetNamed("AGM_Track_Heal");
+            GodProgression.Instance.DebugSetRank(healTrack, 3);
+            dp.Add(100f);
+            toHeal = MiracleWorker_Heal.HealableInjuries(pawn).Sum(h => h.Severity);
+            powerBefore = dp.Power;
+            hc = new MiracleChannel(heal, map);
+            hc.Press(pawn.Position, now);
+            for (float end = now + 10f; now < end && !hc.finished; now += 0.05f)
+            {
+                hc.Update(pawn.Position, now);
+            }
+            left = MiracleWorker_Heal.HealableInjuries(pawn).Sum(h => h.Severity);
+            paid = powerBefore - dp.Power;
+            Check(hc.finished && left < 0.01f && hc.units < hc.Budget && Mathf.Abs(paid - hc.units * MiracleChannel.BaseUnitCost(heal)) < 0.01f,
+                $"a heal bigger than the wounds stops once they're mended ({toHeal:F1} severity, {hc.units}/{hc.Budget} units, paid {paid:F1})");
+            GodProgression.Instance.DebugSetRank(healTrack, 0);
 
             // Request answered: cast the asked-for miracle near the requester
             PrayerRequestDef foodRequest = DefDatabase<PrayerRequestDef>.GetNamed("AGM_Request_Food");

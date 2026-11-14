@@ -35,6 +35,20 @@
   </ActualGodMode.PowerTrackDef>
 
   <ActualGodMode.PowerTrackDef>
+    <defName>AGM_Track_Heal</defName>
+    <label>heal</label>
+    <description>Each blessing mends deeper wounds, for less per wound.</description>
+    <branch>Miracles</branch>
+    <order>15</order>
+    <miracle>AGM_Miracle_Heal</miracle>
+    <ranks>
+      <li><price>60</price><amount>16</amount><cost>20</cost></li>
+      <li><price>130</price><amount>24</amount><cost>25</cost></li>
+      <li><price>220</price><amount>35</amount><cost>30</cost></li>
+    </ranks>
+  </ActualGodMode.PowerTrackDef>
+
+  <ActualGodMode.PowerTrackDef>
     <defName>AGM_Track_Wood</defName>
     <label>wood</label>
     <description>More logs fall from each blessing, each for less.</description>
@@ -45,6 +59,20 @@
       <li><price>50</price><amount>40</amount><cost>6.5</cost></li>
       <li><price>120</price><amount>60</amount><cost>8</cost></li>
       <li><price>220</price><amount>90</amount><cost>10</cost></li>
+    </ranks>
+  </ActualGodMode.PowerTrackDef>
+
+  <!-- Lightning: more bolts in one charge (one per click), each for less. -->
+  <ActualGodMode.PowerTrackDef>
+    <defName>AGM_Track_Lightning</defName>
+    <label>lightning</label>
+    <description>The god's hand holds more than one bolt: strike again without calling the storm anew, each bolt for less.</description>
+    <branch>Miracles</branch>
+    <order>40</order>
+    <miracle>AGM_Miracle_Lightning</miracle>
+    <ranks>
+      <li><price>130</price><amount>2</amount><cost>36</cost></li>
+      <li><price>220</price><amount>3</amount><cost>48</cost></li>
     </ranks>
   </ActualGodMode.PowerTrackDef>
 

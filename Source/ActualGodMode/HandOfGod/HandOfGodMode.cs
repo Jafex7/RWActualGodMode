@@ -380,9 +380,10 @@ namespace ActualGodMode
                 IntVec3 mouse = UI.MouseCell();
                 if (mouse.InBounds(map))
                 {
-                    if (charged.channel != null)
+                    if (charged.channel != null && !charged.channel.perClick)
                     {
-                        GenDraw.DrawFieldEdges(new List<IntVec3> { mouse }, InfluenceUtility.InfluenceColor);
+                        IntVec3 at = channel?.target != null && channel.target.Spawned ? channel.target.Position : mouse;
+                        GenDraw.DrawFieldEdges(new List<IntVec3> { at }, InfluenceUtility.InfluenceColor);
                     }
                     else
                     {
@@ -453,7 +454,7 @@ namespace ActualGodMode
                 string hint = Hand?.Holding == true
                     ? "AGM_HoG_HintHolding".Translate()
                     : charged != null
-                    ? (charged.channel != null ? "AGM_HoG_HintPour".Translate() : "AGM_HoG_HintCharged".Translate())
+                    ? (charged.channel == null || charged.channel.perClick ? "AGM_HoG_HintCharged".Translate() : "AGM_HoG_HintPour".Translate())
                     : Toggled
                         ? "AGM_HoG_HintToggled".Translate(AGM_KeyBindingDefOf.AGM_ToggleHandOfGod.MainKeyLabel)
                         : "AGM_HoG_HintHeld".Translate();
@@ -488,7 +489,7 @@ namespace ActualGodMode
             {
                 Widgets.Label(new Rect(line.x, line.y + 12f, 300f, 22f),
                     channel == null || channel.units == 0
-                        ? (string)"AGM_Channel_HintPour".Translate(unitCost)
+                        ? (string)(charged.channel.perClick ? "AGM_Channel_HintShot" : "AGM_Channel_HintPour").Translate(unitCost)
                         : (string)"AGM_Channel_Left".Translate(left, budget, unitCost));
             }
         }

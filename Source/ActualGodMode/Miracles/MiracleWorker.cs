@@ -183,6 +183,7 @@ namespace ActualGodMode
     /// Mend: heals a single pawn's fresh injuries by stats.amount severity in total, most
     /// bleeding then most painful first. Doesn't tend (doctors still matter: a miracle tend
     /// would block a proper one), and doesn't touch scars, missing parts or disease.
+    /// Poured onto one pawn (a unit = <c>countPerUnit</c> severity), so only what heals is paid.
     /// </summary>
     public class MiracleWorker_Heal : MiracleWorker
     {
@@ -193,7 +194,8 @@ namespace ActualGodMode
             var result = new List<Hediff_Injury>();
             foreach (Hediff h in pawn.health.hediffSet.hediffs)
             {
-                if (h is Hediff_Injury injury && !injury.IsPermanent())
+                // A mended injury stays in the list (at 0) until the next health tick removes it.
+                if (h is Hediff_Injury injury && !injury.IsPermanent() && injury.Severity > 0.001f)
                 {
                     result.Add(injury);
                 }
@@ -237,6 +239,40 @@ namespace ActualGodMode
             }
             FleckMaker.ThrowMetaIcon(pawn.Position, map, FleckDefOf.HealingCross);
             DivineFlash(pawn.Position, map, 1.5f);
+        }
+
+        /// <summary>Channelled: mends a little more of the pawn's worst wounds.</summary>
+        public override bool ChannelUnit(IntVec3 cell, Map map, MiracleStats stats, MiracleChannelProps channel, bool first)
+        {
+            Pawn pawn = TargetAt(cell, map);
+            if (pawn == null)
+            {
+                return false;
+            }
+            float remaining = Mathf.Max(1, channel.countPerUnit);
+            bool healed = false;
+            foreach (Hediff_Injury injury in HealableInjuries(pawn))
+            {
+                if (remaining <= 0f)
+                {
+                    break;
+                }
+                float amount = Mathf.Min(remaining, injury.Severity);
+                injury.Heal(amount);
+                remaining -= amount;
+                healed = true;
+            }
+            if (!healed)
+            {
+                return false;
+            }
+            if (first)
+            {
+                RecordHealDeed(pawn);
+                FleckMaker.ThrowMetaIcon(pawn.Position, map, FleckDefOf.HealingCross);
+            }
+            FleckMaker.ThrowMicroSparks(pawn.DrawPos, map);
+            return true;
         }
 
         /// <summary>Healing is good; healing those who aren't yours (enemies, prisoners, visitors) is mercy.</summary>
