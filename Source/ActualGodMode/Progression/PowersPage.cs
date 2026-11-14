@@ -141,7 +141,11 @@ namespace ActualGodMode
             AcceptanceReport report = progression.CanBuy(track);
             if (!report.Accepted)
             {
-                Widgets.ButtonText(rect, label, drawBackground: true, doMouseoverSound: false, active: false);
+                // Greyed out; the tooltip says why (what to unlock first, or what it costs).
+                using (new TextBlock(new Color(1f, 1f, 1f, 0.45f)))
+                {
+                    Widgets.ButtonText(rect, label, drawBackground: true, doMouseoverSound: false, textColor: Color.gray, active: false);
+                }
                 if (!report.Reason.NullOrEmpty())
                 {
                     TooltipHandler.TipRegion(rect, report.Reason);

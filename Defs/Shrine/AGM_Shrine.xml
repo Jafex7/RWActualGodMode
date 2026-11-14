@@ -45,6 +45,15 @@
       <li>AGM_ShrineResearch</li>
     </researchPrerequisites>
     <canOverlapZones>false</canOverlapZones>
+    <building>
+      <!-- Build buttons on the selected shrine (like a bed's end table) -->
+      <relatedBuildCommands>
+        <li>AGM_Idol</li>
+        <li>AGM_IncenseBurner</li>
+        <li>AGM_OfferingBowl</li>
+        <li>AGM_Pylon</li>
+      </relatedBuildCommands>
+    </building>
     <placeWorkers>
       <li>ActualGodMode.PlaceWorker_OneShrinePerMap</li>
       <li>ActualGodMode.PlaceWorker_ShowInfluence</li>

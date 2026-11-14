@@ -45,7 +45,7 @@ build material (stuff) tints them.
 | UI sounds | `Tick_High`, `Tick_Low`, `Tick_Tiny`, `CancelMode` | vanilla | Later: miracle and Hand sounds |
 
 ## Missing entirely (would be nice)
-- Miracles tab button icon (currently text only)
+- Divine tab button icon (currently text only)
 - Research tab icon (Divine)
 - Custom sounds: gesture drawing/recognized/failed, miracle cast, lift / set down, offering, revelation
 - Shrine visual stages (temple tier, alignment)

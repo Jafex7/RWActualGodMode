@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using RimWorld;
 using Verse;
 
@@ -43,7 +44,8 @@ namespace ActualGodMode
             }
             if (!track.requirements.TrueForAll(r => r.IsMet()))
             {
-                return "AGM_Power_Locked".Translate();
+                string missing = string.Join("\n", track.requirements.Where(r => !r.IsMet()).Select(r => "  - " + r.Description));
+                return "AGM_Power_Locked".Translate(missing);
             }
             DivinePower dp = DivinePower.Instance;
             float price = track.ranks[rank].price;

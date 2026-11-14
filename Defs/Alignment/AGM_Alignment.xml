@@ -36,7 +36,7 @@
   <ActualGodMode.MiracleDef>
     <defName>AGM_Miracle_Lightning</defName>
     <label>lightning</label>
-    <description>Lightning falls from the sky onto the chosen spot: a burning blast that sets fires. What it means depends on who is standing there: smiting attackers is just, striking down the helpless or your own people is not.</description>
+    <description>Lightning falls from the sky onto the chosen spot, searing everyone it touches. It sets no fires, and it strikes the colony's enemies hardest. What it means depends on who is standing there: smiting attackers is just, striking down the helpless or your own people is not.</description>
     <workerClass>ActualGodMode.MiracleWorker_Lightning</workerClass>
     <gesture>AGM_Gesture_Bolt</gesture>
     <iconThing>ChunkSlagSteel</iconThing>
@@ -50,6 +50,15 @@
     <channel>
       <perClick>true</perClick>
     </channel>
+    <modExtensions>
+      <!-- Burn damage per bolt to each pawn in the radius; enemies of the colony take it times
+           enemyDamageFactor. No fire. First guesses (balance pass). -->
+      <li Class="ActualGodMode.LightningExtension">
+        <damage>10</damage>
+        <enemyDamageFactor>3</enemyDamageFactor>
+        <damageDef>Burn</damageDef>
+      </li>
+    </modExtensions>
     <requirements>
       <li Class="ActualGodMode.Req_EventOccurred">
         <eventKey>Raid</eventKey>

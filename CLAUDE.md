@@ -36,11 +36,13 @@ Read before changing things:
   cancels). **Miracles have no levels** (numbers on the def, read via `MiracleDef.Stats` for future upgrades), and
   the Miracles tab charges the hand like a gesture (no designator). Blessed crops: don't stack with plain food,
   cooking keeps the blessing. Verified in-game.
-- **God progression** (Powers page, second tab of the Miracles window): `PowerTrackDef` tracks in three branches,
+- **God progression** (Powers page, second tab of the **Divine** window, formerly "Miracles"): `PowerTrackDef` tracks in three branches,
   ranks paid from the pool (prices under the temple-tier caps). Miracles: one track per miracle (amount + cost per
   rank); Heal is poured on one pawn, Lightning holds bolts. Hand: starts items-only at 40 kg; Strength, Light touch,
   Lift living things, Lift enemies. Influence: Long reach, Pylon strength, Heralds (living pylons, gizmo).
-  Self-tested; awaiting in-game test.
+  Verified in-game. Playtest polish: greyed Buy buttons say what to unlock, shrine build buttons for
+  temple things, map tooltips hidden while the hand is out, Lightning is a divine bolt (no fire, 3x on enemies).
+  Polish self-tested; awaiting in-game test.
 - Next: see the roadmap in DESIGN.md (v2: factions/awe, throwing, …).
 
 ## Commands
@@ -67,7 +69,7 @@ Read before changing things:
 | `Source/…/Progression/` | `PowerTrackDef` (+ `PowerRank`, `PowerBranch`), `GodProgression` (ranks bought, `Value`/`Has`/`Rank`, cap gate), `PowersPage` (UI), `HeraldTracker` (+ anoint gizmo patch), `AGM_ProgressionDefOf` |
 | `Source/…/HandOfGod/` | `HandOfGodMode` (state: toggle/hold, strokes, recognition, charged miracle, casting, label, grab-vs-stroke input), `HandOfGodCursor` (RGBA cursor via Waylith `HardwareCursor`), `GodHand` (MapComponent + IThingHolder: held thing, capacity, costs, place/tuck, game-over guard patch), `HandTuningDef` (`AGM_HandTuning.xml`), `HandWorkOrder` (set a colonist down on work → prioritized job, like vanilla's right-click) |
 | `Source/…/Gestures/` | `GestureDef` (+ template/stroke/custom), `PointCloudRecognizer` ($P), `GestureLibrary` (default vs player gestures, threshold, matching), `Window_BookOfGestures`, `Dialog_RecordGesture` |
-| `Source/…/Patches/` | Harmony patches: Worship schedule block, power readout, Hand of God input (`MapInterface.HandleMapClicks` / `HandleLowPriorityInput`) |
+| `Source/…/Patches/` | Harmony patches: Worship schedule block, power readout, Hand of God input (`MapInterface.HandleMapClicks` / `HandleLowPriorityInput`), hover tooltips hidden while the hand is out |
 | `Source/…/Dev/` | Debug actions (`AGM_DebugActions`, `AGM_AwakeningDebug`), `AGM_TestScenarios` (shared setups), `AGM_SelfTest` (runs only with `-agmselftest`; phases: worship → sync tests → awakening) |
 | `Defs/` | XML defs by feature (Faith, Worship, Shrine, Miracles, Gestures, Requests, Awakening, HandOfGod, Progression) |
 | `Patches/` | XML patch operations (think trees, vanilla trait extensions) |

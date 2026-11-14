@@ -3,8 +3,8 @@
 
   <MainButtonDef>
     <defName>AGM_Miracles</defName>
-    <label>miracles</label>
-    <description>Work miracles inside your influence, paid for with Divine Power.</description>
+    <label>divine</label>
+    <description>The god's miracles, and the powers it has grown into, paid for with Divine Power.</description>
     <workerClass>ActualGodMode.MainButtonWorker_Miracles</workerClass>
     <tabWindowClass>ActualGodMode.MainTabWindow_Miracles</tabWindowClass>
     <order>75</order>

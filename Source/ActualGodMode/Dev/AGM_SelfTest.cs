@@ -489,7 +489,28 @@ namespace ActualGodMode
                 GenSpawn.Spawn(raider, CellFinder.RandomClosewalkCellNear(a.Position, map, 4), map);
                 Check(PrayerRequestWorker_Hunted.Threat(a) != null, "an enemy nearby can make a believer pray for deliverance");
                 Check(WrathJudgement.Classify(raider) == WrathJudgement.Target.Enemy, "an armed enemy counts as a just target");
-                raider.Destroy();
+
+                // The bolt sets no fires and burns enemies three times as hard.
+                var bolt = (MiracleWorker_Lightning)lightning.Worker;
+                Check(Mathf.Abs(bolt.DamageTo(raider) - 3f * bolt.DamageTo(a)) < 0.01f && bolt.DamageTo(a) > 0f,
+                    $"lightning hits enemies 3x as hard ({bolt.DamageTo(raider):F0} vs {bolt.DamageTo(a):F0})");
+                IntVec3 strikeAt = raider.Position;
+                Teleport(a, shrine.Position + new IntVec3(6, 0, 6), map);
+                if ((strikeAt - a.Position).LengthHorizontal < 4f)
+                {
+                    Teleport(a, shrine.Position + new IntVec3(-6, 0, -6), map);
+                }
+                int FiresNear() => map.listerThings.ThingsOfDef(ThingDefOf.Fire).Count(f => (f.Position - strikeAt).LengthHorizontal < 4f);
+                int firesBefore = FiresNear();
+                float hpBefore = raider.health.summaryHealth.SummaryHealthPercent;
+                dp.Add(dp.MaxPower);
+                MiracleUtility.TryCast(lightning, strikeAt, map);
+                Check(raider.Dead || raider.health.summaryHealth.SummaryHealthPercent < hpBefore, "the bolt wounds the enemy");
+                Check(FiresNear() == firesBefore && !raider.HasAttachment(ThingDefOf.Fire), "the bolt starts no fires");
+                if (!raider.Destroyed)
+                {
+                    raider.Destroy();
+                }
             }
             Log.Message(Tag + "  deeds ledger:\n" + alignment.Deeds.TooltipSection("AGM_Alignment_LedgerHeader", asPercent: false));
         }
@@ -601,7 +622,13 @@ namespace ActualGodMode
             dp.DebugSet(dp.MaxPower);
             Check(!hand.CanGrab(standing).Accepted && GodHand.GrabbableAt(standing.Position, map) is Pawn == (standing.Position.GetFirstItem(map) == null),
                 "the starting hand can't lift a colonist: " + hand.CanGrab(standing).Reason);
-            Check(!prog.CanBuy(AGM_ProgressionDefOf.AGM_Track_LiftLiving).Accepted, "lift living things needs Strength first");
+            AcceptanceReport lockedLift = prog.CanBuy(AGM_ProgressionDefOf.AGM_Track_LiftLiving);
+            Check(!lockedLift.Accepted && lockedLift.Reason.IndexOf(AGM_ProgressionDefOf.AGM_Track_Strength.label, System.StringComparison.OrdinalIgnoreCase) >= 0,
+                $"lift living things needs Strength first, and says so ({lockedLift.Reason?.Replace("\n", " ")})");
+            Check(AGM_DefOf.AGM_Shrine.building?.relatedBuildCommands?.Contains(AGM_TempleDefOf.AGM_Pylon) == true,
+                "the shrine offers to build temple things (pylon)");
+            Check(HarmonyLib.Harmony.GetPatchInfo(HarmonyLib.AccessTools.Method(typeof(TooltipGiverList), nameof(TooltipGiverList.DispenseAllThingTooltips)))
+                ?.Prefixes.Any(p => p.owner == ActualGodModeMod.PackageId) == true, "map tooltips are hidden while the hand is out (patched)");
             Check(prog.TryBuy(strength) && GodHand.Capacity > 60f, $"strength rank 1 lifts a person ({GodHand.Capacity:F0} kg)");
             dp.DebugSet(dp.MaxPower);
             Check(prog.TryBuy(AGM_ProgressionDefOf.AGM_Track_LiftLiving) && hand.CanGrab(standing).Accepted, "after buying lift living things the hand can take a colonist");

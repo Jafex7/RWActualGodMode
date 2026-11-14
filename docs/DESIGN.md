@@ -476,8 +476,11 @@ abilities instead of giving them all at once.
 - **Decided: Lightning gets bolts** ("a gun with N bullets"): a charge holds N bolts, each click
   fires one, the charge stays until empty or right-click. Base 1 bolt for 20; ranks e.g. 2 at 18
   each, 3 at 16 each. Each bolt is judged on its own (deed, witnesses, punishment).
-  Balance note: a direct hit does little (vanilla lightning's light fire explosion); consider a
-  stronger divine bolt.
+  **Decided (user, after playtest): a divine bolt, no fire.** Vanilla lightning's flame
+  explosion hurt little and its fires were a nuisance in melee range. Now each pawn in the
+  radius takes a burn (10), enemies of the colony 3x (30); no fires, same look and sound
+  (`WeatherEvent_DivineBolt`, numbers in the `LightningExtension` on the miracle def). Tune
+  after playtest.
 - **Decided: Hand branch.** The starting Hand lifts **items only**. Tracks: **Strength** (lift
   capacity), **Light touch** (cheaper pickup / holding), **Lift living things** (colonists,
   animals, friendly people), **Lift enemies** (needs Lift living things). **Believers no longer
@@ -500,8 +503,14 @@ abilities instead of giving them all at once.
   rules. Rank 1 ~50-60, rank 2 ~120-130, rank 3 ~220, endgame (Lift enemies 350, Heralds
   350/380/400) needs the top temple.
 - **Built**: `PowerTrackDef` (`Defs/Progression/`), `GodProgression` (ranks bought, saved),
-  Powers page (second tab of the Miracles window: branches, rank pips, "now → next", Buy with a
-  confirmation; greyed with the reason when locked, over the cap, or unaffordable).
+  Powers page (second tab of the Divine window: branches, rank pips, "now → next", Buy with a
+  confirmation; greyed out with the reason when locked (listing what to unlock first), over
+  the cap, or unaffordable).
+- **Playtest polish (user):** the main tab is now **Divine** (tabs Miracles | Powers), matching
+  the architect category. Selecting the shrine offers build buttons for the idol, incense
+  burner, offering bowl and pylon (vanilla `relatedBuildCommands`, like a bed's end table).
+  The map's hover tooltips on pawns/things are hidden while the hand is out, so they don't
+  cover the hand's readout.
   Miracle tracks set amount + cost per rank (`MiracleDef.Stats`); Heal is poured (lockTarget)
   and Lightning holds bolts (perClick). Hand: base 40 kg, Strength 70/120/250, Light touch
   75/55/40%, Lift living things (after Strength 1), Lift enemies (350). Influence: Long reach
